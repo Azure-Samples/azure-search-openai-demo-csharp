@@ -1,76 +1,108 @@
-# Contributing to [project-title]
+# Contributing to the project
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+You can contribute to the repository with issues and pull requests (PRs). Simply
+filing issues for problems you encounter is a great way to contribute. Contributing
+code is greatly appreciated.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+## Reporting Issues
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+We always welcome bug reports, API proposals and overall feedback. Here are a few
+tips on how you can make reporting your issue as effective as possible.
 
- - [Code of Conduct](#coc)
- - [Issues and Bugs](#issue)
- - [Feature Requests](#feature)
- - [Submission Guidelines](#submit)
+### Where to Report
 
-## <a name="coc"></a> Code of Conduct
-Help us keep this project open and inclusive. Please read and follow our [Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+New issues can be reported in our
+[list of issues](https://github.com/Azure-Samples/azure-search-openai-demo-csharp/issues).
 
-## <a name="issue"></a> Found an Issue?
-If you find a bug in the source code or a mistake in the documentation, you can help us by
-[submitting an issue](#submit-issue) to the GitHub Repository. Even better, you can
-[submit a Pull Request](#submit-pr) with a fix.
+Before filing a new issue, please search the list of issues to make sure it does
+not already exist.
 
-## <a name="feature"></a> Want a Feature?
-You can *request* a new feature by [submitting an issue](#submit-issue) to the GitHub
-Repository. If you would like to *implement* a new feature, please submit an issue with
-a proposal for your work first, to be sure that we can use it.
+If you do find an existing issue for what you wanted to report, please include
+your own feedback in the discussion. Do consider upvoting (👍 reaction) the original
+post, as this helps us prioritize popular issues in our backlog.
 
-* **Small Features** can be crafted and directly [submitted as a Pull Request](#submit-pr).
+### Writing a Good Bug Report
 
-## <a name="submit"></a> Submission Guidelines
+Good bug reports make it easier for maintainers to verify and root cause the
+underlying problem.
+The better a bug report, the faster the problem will be resolved. Ideally, a bug
+report should contain the following information:
 
-### <a name="submit-issue"></a> Submitting an Issue
-Before you submit an issue, search the archive, maybe your question was already answered.
+- A high-level description of the problem.
+- A _minimal reproduction_, i.e. the smallest size of code/configuration required
+  to reproduce the wrong behavior.
+- A description of the _expected behavior_, contrasted with the _actual behavior_ observed.
+- Information on the environment: OS/distribution, CPU architecture, SDK version, etc.
+- Additional information, e.g. Is it a regression from previous versions? Are there
+  any known workarounds?
 
-If your issue appears to be a bug, and hasn't been reported, open a new issue.
-Help us to maximize the effort we can spend fixing issues and adding new
-features, by not reporting duplicate issues.  Providing the following information will increase the
-chances of your issue being dealt with quickly:
+## Contributing Changes
 
-* **Overview of the Issue** - if an error is being thrown a non-minified stack trace helps
-* **Version** - what version is affected (e.g. 0.1.2)
-* **Motivation for or Use Case** - explain what are you trying to do and why the current behavior is a bug for you
-* **Browsers and Operating System** - is this a problem with all browsers?
-* **Reproduce the Error** - provide a live example or a unambiguous set of steps
-* **Related Issues** - has a similar issue been reported before?
-* **Suggest a Fix** - if you can't fix the bug yourself, perhaps you can point to what might be
-  causing the problem (line of code or commit)
+Project maintainers will merge accepted code changes from contributors.
 
-You can file new issues by providing the above information at the corresponding repository's issues link: https://github.com/[organization-name]/[repository-name]/issues/new].
+### DOs and DON'Ts
 
-### <a name="submit-pr"></a> Submitting a Pull Request (PR)
-Before you submit your Pull Request (PR) consider the following guidelines:
+DO's:
 
-* Search the repository (https://github.com/[organization-name]/[repository-name]/pulls) for an open or closed PR
-  that relates to your submission. You don't want to duplicate effort.
+- **DO** follow the standard
+  [.NET coding style](https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/coding-conventions)
+- **DO** give priority to the current style of the project or file you're changing
+  if it diverges from the general guidelines.
+- **DO** include tests when adding new features. When fixing bugs, start with
+  adding a test that highlights how the current behavior is broken.
+- **DO** keep the discussions focused. When a new or related topic comes up
+  it's often better to create new issue than to side track the discussion.
+- **DO** clearly state on an issue that you are going to take on implementing it.
+- **DO** blog and tweet (or whatever) about your contributions, frequently!
 
-* Make your changes in a new git fork:
+DON'Ts:
 
-* Commit your changes using a descriptive commit message
-* Push your fork to GitHub:
-* In GitHub, create a pull request
-* If we suggest changes then:
-  * Make the required updates.
-  * Rebase your fork and force push to your GitHub repository (this will update your Pull Request):
+- **DON'T** surprise us with big pull requests. Instead, file an issue and start
+  a discussion so we can agree on a direction before you invest a large amount of time.
+- **DON'T** commit code that you didn't write. If you find code that you think is a good
+  fit to add to this project, file an issue and start a discussion before proceeding.
+- **DON'T** submit PRs that alter licensing related files or headers. If you believe
+  there's a problem with them, file an issue and we'll be happy to discuss it.
+- **DON'T** make new APIs without filing an issue and discussing with us first.
 
-    ```shell
-    git rebase master -i
-    git push -f
-    ```
+### Breaking Changes
 
-That's it! Thank you for your contribution!
+Contributions must maintain API signature and behavioral compatibility. Contributions
+that include breaking changes will be rejected. Please file an issue to discuss
+your idea or change if you believe that a breaking change is warranted.
+
+### Suggested Workflow
+
+We use and recommend the following workflow:
+
+1. Create an issue for your work.
+   - You can skip this step for trivial changes.
+   - Reuse an existing issue on the topic, if there is one.
+   - Get agreement from the team and the community that your proposed change is
+     a good one.
+   - Clearly state that you are going to take on implementing it, if that's the case.
+     You can request that the issue be assigned to you. Note: The issue filer and
+     the implementer don't have to be the same person.
+2. Create a personal fork of the repository on GitHub (if you don't already have one).
+3. In your fork, create a branch off of main (`git checkout -b mybranch`).
+   - Name the branch so that it clearly communicates your intentions, such as
+     "issue-123" or "githubhandle-issue".
+4. Make and commit your changes to your branch.
+5. Add new tests corresponding to your change, if applicable.
+6. Build the repository with your changes.
+   - Make sure that the builds are clean.
+   - Make sure that the tests are all passing, including your new tests.
+7. Create a PR against the repository's **main** branch.
+   - State in the description what issue or improvement your change is addressing.
+   - Verify that all the Continuous Integration checks are passing.
+8. Wait for feedback or approval of your changes from the code maintainers.
+9. When area owners have signed off, and all checks are green, your PR will be merged.
+
+### PR - CI Process
+
+The continuous integration (CI) system will automatically perform the required
+builds and run tests (including the ones you are expected to run) for PRs. Builds
+and test runs must be clean.
+
+If the CI build fails for any reason, the PR issue will be updated with a link
+that can be used to determine the cause of the failure.
