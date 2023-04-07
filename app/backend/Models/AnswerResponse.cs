@@ -6,5 +6,5 @@ namespace Backend.Models;
 
 public record class AnswerResponse(
     [property: JsonPropertyName("data_points")] string[] DataPoints,
-    string Answer,
-    string Thoughts);
+    [property: JsonPropertyName("answer")] string Answer,
+    [property: JsonPropertyName("thoughts")] string Thoughts);
