@@ -1,16 +1,19 @@
-﻿namespace Services;
+﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.Text;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
+using Backend.Models;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
-using Microsoft.SemanticKernel.SemanticFunctions;
-using System.Text;
 
-internal sealed class RetrieveThenReadApproachService : IApproachService
+namespace Backend.Services;
+
+public sealed class RetrieveThenReadApproachService
 {
     private readonly SearchClient _searchClient;
-    private const string TEMPLATE = """
+
+    private const string SemanticFunction = """
           You are an intelligent assistant helping Contoso Inc employees with their healthcare plan questions and employee handbook questions.
           Use 'you' to refer to the individual asking the questions even if they ask with 'I'.
           Answer the following question using only the data provided in the sources below.
@@ -34,70 +37,59 @@ internal sealed class RetrieveThenReadApproachService : IApproachService
           Question: {{$question}}?
           
           Sources:
-          {{$retreive}}
+          {{$retrieve}}
           
           Answer:
           """;
+
     private readonly IKernel _kernel;
-    private readonly ISKFunction function;
+    private readonly ISKFunction _function;
 
     public RetrieveThenReadApproachService(SearchClient searchClient, IKernel kernel)
     {
-        _searchClient = searchClient;
-        _kernel = kernel;
-        var promptConfig = new PromptTemplateConfig
-        {
-            Completion =
-            {
-                MaxTokens = 200,
-                Temperature = 0.7,
-                TopP = 0.5,
-            },
-        };
-
-        var promptTemplate = new PromptTemplate(RetrieveThenReadApproachService.TEMPLATE, promptConfig, _kernel);
-        var functionConfig = new SemanticFunctionConfig(promptConfig, promptTemplate);
-        function = _kernel.RegisterSemanticFunction("RetrieveThenRead", functionConfig);
+        this._searchClient = searchClient;
+        this._kernel = kernel;
+        this._function = kernel.CreateSemanticFunction(SemanticFunction, maxTokens: 200, temperature: 0.7, topP: 0.5);
     }
-    public async Task<IApproachService.Reply> RunAsync(ContextVariables variable, PromptTemplateConfig config)
+
+    public async Task<Reply> ReplyAsync(string question)
     {
-        var question = variable["question"];
-        var searchOption = new SearchOptions
+        var searchOption = new SearchOptions { Size = 3 };
+        var documents = await this._searchClient.SearchAsync<SearchDocument>(question, searchOption);
+        if (documents.Value == null)
         {
-            Size = 3,
-        };
-        var documents = await _searchClient.SearchAsync<SearchDocument>(question, searchOption);
-        if (documents.Value != null)
-        {
-            // assemble sources here
-            // example output for each SearchDocument
-            //{
-            // "@search.score": 11.65396,
-            // "id": "Northwind_Standard_Benefits_Details_pdf-60",
-            //  "content": "x-ray, lab, or imaging service, you will likely be responsible for paying a copayment or coinsurance. The exact amount you will be required to pay will depend on the type of service you receive. You can use the Northwind app or website to look up the cost of a particular service before you receive it.\nIn some cases, the Northwind Standard plan may exclude certain diagnostic x-ray, lab, and imaging services. For example, the plan does not cover any services related to cosmetic treatments or procedures. Additionally, the plan does not cover any services for which no diagnosis is provided.\nIt’s important to note that the Northwind Standard plan does not cover any services related to emergency care. This includes diagnostic x-ray, lab, and imaging services that are needed to diagnose an emergency condition. If you have an emergency condition, you will need to seek care at an emergency room or urgent care facility.\nFinally, if you receive diagnostic x-ray, lab, or imaging services from an out-of-network provider, you may be required to pay the full cost of the service. To ensure that you are receiving services from an in-network provider, you can use the Northwind provider search ",
-            //  "category": null,
-            //  "sourcepage": "Northwind_Standard_Benefits_Details-24.pdf",
-            //  "sourcefile": "Northwind_Standard_Benefits_Details.pdf"
-            //}
-            var sb = new StringBuilder();
-            foreach (var doc in documents.Value.GetResults())
-            {
-                string sourcePage = (string)doc.Document["sourcepage"];
-                var content = (string)doc.Document["content"];
-                content = content.Replace('\r', ' ').Replace('\n', ' ');
-                sb.AppendLine($"{sourcePage}:{content}");
-            }
-
-            variable["retreive"] = sb.ToString();
-
-            var answer = await _kernel.RunAsync(variable, function);
-            return new IApproachService.Reply
-            {
-                Answer = answer.ToString(),
-                DataPoints = sb.ToString().Split('\r'),
-                Thoughts = $"question: {question} \r prompt: {variable}",
-            };
+            throw new NotImplementedException();
         }
-        throw new NotImplementedException();
+
+        // assemble sources here
+        // example output for each SearchDocument
+        //{
+        // "@search.score": 11.65396,
+        // "id": "Northwind_Standard_Benefits_Details_pdf-60",
+        //  "content": "x-ray, lab, or imaging service, you will likely be responsible for paying a copayment or coinsurance. The exact amount you will be required to pay will depend on the type of service you receive. You can use the Northwind app or website to look up the cost of a particular service before you receive it.\nIn some cases, the Northwind Standard plan may exclude certain diagnostic x-ray, lab, and imaging services. For example, the plan does not cover any services related to cosmetic treatments or procedures. Additionally, the plan does not cover any services for which no diagnosis is provided.\nIt’s important to note that the Northwind Standard plan does not cover any services related to emergency care. This includes diagnostic x-ray, lab, and imaging services that are needed to diagnose an emergency condition. If you have an emergency condition, you will need to seek care at an emergency room or urgent care facility.\nFinally, if you receive diagnostic x-ray, lab, or imaging services from an out-of-network provider, you may be required to pay the full cost of the service. To ensure that you are receiving services from an in-network provider, you can use the Northwind provider search ",
+        //  "category": null,
+        //  "sourcepage": "Northwind_Standard_Benefits_Details-24.pdf",
+        //  "sourcefile": "Northwind_Standard_Benefits_Details.pdf"
+        //}
+        var sb = new StringBuilder();
+        foreach (var doc in documents.Value.GetResults())
+        {
+            string sourcePage = (string)doc.Document["sourcepage"];
+            var content = (string)doc.Document["content"];
+            content = content.Replace('\r', ' ').Replace('\n', ' ');
+            sb.AppendLine($"{sourcePage}:{content}");
+        }
+
+        var context = this._kernel.CreateNewContext();
+        context["retrieve"] = sb.ToString();
+        context["question"] = question;
+
+        var answer = await this._kernel.RunAsync(context.Variables, this._function);
+        return new Reply
+        {
+            Answer = answer.ToString(),
+            DataPoints = sb.ToString().Split('\r'),
+            Thoughts = $"question: {question} \r prompt: {context.Variables}",
+        };
     }
 }
