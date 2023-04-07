@@ -1,8 +1,10 @@
-﻿namespace Services;
+﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Azure.AI.OpenAI;
 using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.AI.TextCompletion;
+
+namespace Backend.Services;
 
 internal sealed class AzureOpenAITextCompletionService : ITextCompletion
 {
@@ -11,8 +13,8 @@ internal sealed class AzureOpenAITextCompletionService : ITextCompletion
 
     public AzureOpenAITextCompletionService(OpenAIClient openAIClient, string deployedModelName)
     {
-        _openAIClient = openAIClient;
-        _deployedModelName = deployedModelName;
+        this._openAIClient = openAIClient;
+        this._deployedModelName = deployedModelName;
     }
 
     public async Task<string> CompleteAsync(string text, CompleteRequestSettings requestSettings, CancellationToken cancellationToken = default)
@@ -29,7 +31,7 @@ internal sealed class AzureOpenAITextCompletionService : ITextCompletion
         option.FrequencyPenalty = Convert.ToSingle(requestSettings.FrequencyPenalty);
         option.PresencePenalty = Convert.ToSingle(requestSettings.PresencePenalty);
 
-        var response = await _openAIClient.GetCompletionsAsync(_deployedModelName, option, cancellationToken);
+        var response = await this._openAIClient.GetCompletionsAsync(this._deployedModelName, option, cancellationToken);
         if (response.Value is Completions completions && completions.Choices.Count >= 1)
         {
             return completions.Choices.First().Text;
