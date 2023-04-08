@@ -47,15 +47,15 @@ public sealed class RetrieveThenReadApproachService
 
     public RetrieveThenReadApproachService(SearchClient searchClient, IKernel kernel)
     {
-        _searchClient = searchClient;
-        _kernel = kernel;
-        _function = kernel.CreateSemanticFunction(SemanticFunction, maxTokens: 200, temperature: 0.7, topP: 0.5);
+        this._searchClient = searchClient;
+        this._kernel = kernel;
+        this._function = kernel.CreateSemanticFunction(SemanticFunction, maxTokens: 200, temperature: 0.7, topP: 0.5);
     }
 
     public async Task<AnswerResponse> ReplyAsync(string question)
     {
         var searchOption = new SearchOptions { Size = 3 };
-        var documents = await _searchClient.SearchAsync<SearchDocument>(question, searchOption);
+        var documents = await this._searchClient.SearchAsync<SearchDocument>(question, searchOption);
         if (documents.Value == null)
         {
             throw new NotImplementedException();
@@ -80,11 +80,11 @@ public sealed class RetrieveThenReadApproachService
             sb.AppendLine($"{sourcePage}:{content}");
         }
 
-        var context = _kernel.CreateNewContext();
+        var context = this._kernel.CreateNewContext();
         context["retrieve"] = sb.ToString();
         context["question"] = question;
 
-        var answer = await _kernel.RunAsync(context.Variables, _function);
+        var answer = await this._kernel.RunAsync(context.Variables, this._function);
         return new AnswerResponse
         {
             Answer = answer.ToString(),
