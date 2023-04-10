@@ -11,9 +11,9 @@
     <PackageReference Include="Azure.Identity" Version="1.8.2" />
     <PackageReference Include="Azure.Search.Documents" Version="11.4.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.15.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-	<PackageReference Include="Microsoft.SemanticKernel" Version="0.10.72.1-preview" />
-	<PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.5" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="0.10.72.1-preview" />
+    <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.5" />
   </ItemGroup>
 
 </Project>
