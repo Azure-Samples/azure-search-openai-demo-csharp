@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure.AI.OpenAI;
-using Microsoft.SemanticKernel.AI;
-using Microsoft.SemanticKernel.AI.TextCompletion;
-
 namespace Backend.Services;
 
 internal sealed class AzureOpenAITextCompletionService : ITextCompletion

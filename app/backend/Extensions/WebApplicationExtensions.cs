@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure.Storage.Blobs;
-using Backend.Services;
-using Backend.Models;
-
 namespace Backend.Extensions;
 
 internal static class WebApplicationExtensions

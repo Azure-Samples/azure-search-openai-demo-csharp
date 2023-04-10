@@ -1,12 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Text;
-using Azure.Search.Documents;
-using Azure.Search.Documents.Models;
-using Backend.Models;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Orchestration;
-
 namespace Backend.Services;
 
 public sealed class RetrieveThenReadApproachService

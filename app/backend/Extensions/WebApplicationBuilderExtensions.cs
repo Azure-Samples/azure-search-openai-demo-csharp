@@ -1,12 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure.AI.OpenAI;
-using Azure.Identity;
-using Azure.Search.Documents;
-using Azure.Storage.Blobs;
-using Backend.Services;
-using Microsoft.SemanticKernel;
-
 namespace Backend.Extensions;
 
 internal static class WebApplicationBuilderExtensions
