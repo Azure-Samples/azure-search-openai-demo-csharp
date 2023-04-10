@@ -28,7 +28,7 @@ internal static class WebApplicationExtensions
             return Results.NotFound($"{citation} not found");
         }
 
-        return Results.Ok(fileContent);
+        return TypedResults.Ok(fileContent);
     }
 
     private static Task<IResult> OnPostChatAsync() => throw new NotImplementedException();
@@ -39,7 +39,7 @@ internal static class WebApplicationExtensions
         if (request is { Question.Length: > 0 })
         {
             var reply = await service.ReplyAsync(request.Question);
-            return Results.Ok(reply);
+            return TypedResults.Ok(reply);
         }
 
         return Results.BadRequest();

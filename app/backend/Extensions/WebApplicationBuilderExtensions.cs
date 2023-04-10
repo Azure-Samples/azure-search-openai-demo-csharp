@@ -6,6 +6,8 @@ internal static class WebApplicationBuilderExtensions
 {
     internal static WebApplicationBuilder AddAzureServices(this WebApplicationBuilder builder)
     {
+        // TODO: Shouldn't we be using the Azure SDK for .NET's built-in DI APIs?
+
         var azureCredential = new DefaultAzureCredential();
         var azureStorageAccount = builder.Configuration["AZURE_STORAGE_ACCOUNT"];
 
