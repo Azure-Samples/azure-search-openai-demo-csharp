@@ -1,4 +1,4 @@
-﻿<MudDrawer @bind-Open="@Open" Anchor="@Anchor.End" Elevation="5" Color="Color.Dark"
+﻿<MudDrawer @bind-Open="@Open" Anchor="@Anchor.End" Elevation="5"
     Variant="@DrawerVariant.Temporary" Width="25rem">
     <MudDrawerHeader>
         <MudText Typo="Typo.h5">
@@ -38,6 +38,10 @@
         <MudCheckBox @bind-Checked="@_overrides.SemanticCaptions" Size="Size.Large"
                     Color="Color.Primary" 
                     Label="Use query-contrextual summaries instead of whole documents" />
+    
+        <MudCheckBox @bind-Checked="@_overrides.SuggestFollowupQuestions" Size="Size.Large"
+                    Color="Color.Primary" 
+                    Label="Suggest follow up questions" />
     </div>
     <div class="d-flex align-content-end flex-wrap flex-grow-1 pa-6">
         <MudButton Variant="Variant.Filled" Color="Color.Secondary"

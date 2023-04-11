@@ -41,9 +41,9 @@
                             Title="Open the developer settings side panel"
                             OnClick="@(_ => _settingsOpen = _settingsOpen is false)" />
         </MudAppBar>
-        <MudDrawer @bind-Open="_drawerOpen" Elevation="5" Color=Color.Dark id="drawer">
+        <MudDrawer @bind-Open="_drawerOpen" Elevation="5" id="drawer">
             <MudDrawerHeader>
-                <MudImage Src="favicon.png" Alt="Blazor Logo" Width="30" Height="30" Elevation="10" />
+                <MudImage Src="favicon.png" Class="rounded filter-shadow" Alt="Blazor Logo" Width="30" Height="30" Elevation="0" />
                 <MudSpacer />
                 <MudText Typo="Typo.h5" Color=Color.Surface>
                     Blazor OpenAI

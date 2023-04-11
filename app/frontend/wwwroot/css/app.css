@@ -139,3 +139,22 @@ ul, ol {
 .full-width {
     width: 100% !important;
 }
+
+.full-height {
+    height: 100% !important;
+}
+
+.filter-shadow {
+    filter: drop-shadow(1px 1px 10px #555);
+}
+
+.clickable {
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+    .clickable:hover {
+        border-style: inset;
+        border-width: 2px;
+        border-color: var(--mud-palette-primary);
+    }
