@@ -40,7 +40,7 @@ internal static class WebApplicationExtensions
 
     private static async Task<IResult> OnPostChatAsync(ChatRequest request, ReadRetreiveReadChatService service)
     {
-        if(request.Approach == "rrr" && request.History?.Length >0)
+        if (request is { Approach: "rrr", History.Length: > 0 })
         {
             var response = await service.ReplyAsync(request.History, request.Overrides);
             return Results.Ok(response);
