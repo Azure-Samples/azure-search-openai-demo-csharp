@@ -59,7 +59,7 @@ public sealed partial class VoiceDialog : IDisposable
 
     private void OnCancel() => Dialog.Close(DialogResult.Ok(_voicePreferences));
 
-    void IDisposable.Dispose() => SpeechSynthesis.UnsubscribeFromVoicesChanged();
+    public void Dispose() => SpeechSynthesis.UnsubscribeFromVoicesChanged();
 }
 
 internal enum RequestVoiceState

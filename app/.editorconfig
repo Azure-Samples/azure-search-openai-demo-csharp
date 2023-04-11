@@ -114,7 +114,7 @@ dotnet_diagnostic.VSTHRD111.severity = none # Use .ConfigureAwait(bool) is hidde
 
 # Diagnostics elevated as warnings
 dotnet_diagnostic.CA1000.severity = warning # Do not declare static members on generic types
-dotnet_diagnostic.CA1031.severity = warning # Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = suggestion # Do not catch general exception types
 dotnet_diagnostic.CA1032.severity = warning # Add the following constructor to ...Exception: public ...
 dotnet_diagnostic.CA1063.severity = warning # Implement IDisposable correctly
 dotnet_diagnostic.CA1064.severity = warning # Exceptions should be public

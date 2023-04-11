@@ -182,7 +182,7 @@ public sealed class OpenAIPromptQueue
     }
 }
 
-file readonly record struct BufferSegment(
+readonly file record struct BufferSegment(
     bool SawStartingQuote,
     bool SawEndingQuote,
     bool SawEndingComma);

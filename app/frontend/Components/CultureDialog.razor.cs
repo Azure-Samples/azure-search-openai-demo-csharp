@@ -45,7 +45,7 @@ public sealed partial class CultureDialog
         {
             return new RegionInfo(lcid.GetValueOrDefault());
         }
-        catch (Exception ex)
+        catch (ArgumentException ex)
         {
             _ = ex;
             return default!;
