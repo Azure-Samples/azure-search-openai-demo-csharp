@@ -6,6 +6,8 @@ public sealed partial class MainLayout
 {
     private readonly MudTheme _theme = new();
     private bool _drawerOpen = true;
+    private bool _settingsOpen = false;
+
     private bool _isDarkTheme
     {
         get => LocalStorage.GetItem<bool>(StorageKeys.PrefersDarkThemeKey);

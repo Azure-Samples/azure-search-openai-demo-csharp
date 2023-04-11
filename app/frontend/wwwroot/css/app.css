@@ -135,3 +135,7 @@ ul, ol {
 .mud-navmenu > * > a > svg {
     font-size: 2rem;
 }
+
+.full-width {
+    width: 100% !important;
+}

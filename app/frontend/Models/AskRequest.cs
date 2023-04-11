@@ -4,5 +4,5 @@ namespace ClientApp.Models;
 
 public record AskRequest(
     string Question,
-    Approaches Approach,
+    Approach Approach,
     AskRequestOverrides Overrides);

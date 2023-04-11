@@ -2,7 +2,7 @@
 
 namespace ClientApp.Models;
 
-public enum Approaches
+public enum Approach
 {
     RetrieveThenRead,
     ReadRetrieveRead,

@@ -1,0 +1,49 @@
+﻿<MudDrawer @bind-Open="@Open" Anchor="@Anchor.End" Elevation="5" Color="Color.Dark"
+    Variant="@DrawerVariant.Temporary" Width="25rem">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h5">
+            Configure answer generation
+        </MudText>
+    </MudDrawerHeader>
+    <div class="pa-6">
+        <MudText Typo="Typo.subtitle1">Approach</MudText>
+        <MudRadioGroup @bind-SelectedOption="_approach" Class="pa-2">
+            <MudRadio Option="@Approach.RetrieveThenRead" Color="Color.Primary">
+                Retrieve-Then-Read
+            </MudRadio>
+            <MudRadio Option="@Approach.ReadRetrieveRead" Color="Color.Primary">
+                Read-Retrieve-Read
+            </MudRadio>
+            <MudRadio Option="@Approach.ReadDecomposeAsk" Color="Color.Primary">
+                Read-Decompose-Ask
+            </MudRadio>
+        </MudRadioGroup>
+        
+        <MudTextField T="string" Lines="5" Variant="Variant.Outlined"
+            Label="Override prompt template" Placeholder="Override prompt template"  Class="pa-2"
+            @bind-Value="_overrides.PromptTemplate" Clearable="true" />
+
+        <MudNumericField @bind-Value="_overrides.Top" 
+             Class="pa-2" Placeholder="Retrieve this many documents from search"
+             Label="Retrieve this many documents from search" 
+             Variant="Variant.Outlined" Min="1" Max="50" />
+
+        <MudTextField T="string" Variant="Variant.Outlined"
+            Label="Exclude category" Placeholder="Exclude category" Class="pa-2"
+            @bind-Value="_overrides.ExcludeCategory" Clearable="true" />
+
+        <MudCheckBox @bind-Checked="@_overrides.SemanticRanker" Size="Size.Large"
+                    Color="Color.Primary" Label="Use semantic ranker for retrieval" />
+
+        <MudCheckBox @bind-Checked="@_overrides.SemanticCaptions" Size="Size.Large"
+                    Color="Color.Primary" 
+                    Label="Use query-contrextual summaries instead of whole documents" />
+    </div>
+    <div class="d-flex align-content-end flex-wrap flex-grow-1 pa-6">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+            OnClick="@(_ => Open = Open is false)" Size="Size.Large"
+            StartIcon="@Icons.Material.Filled.Close">
+            Close
+        </MudButton>
+    </div>
+</MudDrawer>
