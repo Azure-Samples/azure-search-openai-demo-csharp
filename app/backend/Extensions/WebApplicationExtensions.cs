@@ -43,7 +43,7 @@ internal static class WebApplicationExtensions
         if (request is { Approach: "rrr", History.Length: > 0 })
         {
             var response = await service.ReplyAsync(request.History, request.Overrides);
-            return Results.Ok(response);
+            return TypedResults.Ok(response);
         }
 
         return Results.BadRequest();
