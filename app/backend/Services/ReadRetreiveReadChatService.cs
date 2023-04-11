@@ -84,7 +84,7 @@ public class ReadRetreiveReadChatService
             prompt = ReadRetreiveReadChatService.AnswerPromptTemplate;
 
         }
-        else if(overrides.PromptTemplate is string promptTemplate)
+        else if (overrides.PromptTemplate is string promptTemplate)
         {
             answerFunction = CreateAnswerPromptFunction(promptTemplate, overrides);
             prompt = promptTemplate;
