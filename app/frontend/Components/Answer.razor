@@ -1,0 +1,18 @@
+﻿<MudGrid>
+    <MudItem xs="12" sm="12" md="12" lg="12" xl="12">
+        <MudStack Row="true">
+            <MudIcon Icon="@Icons.Custom.Brands.Awesome" Class="pa-2"
+                     Size="Size.Large" Color="Color.Secondary" />
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.Lightbulb" Class="pa-2"
+                           Color="Color.Primary" OnClick="@OnShowThoughtsClicked"
+                           Title="@ShowThoughts" aria-label="@ShowThoughts" />
+            <MudIconButton Icon="@Icons.Material.Filled.TextSnippet" Class="pa-2"
+                           Color="Color.Primary" OnClick="@OnShowContentClicked"
+                           Title="@ShowContent" aria-label="@ShowContent" />
+        </MudStack>
+    </MudItem>
+    <MudItem xs="12" sm="12" md="12" lg="12" xl="12">
+        ...
+    </MudItem>
+</MudGrid>
