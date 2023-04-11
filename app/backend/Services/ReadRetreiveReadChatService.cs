@@ -91,7 +91,7 @@ public class ReadRetreiveReadChatService
         }
         else
         {
-            throw new ApplicationException("unknown inject prompt");
+            throw new InvalidOperationException("fail to get search result");
         }
 
         var ans = await _kernel.RunAsync(answerContext, answerFunction);
