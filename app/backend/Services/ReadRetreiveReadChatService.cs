@@ -38,9 +38,9 @@ public class ReadRetreiveReadChatService
     public async Task<AnswerResponse> ReplyAsync(ChatTurn[] history, RequestOverrides? overrides)
     {
         var top = overrides?.Top ?? 3;
-        var useSemanticCaptions = overrides.SemanticCaptions ?? false;
-        var useSemanticRanker = overrides.SemanticRanker ?? false;
-        var excludeCategory = overrides.ExcludeCategory ?? null;
+        var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
+        var useSemanticRanker = overrides?.SemanticRanker ?? false;
+        var excludeCategory = overrides?.ExcludeCategory ?? null;
         var filter = excludeCategory is null ? null : $"category ne '{excludeCategory}'";
         // step 1
         // use llm to get query
