@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Net.Http.Headers;
+
 namespace Backend.Extensions;
 
 internal static class WebApplicationExtensions
@@ -15,20 +19,23 @@ internal static class WebApplicationExtensions
         return app;
     }
 
-    private static async Task<IResult> OnGetCitationAsync(string citation, BlobContainerClient client)
+    private static async Task<IResult> OnGetCitationAsync(HttpContext http, string citation, BlobContainerClient client)
     {
         if (await client.ExistsAsync() is { Value: false })
         {
             return Results.NotFound("blob container not found");
         }
 
-        var fileContent = await client.GetBlobClient(citation).DownloadContentAsync();
-        if (fileContent is null)
+        var contentDispositionHeader = new ContentDispositionHeaderValue("inline")
         {
-            return Results.NotFound($"{citation} not found");
-        }
+            FileName = citation,
+        };
 
-        return TypedResults.Ok(fileContent);
+        var contentType = citation.EndsWith(".pdf") ? "application/pdf" : "application/octet-stream";
+
+        http.Response.Headers.ContentDisposition = contentDispositionHeader.ToString();
+
+        return Results.Stream(await client.GetBlobClient(citation).OpenReadAsync(), contentType: contentType);
     }
 
     private static Task<IResult> OnPostChatAsync() => throw new NotImplementedException();
