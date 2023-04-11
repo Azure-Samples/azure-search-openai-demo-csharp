@@ -1,0 +1,65 @@
+﻿@page "/voicechat"
+
+<PageTitle>@Chat</PageTitle>
+
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
+        @if (_isReceivingResponse && _intermediateResponse is null)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="pb-4" />
+        }
+        <MudStack Reverse="true">
+            @foreach (var response in _responses)
+            {
+                <MudPaper Class="pa-3" Elevation="3">
+                    <MudText Typo="Typo.body1">
+                        @((MarkupString)response)
+                    </MudText>
+                </MudPaper>
+            }
+            @if (_intermediateResponse is not null)
+            {
+                <MudPaper Class="pa-3 blue-grey darken-2" Elevation="5" Outlined="true">
+                    <MudText Typo="Typo.body1">
+                        @((MarkupString)_intermediateResponse)
+                    </MudText>
+                </MudPaper>
+            }
+        </MudStack>
+    </MudItem>
+    <MudItem xs="12" Class="mud-elevation-15 rounded">
+        <MudGrid>
+            <MudItem xs="10">
+                <MudTextField @bind-Value="_userPrompt" Label="@(Prompt)"
+                              Variant="Variant.Outlined" Adornment="Adornment.End"
+                              AdornmentIcon="@Icons.Material.Filled.VoiceChat"
+                              AdornmentColor="Color.Secondary" AutoFocus="true"
+                              Placeholder=@ChatPrompt Lines="3"
+                              Disabled=@(_isRecognizingSpeech || _isReceivingResponse) IconSize="Size.Large"
+                              autocomplete="off" title=@ChatPrompt />
+            </MudItem>
+            <MudItem xs="1">
+                <MudStack Class="justify-center align-content-center flex-wrap flex-grow-1 pt-1">
+                    <MudFab Color="Color.Info" Label=@(_isRecognizingSpeech ? Stop : Speak) Size="Size.Medium"
+                            StartIcon=@(_isRecognizingSpeech ? @Icons.Material.Filled.MicOff : Icons.Material.Filled.Mic)
+                            OnClick="@OnRecognizeSpeechClick" Disabled=@_isReceivingResponse />
+
+                    <MudFab Color="Color.Secondary" Label="@(Ask)" Size="Size.Medium"
+                            StartIcon=@Icons.Material.Filled.Send
+                            OnClick="@OnSendPrompt" Disabled=@(_isRecognizingSpeech || _isReceivingResponse) />
+                </MudStack>
+            </MudItem>
+            <MudItem xs="1">
+                <MudStack Class="justify-center align-content-center flex-wrap flex-grow-1 pt-1">
+                    <MudFab Color="Color.Error" Size="Size.Small"
+                            StartIcon="@Icons.Material.Filled.Stop"
+                            OnClick="@StopTalking" Disabled=@(_isReadingResponse is false) />
+
+                    <MudFab Color="Color.Tertiary" Size="Size.Small"
+                            StartIcon="@Icons.Material.Filled.Settings"
+                            OnClick="@ShowVoiceDialogAsync" />
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudItem>
+</MudGrid>

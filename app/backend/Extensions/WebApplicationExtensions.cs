@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Net.Http.Headers;
-
-namespace Backend.Extensions;
+namespace MinimalApi.Extensions;
 
 internal static class WebApplicationExtensions
 {
@@ -14,6 +10,7 @@ internal static class WebApplicationExtensions
 
         api.MapGet("content/{citation}", OnGetCitationAsync);
         api.MapPost("chat", OnPostChatAsync);
+        api.MapPost("openai/chat", OnPostChatPromptAsync);
         api.MapPost("ask", OnPostAskAsync);
 
         return app;
@@ -31,13 +28,43 @@ internal static class WebApplicationExtensions
             FileName = citation,
         };
 
-        var contentType = citation.EndsWith(".pdf") ? "application/pdf" : "application/octet-stream";
-
         http.Response.Headers.ContentDisposition = contentDispositionHeader.ToString();
+        var contentType = citation.EndsWith(".pdf") ? "application/pdf" : "application/octet-stream";
 
         return Results.Stream(await client.GetBlobClient(citation).OpenReadAsync(), contentType: contentType);
     }
 
+    private static async IAsyncEnumerable<string> OnPostChatPromptAsync(
+        ChatPromptRequest prompt, OpenAIClient client, IConfiguration config)
+    {
+        var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
+        var response = await client.GetChatCompletionsStreamingAsync(
+            deploymentId, new ChatCompletionsOptions
+            {
+                Messages =
+                {
+                    new ChatMessage(ChatRole.System, """
+                        You're an AI assistant for developers, helping them write code more efficiently.
+                        You're name is 'Blazor Clippy'.
+                        You will always reply with a Markdown formatted response.
+                        """),
+                    new ChatMessage(ChatRole.User, "What's your name?"),
+                    new ChatMessage(ChatRole.Assistant,
+                        "Hi, my name is **Blazor Clippy**! Nice to meet you."),
+
+                    new ChatMessage(ChatRole.User, prompt.Prompt)
+                }
+            });
+
+        using var completions = response.Value;
+        await foreach (var choice in completions.GetChoicesStreaming())
+        {
+            await foreach (var message in choice.GetMessageStreaming())
+            {
+                yield return message.Content;
+            }
+        }
+    }
     private static async Task<IResult> OnPostChatAsync(ChatRequest request, ReadRetrieveReadChatService service)
     {
         if (request is { Approach: "rrr", History.Length: > 0 })

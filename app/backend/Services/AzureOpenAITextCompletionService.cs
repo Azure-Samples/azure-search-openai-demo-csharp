@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace Backend.Services;
+namespace MinimalApi.Services;
 
 public sealed class AzureOpenAITextCompletionService : ITextCompletion
 {

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace Backend.Models;
+namespace MinimalApi.Models;
 
 public record class AnswerResponse(
     [property: JsonPropertyName("data_points")] string[] DataPoints,

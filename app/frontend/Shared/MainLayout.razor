@@ -1,0 +1,56 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider @bind-IsDarkMode="@_isDarkTheme" Theme="_theme" />
+<MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Small"
+                   CloseButton="true"
+                   DisableBackdropClick="true"
+                   Position="DialogPosition.Center"
+                   CloseOnEscapeKey="false" />
+<MudSnackbarProvider />
+
+<HeadContent>
+    @if (_isDarkTheme)
+    {
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/github-dark-dimmed.min.css">
+    }
+    else
+    {
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/default.min.css">
+    }
+    </HeadContent>
+    <MudRTLProvider RightToLeft="_isRightToLeft">
+        <MudLayout class="@(_isRightToLeft ? "rtl-lang" : "")">
+            <MudAppBar Elevation="20">
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" id="nav-toggle"
+                               Title="@ToggleNavBar"
+                               Size="Size.Large" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                <MudSpacer />
+                <MudToggleIconButton Toggled="@_isDarkTheme" ToggledChanged=@OnToggledChanged Size="Size.Large"
+                                     ToggledSize="Size.Large"
+                                     Title="@SwitchToDarkTheme" Icon=@Icons.Material.Outlined.DarkMode Color=@Color.Inherit
+                                     ToggledTitle="@SwitchToLightTheme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Default />
+                <MudIconButton Icon="@Icons.Material.Filled.Language" Color="Color.Inherit" Size="Size.Large"
+                               OnClick="@ShowCultureDialog" Title="@SelectLanguageTitle" id="select-language" />
+                <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Size="Size.Large"
+                               Title="@VisitGitHubRepository"
+                               Href="https://github.com/Azure-Samples/azure-search-openai-demo-csharp" Target="_blank" />
+            </MudAppBar>
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="5" Color=Color.Dark id="drawer">
+                <MudDrawerHeader>
+                    <MudImage Src="favicon.png" Alt="Blazor Logo" Width="30" Height="30" Elevation="10" />
+                    <MudSpacer />
+                    <MudText Typo="Typo.h5" Color=Color.Surface>
+                        Blazor OpenAI
+                    </MudText>
+                </MudDrawerHeader>
+                <NavMenu />
+            </MudDrawer>
+            <MudMainContent>
+                <MudContainer MaxWidth="MaxWidth.Large" Class="my-6 pt-6">
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </MudLayout>
+    </MudRTLProvider>

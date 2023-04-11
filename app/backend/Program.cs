@@ -2,11 +2,11 @@
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers(); // Do we still need this call?
 // See: https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.AddCrossOriginResourceSharing();
 builder.AddAzureServices();
 
 var app = builder.Build();
@@ -17,8 +17,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
+app.UseCors();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.MapApi();

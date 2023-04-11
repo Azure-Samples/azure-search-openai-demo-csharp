@@ -5,49 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Flask",
-            "type": "python",
+            "name": "Frontend: Blazor client",
+            "type": "coreclr",
             "request": "launch",
-            "module": "flask",
-            "cwd": "${workspaceFolder}/app/backend",
-            "env": {
-                "FLASK_APP": "app.py",
-                "FLASK_ENV": "development",
-                "FLASK_DEBUG": "0"
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/app/frontend/bin/Debug/net7.0/ClientApp.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
-            "args": [
-                "run",
-                "--no-debugger",
-                "--no-reload",
-                "-p 5000"
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "envFile": "${input:dotEnvFilePath}",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "envFile": "${input:dotEnvFilePath}"
         },
         {
-            "name": "Frontend: watch",
-            "type": "node",
+            "name": "Backend: Minimal API",
+            "type": "coreclr",
             "request": "launch",
-            "cwd": "${workspaceFolder}/app/frontend",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run-script",
-                "watch"
-            ],
-            "console": "integratedTerminal",
-        },
-        {
-            "name": "Frontend: build",
-            "type": "node",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/app/frontend",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run-script",
-                "build"
-            ],
-            "console": "integratedTerminal",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/app/backend/bin/Debug/net7.0/MinimalApi.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "envFile": "${input:dotEnvFilePath}"
         }
     ],
     "inputs": [

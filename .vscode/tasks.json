@@ -2,19 +2,29 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Start App",
-            "type": "dotenv",
-            "targetTasks": [
-                "Start App (Script)"
-            ],
-            "file": "${input:dotEnvFilePath}"
+            "label": "build backend",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/app/backend"
+            ]
         },
         {
-            "label": "Start App (Script)",
+            "label": "build frontend",
             "type": "shell",
-            "command": "${workspaceFolder}/app/start.sh",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/app/frontend"
+            ]
+        },
+        {
+            "label": "map env vars",
+            "type": "shell",
+            "command": "${workspaceFolder}/app/map-env.sh",
             "windows": {
-                "command": "pwsh ${workspaceFolder}/app/start.ps1"
+                "command": "pwsh ${workspaceFolder}/app/map-env.ps1"
             },
             "presentation": {
                 "reveal": "silent"
@@ -23,7 +33,11 @@
                 "cwd": "${workspaceFolder}/app"
             },
             "problemMatcher": []
-        }
+        },
+        {
+            "label": "build",
+            "dependsOn": ["map env vars", "build backend", "build frontend"]
+        },
     ],
     "inputs": [
         {
