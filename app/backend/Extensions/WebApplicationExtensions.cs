@@ -46,7 +46,7 @@ internal static class WebApplicationExtensions
             return Results.Ok(response);
         }
 
-        return TypedResults.BadRequest();
+        return Results.BadRequest();
     }
 
     private static async Task<IResult> OnPostAskAsync(
