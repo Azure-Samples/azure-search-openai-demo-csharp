@@ -42,15 +42,25 @@ public class ReadRetreiveReadChatService
         var useSemanticRanker = overrides?.SemanticRanker ?? false;
         var excludeCategory = overrides?.ExcludeCategory ?? null;
         var filter = excludeCategory is null ? null : $"category ne '{excludeCategory}'";
+
         // step 1
         // use llm to get query
-
-        var queryFunction = CreateQueryPromptFunction(history, overrides);
+        var queryFunction = CreateQueryPromptFunction(history);
         var context = new ContextVariables();
         var historyText = Utils.GetChatHistoryAsText(history, includeLastTurn: false);
         context["chat_history"] = historyText;
-        context["question"] = history.Last().User;
+        var userQuestion = history.LastOrDefault()?.User;
+        if (userQuestion is null)
+        {
+            throw new InvalidOperationException("user question is null");
+        }
+        else
+        {
+            context["question"] = userQuestion;
+        }
+
         var query = await _kernel.RunAsync(context, queryFunction);
+
         // step 2
         // use query to search related docs
         var  documentContents = await Utils.QueryDocumentsAsync(query.Result, _searchClient, top, filter, useSemanticRanker, useSemanticCaptions);
@@ -62,7 +72,7 @@ public class ReadRetreiveReadChatService
         string prompt;
         answerContext["chat_history"] = Utils.GetChatHistoryAsText(history);
         answerContext["sources"] = documentContents;
-        if (overrides.SuggestFollowupQuestions is true)
+        if (overrides?.SuggestFollowupQuestions is true)
         {
             answerContext["follow_up_questions_prompt"] = ReadRetreiveReadChatService.FollowUpQuestionsPrompt;
         }
@@ -71,7 +81,7 @@ public class ReadRetreiveReadChatService
             answerContext["follow_up_questions_prompt"] = string.Empty;         
         }
 
-        if (overrides.PromptTemplate is null)
+        if (overrides?.PromptTemplate is null)
         {
             answerContext["$injected_prompt"] = string.Empty;
             answerFunction = CreateAnswerPromptFunction(ReadRetreiveReadChatService.AnswerPromptTemplate, overrides);
@@ -96,13 +106,14 @@ public class ReadRetreiveReadChatService
 
         var ans = await _kernel.RunAsync(answerContext, answerFunction);
         prompt = await _kernel.PromptTemplateEngine.RenderAsync(prompt, ans);
+
         return new AnswerResponse(
             DataPoints: documentContents.Split('\r'),
             Answer: ans.Result,
             Thoughts: $"Searched for:<br>{query}<br><br>Prompt:<br>{prompt.Replace("\n", "<br>")}");
     }
 
-    private ISKFunction CreateQueryPromptFunction(ChatTurn[] history, RequestOverrides overrides)
+    private ISKFunction CreateQueryPromptFunction(ChatTurn[] history)
     {
         var queryPromptTemplate = """
             Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base about employee healthcare plans and the employee handbook.
