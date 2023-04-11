@@ -53,7 +53,7 @@ public static class Utils
             var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption);
             if (searchResultResponse.Value is null)
             {
-                throw new ApplicationException("fail to get search result");
+                throw new InvalidOperationException("fail to get search result");
             }
 
             searchResult = searchResultResponse.Value;
