@@ -6,7 +6,7 @@
     <MudItem xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
         @if (_isReceivingResponse && _intermediateResponse is null)
         {
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="pb-4" />
+            <Loading />
         }
         <MudStack Reverse="true">
             @foreach (var response in _responses)
@@ -19,7 +19,7 @@
             }
             @if (_intermediateResponse is not null)
             {
-                <MudPaper Class="pa-3 blue-grey darken-2" Elevation="5" Outlined="true">
+                <MudPaper Class="pa-3" Elevation="5" Outlined="true">
                     <MudText Typo="Typo.body1">
                         @((MarkupString)_intermediateResponse)
                     </MudText>

@@ -5,5 +5,6 @@ namespace ClientApp;
 internal static class StorageKeys
 {
     internal const string AppCultureKey = "blazor-openai-client-culture";
-    internal const string PrefersDarkThemeKey = "prefers-dark-scheme";
+    internal const string ApproachKey = "blazor-openai-client-approach";
+    internal const string PrefersDarkThemeKey = "prefers-dark-scheme";    
 }

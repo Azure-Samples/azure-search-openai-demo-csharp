@@ -4,21 +4,25 @@
 
 <MudGrid Justify="Justify.Center">
     <MudItem xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
-        @if (_isReceivingResponse && _intermediateResponse is null)
+        @if (_isReceivingResponse)
         {
-            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="pb-2">
-                Thinking about how I should reply...
-            </MudText>
-            <MudProgressCircular Color="Color.Secondary" Indeterminate="true" Class="pb-4" />
+            <Loading />
         }
-        <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
-            <Examples />
-        </div>
+        else if (_askResponse is null )
+        {
+            <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
+                <Examples OnExampleClicked="@OnExampleClickedAsync" />
+            </div>
+        }
+        else
+        {
+            <Answer Retort="@_askResponse" />
+        }
     </MudItem>
     <MudItem xs="12" Class="rounded">
         <MudGrid>
             <MudItem xs="11">
-                <MudTextField @bind-Value="_userPrompt" Label="Question"
+                <MudTextField @bind-Value="_userQuestion" Label="Question"
                               Variant="Variant.Outlined" Adornment="Adornment.End"
                               AdornmentIcon="@Icons.Material.Filled.QuestionAnswer"
                               AdornmentColor="Color.Secondary" AutoFocus="true"
@@ -29,7 +33,7 @@
             <MudItem xs="1" Class="flex align-self-center">
                 <MudFab Color="Color.Secondary" Size="Size.Large"
                         StartIcon=@Icons.Material.Filled.Send
-                        OnClick="@(() => { })" Disabled=@_isReceivingResponse />
+                        OnClick="@OnAskClickedAsync" Disabled=@_isReceivingResponse />
             </MudItem>
         </MudGrid>
     </MudItem>

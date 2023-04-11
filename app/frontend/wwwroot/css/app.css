@@ -156,5 +156,5 @@ ul, ol {
     .clickable:hover {
         border-style: inset;
         border-width: 2px;
-        border-color: var(--mud-palette-primary);
+        border-color: var(--mud-palette-secondary);
     }
