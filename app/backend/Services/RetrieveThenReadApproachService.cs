@@ -48,47 +48,7 @@ public sealed class RetrieveThenReadApproachService
 
     public async Task<AnswerResponse> ReplyAsync(string question)
     {
-        var documents =
-            await _searchClient.SearchAsync<SearchDocument>(
-                question, new SearchOptions { Size = 3 });
-        if (documents.Value is null)
-        {
-            throw new NotImplementedException();
-        }
-
-        // Assemble sources here.
-        // Example output for each SearchDocument:
-        // {
-        //   "@search.score": 11.65396,
-        //   "id": "Northwind_Standard_Benefits_Details_pdf-60",
-        //   "content": "x-ray, lab, or imaging service, you will likely be responsible for paying a copayment or coinsurance. The exact amount you will be required to pay will depend on the type of service you receive. You can use the Northwind app or website to look up the cost of a particular service before you receive it.\nIn some cases, the Northwind Standard plan may exclude certain diagnostic x-ray, lab, and imaging services. For example, the plan does not cover any services related to cosmetic treatments or procedures. Additionally, the plan does not cover any services for which no diagnosis is provided.\nIt’s important to note that the Northwind Standard plan does not cover any services related to emergency care. This includes diagnostic x-ray, lab, and imaging services that are needed to diagnose an emergency condition. If you have an emergency condition, you will need to seek care at an emergency room or urgent care facility.\nFinally, if you receive diagnostic x-ray, lab, or imaging services from an out-of-network provider, you may be required to pay the full cost of the service. To ensure that you are receiving services from an in-network provider, you can use the Northwind provider search ",
-        //   "category": null,
-        //   "sourcepage": "Northwind_Standard_Benefits_Details-24.pdf",
-        //   "sourcefile": "Northwind_Standard_Benefits_Details.pdf"
-        // }
-        var sb = new StringBuilder();
-        foreach (var doc in documents.Value.GetResults())
-        {
-            var sourcePage = TryGetDocumentValue(doc.Document, "sourcepage");
-            var content = TryGetDocumentValue(doc.Document, "content");
-            if (sourcePage is not null && content is not null)
-            {
-                content = content.Replace('\r', ' ').Replace('\n', ' ');
-                sb.AppendLine($"{sourcePage}:{content}");
-            }            
-        }
-
-        static string? TryGetDocumentValue(SearchDocument document, string key)
-        {
-            if (document.TryGetValue(key, out var value))
-            {
-                return value as string;
-            }
-
-            return null;
-        }
-
-        var text = sb.ToString();
+        var text = await Utils.QueryDocumentsAsync(question, _searchClient);
         var context = _kernel.CreateNewContext();
         context["retrieve"] = text;
         context["question"] = question;

@@ -53,48 +53,7 @@ public class ReadRetreiveReadChatService
         var query = await _kernel.RunAsync(context, queryFunction);
         // step 2
         // use query to search related docs
-        SearchResults<SearchDocument> searchResult;
-        var documentContents = string.Empty;
-        if (useSemanticRanker)
-        {
-            throw new NotImplementedException();
-        }
-        else
-        {
-            var searchOption = new SearchOptions
-            {
-                Filter = filter,
-                Size = top,
-            };
-            var searchResultResponse = await _searchClient.SearchAsync<SearchDocument>(query.Result, searchOption);
-            if(searchResultResponse.Value is null)
-            {
-                throw new ApplicationException("fail to get search result");
-            }
-
-            searchResult = searchResultResponse.Value;
-            if (useSemanticCaptions)
-            {
-                throw new NotImplementedException();
-            }
-            else
-            {
-                // TODO
-                // pull out as helper function
-                var sb = new StringBuilder();
-                foreach (var doc in searchResult.GetResults())
-                {
-                    doc.Document.TryGetValue("sourcepage", out var sourcePageValue);
-                    doc.Document.TryGetValue("content", out var contentValue);
-                    if (sourcePageValue is string sourcePage && contentValue is string content)
-                    {
-                        content = content.Replace('\r', ' ').Replace('\n', ' ');
-                        sb.AppendLine($"{sourcePage}:{content}");
-                    }
-                }
-                documentContents = sb.ToString();
-            }
-        }
+        var  documentContents = await Utils.QueryDocumentsAsync(query.Result, _searchClient, top, filter, useSemanticRanker, useSemanticCaptions);
 
         // step 3
         // use llm to get answer
