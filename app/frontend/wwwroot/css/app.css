@@ -166,3 +166,12 @@ iframe {
 .icon-huge {
     font-size: 4rem;
 }
+
+.dim {
+    filter: brightness(90%);
+}
+
+    .dim:hover {
+        transition: all 0.5s ease-out;
+        filter: brightness(95%);
+    }
