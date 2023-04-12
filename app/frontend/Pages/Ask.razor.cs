@@ -7,7 +7,7 @@ public sealed partial class Ask
     private string _userQuestion = "";
     private string _lastReferenceQuestion = "";
     private bool _isReceivingResponse = false;
-    private AskRespone? _askResponse = null;
+    private AskResponse? _askResponse = null;
 
     private Approach _approach;
 
@@ -17,7 +17,7 @@ public sealed partial class Ask
     protected override void OnInitialized()
     {
         _approach =
-            SessionStorage.GetItem<Approach?>(StorageKeys.ApproachKey) is { } approach
+            SessionStorage.GetItem<Approach?>(StorageKeys.ClientApproach) is { } approach
                 ? approach
                 : Approach.RetrieveThenRead;
     }
@@ -47,7 +47,7 @@ public sealed partial class Ask
 
             if (response.IsSuccessStatusCode)
             {
-                _askResponse = await response.Content.ReadFromJsonAsync<AskRespone>();
+                _askResponse = await response.Content.ReadFromJsonAsync<AskResponse>();
             }
             else
             {

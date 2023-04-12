@@ -2,7 +2,7 @@
 
 namespace ClientApp.Models;
 
-public record AskRespone(
+public record AskResponse(
     string Answer,
     string? Thoughts,
     string[] DataPoints,

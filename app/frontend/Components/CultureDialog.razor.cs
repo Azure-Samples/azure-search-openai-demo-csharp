@@ -29,7 +29,7 @@ public sealed partial class CultureDialog
         if (CultureInfo.CurrentCulture != _selectedCulture)
         {
             CultureInfo.CurrentCulture = _selectedCulture;
-            LocalStorage.SetItem(StorageKeys.AppCultureKey, _selectedCulture.Name);
+            LocalStorage.SetItem(StorageKeys.ClientCulture, _selectedCulture.Name);
             Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
         }
     }

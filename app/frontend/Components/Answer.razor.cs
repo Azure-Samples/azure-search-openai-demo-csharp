@@ -4,7 +4,7 @@ namespace ClientApp.Components;
 
 public sealed partial class Answer
 {
-    [Parameter, EditorRequired] public required AskRespone Retort { get; set; }
+    [Parameter, EditorRequired] public required AskResponse Retort { get; set; }
 
     [Inject] public required IDialogService Dialog { get; set; }
 

@@ -1,5 +1,7 @@
 ﻿@page "/ask"
 
+<!-- This page is intended for single-shot Q&A. -->
+
 <PageTitle>Ask Questions</PageTitle>
 
 <MudGrid Justify="Justify.Center">
@@ -8,7 +10,7 @@
         {
             <Loading />
         }
-        else if (_askResponse is null )
+        else if (_askResponse is null)
         {
             <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
                 <Examples OnExampleClicked="@OnExampleClickedAsync" />

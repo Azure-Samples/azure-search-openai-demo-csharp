@@ -10,8 +10,8 @@ public sealed partial class MainLayout
 
     private bool _isDarkTheme
     {
-        get => LocalStorage.GetItem<bool>(StorageKeys.PrefersDarkThemeKey);
-        set => LocalStorage.SetItem<bool>(StorageKeys.PrefersDarkThemeKey, value);
+        get => LocalStorage.GetItem<bool>(StorageKeys.PrefersDarkTheme);
+        set => LocalStorage.SetItem<bool>(StorageKeys.PrefersDarkTheme, value);
     }
 
     private bool _isRightToLeft =>
