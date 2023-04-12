@@ -158,3 +158,8 @@ ul, ol {
         border-width: 2px;
         border-color: var(--mud-palette-secondary);
     }
+
+iframe {
+    min-height: 60vh;
+    min-width: 100%;
+}

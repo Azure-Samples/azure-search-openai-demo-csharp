@@ -1,0 +1,10 @@
+﻿<MudDialog DisableSidePadding="true">
+    <DialogContent>
+        <MudContainer Style="min-height: 60vh; max-height: 75vh; overflow-y: scroll">
+            <iframe src=@($"https://localhost:7181/api/content/{Title}#view-fitH") width="100%" title="@Title" />
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@OnCloseClick">Close</MudButton>
+    </DialogActions>
+</MudDialog>

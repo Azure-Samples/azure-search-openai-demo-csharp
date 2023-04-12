@@ -46,10 +46,10 @@ public sealed partial class Answer
             followupQuestions);
     }
 
-    [GeneratedRegex("<<([^>>]+)>>", RegexOptions.Multiline | RegexOptions.Compiled)]
+    [GeneratedRegex(@"<<([^>>]+)>>", RegexOptions.Multiline | RegexOptions.Compiled)]
     private static partial Regex ReplacementRegex();
     
-    [GeneratedRegex("\\[[^\\]]+\\]", RegexOptions.Multiline | RegexOptions.Compiled)]
+    [GeneratedRegex(@"\[([^\]]+)\]", RegexOptions.Multiline | RegexOptions.Compiled)]
     private static partial Regex SplitRegex();
 }
 

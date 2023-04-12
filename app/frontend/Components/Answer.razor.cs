@@ -6,7 +6,10 @@ public sealed partial class Answer
 {
     [Parameter, EditorRequired] public required AskRespone Retort { get; set; }
 
+    [Inject] public required IDialogService Dialog { get; set; }
+
     [Inject] public required IStringLocalizer<Answer> Localizer { get; set; }
+
 
     private HtmlParsedAnswer? _parsedAnswer; 
 
@@ -20,6 +23,20 @@ public sealed partial class Answer
         base.OnParametersSet();
     }
 
-    private void OnShowThoughtsClicked() { }
-    private void OnShowContentClicked() { }
+    private void OnShowCitation(CitationDetails citation)
+    {
+        Dialog.Show<PdfViewerDialog>(
+            citation.Name,
+            new DialogParameters
+            {
+                [nameof(PdfViewerDialog.Title)] = citation.Name,
+            },
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Large,
+                FullWidth = true,
+                CloseButton = true,
+                CloseOnEscapeKey = true
+            });
+    }
 }
