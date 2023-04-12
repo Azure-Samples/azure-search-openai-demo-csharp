@@ -24,14 +24,14 @@ public sealed class OpenAIPromptQueue
             try
             {
                 var json = JsonSerializer.Serialize(
-                    new ChatPrompt { Prompt = prompt },
+                    new ChatPromptRequest { Prompt = prompt },
                     new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
                 using var body = new StringContent(json, Encoding.UTF8, "application/json");
                 using var scope = _provider.CreateScope();
 
                 var client = scope.ServiceProvider.GetRequiredService<HttpClient>();
-                var response = await client.PostAsync("api/chat", body);
+                var response = await client.PostAsync("api/openai/chat", body);
 
                 if (response.IsSuccessStatusCode)
                 {

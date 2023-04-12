@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace ClientApp.Models;
+namespace Shared.Models;
 
-public record AskResponse(
+public record ApproachResponse(
     string Answer,
     string? Thoughts,
     string[] DataPoints,
-    string? Error);
+    string? Error = null);

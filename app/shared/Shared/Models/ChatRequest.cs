@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace ClientApp.Models;
+namespace Shared.Models;
 
 public record ChatRequest(
     ChatTurn[] History,
     Approach Approach,
-    AskRequestOverrides? Overrides);
+    RequestOverrides? Overrides = null);

@@ -65,12 +65,24 @@ internal static class WebApplicationExtensions
             }
         }
     }
-    private static async Task<IResult> OnPostChatAsync(ChatRequest request, ReadRetrieveReadChatService service)
+    
+    private static async Task<IResult> OnPostChatAsync(ChatRequest request, IServiceProvider sp)
     {
-        if (request is { Approach: "rrr", History.Length: > 0 })
+        if (request is { History.Length: > 0 })
         {
-            var response = await service.ReplyAsync(request.History, request.Overrides);
-            return TypedResults.Ok(response);
+            if (request.Approach is Approach.RetrieveThenRead)
+            {
+                var service = sp.GetRequiredService<RetrieveThenReadApproachService>();
+                var question = request.History[^1].User;
+                var response = await service.ReplyAsync(question);
+                return TypedResults.Ok(response);
+            }
+            else if (request.Approach is Approach.ReadRetrieveRead)
+            {
+                var service = sp.GetRequiredService<ReadRetrieveReadChatService>();
+                var response = await service.ReplyAsync(request.History, request.Overrides); ;
+                return TypedResults.Ok(response);
+            }           
         }
 
         return Results.BadRequest();

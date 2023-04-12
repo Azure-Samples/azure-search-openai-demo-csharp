@@ -30,19 +30,12 @@ public sealed partial class VoiceChat : IDisposable
     [Inject] public required IStringLocalizer<VoiceChat> Localizer { get; set; }
 
     private string Prompt => Localizer[nameof(Prompt)];
-
     private string Save => Localizer[nameof(Save)];
-
     private string Speak => Localizer[nameof(Speak)];
-
     private string Stop => Localizer[nameof(Stop)];
-
     private string Chat => Localizer[nameof(Chat)];
-
     private string ChatPrompt => Localizer[nameof(ChatPrompt)];
-
     private string Ask => Localizer[nameof(Ask)];
-
     private string TTSPreferences => Localizer[nameof(TTSPreferences)];
 
     protected override void OnInitialized()

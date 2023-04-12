@@ -46,7 +46,7 @@ public sealed class RetrieveThenReadApproachService
             SemanticFunction, maxTokens: 200, temperature: 0.7, topP: 0.5);
     }
 
-    public async Task<AnswerResponse> ReplyAsync(string question)
+    public async Task<ApproachResponse> ReplyAsync(string question)
     {
         var text = await Utils.QueryDocumentsAsync(question, _searchClient);
         var context = _kernel.CreateNewContext();
@@ -54,9 +54,9 @@ public sealed class RetrieveThenReadApproachService
         context["question"] = question;
 
         var answer = await _kernel.RunAsync(context.Variables, _function);
-        return new AnswerResponse(
+        return new ApproachResponse(
             DataPoints: text.Split('\r'),
             Answer: answer.ToString(),
-            Thoughts: $"question: {question} \r prompt: {context.Variables}");
+            Thoughts: $"Question: {question} \r Prompt: {context.Variables}");
     }
 }

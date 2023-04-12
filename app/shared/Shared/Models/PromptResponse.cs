@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace ClientApp.Models;
+namespace Shared.Models;
 
 public record PromptResponse(string Prompt, string Response, bool IsComplete = false);

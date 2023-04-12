@@ -10,7 +10,7 @@
         {
             <Loading />
         }
-        else if (_askResponse is null)
+        else if (_approachResponse is null)
         {
             <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
                 <Examples OnExampleClicked="@OnExampleClickedAsync" />
@@ -18,7 +18,7 @@
         }
         else
         {
-            <Answer Retort="@_askResponse" FollowupQuestionClicked="@OnFollowupQuestionClickedAsync" />
+            <Answer Retort="@_approachResponse" FollowupQuestionClicked="@OnFollowupQuestionClickedAsync" />
         }
     </MudItem>
     <MudItem xs="12" Class="rounded">

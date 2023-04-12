@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace Backend.Services;
+namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService
 {
@@ -33,7 +33,7 @@ public class ReadRetrieveReadChatService
         _kernel = kernel;
     }
 
-    public async Task<AnswerResponse> ReplyAsync(ChatTurn[] history, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(ChatTurn[] history, RequestOverrides? overrides)
     {
         var top = overrides?.Top ?? 3;
         var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
@@ -79,7 +79,7 @@ public class ReadRetrieveReadChatService
             answerContext["follow_up_questions_prompt"] = string.Empty;         
         }
 
-        if (overrides is not null and { PromptTemplate: null })
+        if (overrides is null or { PromptTemplate: null })
         {
             answerContext["$injected_prompt"] = string.Empty;
             answerFunction = CreateAnswerPromptFunction(ReadRetrieveReadChatService.AnswerPromptTemplate, overrides);
@@ -104,7 +104,7 @@ public class ReadRetrieveReadChatService
         var ans = await _kernel.RunAsync(answerContext, answerFunction);
         prompt = await _kernel.PromptTemplateEngine.RenderAsync(prompt, ans);
 
-        return new AnswerResponse(
+        return new ApproachResponse(
             DataPoints: documentContents.Split('\r'),
             Answer: ans.Result,
             Thoughts: $"Searched for:<br>{query}<br><br>Prompt:<br>{prompt.Replace("\n", "<br>")}");

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace MinimalApi.Models;
+namespace Shared.Models;
 
 public class ChatPromptRequest
 {

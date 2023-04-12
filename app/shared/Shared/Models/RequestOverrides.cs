@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace ClientApp.Models;
+namespace Shared.Models;
 
-public record AskRequestOverrides
+public record RequestOverrides
 {
     public bool? SemanticRanker { get; set; }
     public bool? SemanticCaptions { get; set; }

@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure.Search.Documents.Models;
-using Azure.Search.Documents;
-
-namespace Backend.Services;
+namespace MinimalApi.Services;
 
 public static class Utils
 {

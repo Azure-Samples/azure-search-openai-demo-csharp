@@ -4,7 +4,7 @@ namespace ClientApp.Components;
 
 public sealed partial class SettingsPanel
 {
-    private readonly AskRequestOverrides _overrides = new();
+    private readonly RequestOverrides _overrides = new();
 
     private Approach _approach = Approach.RetrieveThenRead;
     private bool _open;

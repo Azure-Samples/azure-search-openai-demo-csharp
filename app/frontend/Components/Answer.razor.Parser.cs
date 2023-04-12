@@ -50,7 +50,9 @@ public sealed partial class Answer
         return new HtmlParsedAnswer(
             string.Join("", fragments),
             citations,
-            followupQuestions);
+            followupQuestions.Select(
+                f => f.Replace("<<", "").Replace(">>", ""))
+                .ToHashSet());
     }
 
     [GeneratedRegex(@"<<([^>>]+)>>", RegexOptions.Multiline | RegexOptions.Compiled)]

@@ -6,7 +6,7 @@
 
 <MudGrid Justify="Justify.Center">
     <MudItem id="answers" xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
-        <MudStack Reverse="true" Spacing="4">
+        <MudStack Reverse="true" Spacing="6">
             @if (_questionAndAnswerMap is { Count: 0 })
             {
                 <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
@@ -15,7 +15,7 @@
             }
             else foreach (var (question, answer) in _questionAndAnswerMap)
             {
-                <MudStack Justify="Justify.Center" AlignItems="AlignItems.Start" Spacing="3">
+                <MudStack Justify="Justify.Center" AlignItems="AlignItems.Start" Spacing="4">
                     <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
                           Icon="@Icons.Material.Filled.QuestionMark" Class="d-flex align-self-end">
                         <MudPaper Class="pa-6" Elevation="3">
@@ -24,15 +24,20 @@
                             </MudText>
                         </MudPaper>
                     </MudBadge>
-                    <div style="max-width: 80%">
+                    <div style="max-width: 80%; min-width: 80%;">
                         @if (answer is null)
                         {
-                            <Loading />
+                            <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary" 
+                                Icon="@Icons.Material.Filled.Info">
+                                <MudPaper Class="pa-6" Elevation="3">
+                                    <Loading />
+                                </MudPaper>
+                            </MudBadge>
                         }
                         else
                         {
                             <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
-                                      Icon="@Icons.Material.Filled.Check">
+                                      Icon="@Icons.Material.Filled.AutoAwesome">
                                 <Answer Retort="@answer" FollowupQuestionClicked="@OnFollowupQuestionClickedAsync" />
                             </MudBadge>
                         }
@@ -62,6 +67,6 @@
     <MudScrollToTop Selector="#answers" 
                     VisibleCssClass="visible absolute"
                     HiddenCssClass="invisible">
-        <MudFab Color="Color.Warning" IconSize="Size.Large" StartIcon="@Icons.Material.Filled.ArrowUpward" />
+        <MudFab Color="Color.Primary" IconSize="Size.Large" StartIcon="@Icons.Material.Filled.ArrowUpward" />
     </MudScrollToTop>
 </MudGrid>

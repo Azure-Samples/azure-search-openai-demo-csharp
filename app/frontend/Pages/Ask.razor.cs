@@ -7,8 +7,7 @@ public sealed partial class Ask
     private string _userQuestion = "";
     private string _lastReferenceQuestion = "";
     private bool _isReceivingResponse = false;
-    private AskResponse? _askResponse = null;
-
+    private ApproachResponse? _approachResponse = null;
     private Approach _approach;
 
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
@@ -38,8 +37,7 @@ public sealed partial class Ask
 
         try
         {
-            var request = new AskRequest(
-            _userQuestion, _approach, new());
+            var request = new AskRequest(_userQuestion, _approach);
             var json = JsonSerializer.Serialize(
                 request,
                 new JsonSerializerOptions(JsonSerializerDefaults.Web));
@@ -50,7 +48,7 @@ public sealed partial class Ask
 
             if (response.IsSuccessStatusCode)
             {
-                _askResponse = await response.Content.ReadFromJsonAsync<AskResponse>();
+                _approachResponse = await response.Content.ReadFromJsonAsync<ApproachResponse>();
             }
             else
             {

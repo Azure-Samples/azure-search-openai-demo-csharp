@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace ClientApp.Models;
+namespace Shared.Models;
 
 public record AskRequest(
     string Question,
     Approach Approach,
-    AskRequestOverrides Overrides);
+    RequestOverrides? Overrides = null);

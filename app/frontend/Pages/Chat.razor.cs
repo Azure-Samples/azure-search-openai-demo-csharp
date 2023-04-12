@@ -8,7 +8,7 @@ public sealed partial class Chat
     private string _lastReferenceQuestion = "";
     private bool _isReceivingResponse = false;
 
-    private readonly Dictionary<string, AskResponse?> _questionAndAnswerMap =
+    private readonly Dictionary<string, ApproachResponse?> _questionAndAnswerMap =
         new(StringComparer.OrdinalIgnoreCase);
 
     private Approach _approach;
@@ -29,7 +29,7 @@ public sealed partial class Chat
         _approach =
             SessionStorage.GetItem<Approach?>(StorageKeys.ClientApproach) is { } approach
                 ? approach
-                : Approach.RetrieveThenRead;
+                : Approach.ReadRetrieveRead;
     }
 
     private Task OnFollowupQuestionClickedAsync(string followupQuestion) =>
@@ -49,19 +49,28 @@ public sealed partial class Chat
 
         try
         {
-            var request = new AskRequest(
-                _userQuestion, _approach, new());
+            var history = _questionAndAnswerMap
+                .Where(x => x.Value is not null)
+                .Select(x => new ChatTurn(x.Key, x.Value!.Answer))
+                .ToList();
+
+            history.Add(new ChatTurn(_userQuestion));
+            
+            var request = new ChatRequest(history.ToArray(), _approach, new RequestOverrides
+                {
+                SuggestFollowupQuestions = true
+            });
             var json = JsonSerializer.Serialize(
                 request,
                 new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
             using var body = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await ApiClient.PostAsync("api/ask", body);
+            var response = await ApiClient.PostAsync("api/chat", body);
 
             if (response.IsSuccessStatusCode)
             {
-                var answer = await response.Content.ReadFromJsonAsync<AskResponse>();
+                var answer = await response.Content.ReadFromJsonAsync<ApproachResponse>();
                 if (answer is not null)
                 {
                     _questionAndAnswerMap[_userQuestion] = answer;
