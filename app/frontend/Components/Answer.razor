@@ -14,13 +14,13 @@
                         </MudText>
                         @if (answer is { Citations.Count: > 0 })
                         {
-                            <div class="pt-2">
-                                <MudText Typo="Typo.subtitle2">Citations:</MudText>
+                            <div class="pt-4">
+                                <MudText Typo="Typo.subtitle2" Class="pb-2">Citations:</MudText>
                                 @foreach (var citation in answer.Citations)
                                 {
-                                    <MudChip Variant="Variant.Text" Color="Color.Info" Class="clickable"
+                                    <MudChip Variant="Variant.Text" Color="Color.Info"
                                         OnClick="@(_ => OnShowCitation(citation))">
-                                        @citation.Name
+                                            @($"{citation.Index}. {citation.Name}")
                                     </MudChip>
                                 }
                             </div>

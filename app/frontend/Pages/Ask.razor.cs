@@ -54,10 +54,6 @@ public sealed partial class Ask
                 // TODO: error
             }
         }
-        catch
-        {
-
-        }
         finally
         {
             _isReceivingResponse = false;

@@ -1,9 +1,9 @@
 ﻿<MudList Clickable="false">
-    @foreach (var item in _supportingContent)
+    @foreach (var (title, content) in _supportingContent)
     {
         <MudListItem>
-            <MudText Typo="Typo.subtitle2">@item.Title</MudText>
-            <MudText Typo="Typo.body1">@item.Content</MudText>
+            <MudText Typo="Typo.subtitle2">@title</MudText>
+            <MudText Typo="Typo.body1">@content</MudText>
         </MudListItem>
     }
 </MudList>

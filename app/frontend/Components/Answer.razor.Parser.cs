@@ -6,6 +6,8 @@ public sealed partial class Answer
 {
     internal HtmlParsedAnswer ParseAnswerToHtml(string answer)
     {
+        Console.WriteLine(answer);
+
         var citations = new List<CitationDetails>();
         var followupQuestions = new HashSet<string>();
 
@@ -28,14 +30,19 @@ public sealed partial class Answer
             else
             {
                 var citationIndex = citations.Count + 1;
-                var citation = new CitationDetails(part, citationIndex);
-                citations.Add(citation);
+                var existingCitation = citations.FirstOrDefault(c => c.Name == part);
+                if (existingCitation is not null)
+                {
+                    citationIndex = existingCitation.Index;
+                }
+                else
+                {
+                    var citation = new CitationDetails(part, citationIndex);
+                    citations.Add(citation);
+                }
 
                 return $"""
-                    <a class="sup-container"
-                        title="{part}" href="api/content/{part}" target="_blank">
-                        <sup>{citationIndex}</sup>
-                    </a>
+                    <sup class="mud-chip mud-chip-text mud-chip-color-info rounded pa-1">{citationIndex}</sup>
                     """;
             }
         });
