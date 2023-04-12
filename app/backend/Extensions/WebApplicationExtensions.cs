@@ -38,7 +38,7 @@ internal static class WebApplicationExtensions
         return Results.Stream(await client.GetBlobClient(citation).OpenReadAsync(), contentType: contentType);
     }
 
-    private static async Task<IResult> OnPostChatAsync(ChatRequest request, ReadRetreiveReadChatService service)
+    private static async Task<IResult> OnPostChatAsync(ChatRequest request, ReadRetrieveReadChatService service)
     {
         if (request is { Approach: "rrr", History.Length: > 0 })
         {

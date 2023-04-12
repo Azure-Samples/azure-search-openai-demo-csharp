@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Microsoft.Identity.Client;
-
 namespace Backend.Services;
 
-public class ReadRetreiveReadChatService
+public class ReadRetrieveReadChatService
 {
     private readonly SearchClient _searchClient;
     private readonly IKernel _kernel;
@@ -29,7 +27,7 @@ public class ReadRetreiveReadChatService
             {{$chat_history}}
             """;
 
-    public ReadRetreiveReadChatService(SearchClient searchClient, IKernel kernel)
+    public ReadRetrieveReadChatService(SearchClient searchClient, IKernel kernel)
     {
         _searchClient = searchClient;
         _kernel = kernel;
@@ -74,27 +72,27 @@ public class ReadRetreiveReadChatService
         answerContext["sources"] = documentContents;
         if (overrides?.SuggestFollowupQuestions is true)
         {
-            answerContext["follow_up_questions_prompt"] = ReadRetreiveReadChatService.FollowUpQuestionsPrompt;
+            answerContext["follow_up_questions_prompt"] = ReadRetrieveReadChatService.FollowUpQuestionsPrompt;
         }
         else
         {
             answerContext["follow_up_questions_prompt"] = string.Empty;         
         }
 
-        if (overrides?.PromptTemplate is null)
+        if (overrides is not null and { PromptTemplate: null })
         {
             answerContext["$injected_prompt"] = string.Empty;
-            answerFunction = CreateAnswerPromptFunction(ReadRetreiveReadChatService.AnswerPromptTemplate, overrides);
-            prompt = ReadRetreiveReadChatService.AnswerPromptTemplate;
+            answerFunction = CreateAnswerPromptFunction(ReadRetrieveReadChatService.AnswerPromptTemplate, overrides);
+            prompt = ReadRetrieveReadChatService.AnswerPromptTemplate;
         }
-        else if (overrides.PromptTemplate.StartsWith(">>>"))
+        else if (overrides is not null && overrides.PromptTemplate.StartsWith(">>>"))
         {
             answerContext["$injected_prompt"] = overrides.PromptTemplate[3..];
-            answerFunction = CreateAnswerPromptFunction(ReadRetreiveReadChatService.AnswerPromptTemplate, overrides);
-            prompt = ReadRetreiveReadChatService.AnswerPromptTemplate;
+            answerFunction = CreateAnswerPromptFunction(ReadRetrieveReadChatService.AnswerPromptTemplate, overrides);
+            prompt = ReadRetrieveReadChatService.AnswerPromptTemplate;
 
         }
-        else if (overrides.PromptTemplate is string promptTemplate)
+        else if (overrides?.PromptTemplate is string promptTemplate)
         {
             answerFunction = CreateAnswerPromptFunction(promptTemplate, overrides);
             prompt = promptTemplate;
@@ -137,10 +135,10 @@ public class ReadRetreiveReadChatService
                 stopSequences: new[] { "\n" });
     }
 
-    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides overrides)
+    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides)
     {
         return _kernel.CreateSemanticFunction(answerTemplate,
-                       temperature: overrides.Temperature ?? 0.7,
+                       temperature: overrides?.Temperature ?? 0.7,
                        maxTokens: 1024,
                        stopSequences: new[] { "<|im_end|>", "<|im_start|>" });
     }
