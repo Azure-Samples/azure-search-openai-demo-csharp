@@ -13,21 +13,24 @@ public static class Utils
         var skip = includeLastTurn ? 0 : 1;
         foreach (var turn in history.SkipLast(skip).Reverse())
         {
-            if (turn.Bot is not null)
-            {
-                var historyText = $@"<|im_start|>user
+            var historyText = $@"
+<|im_start|>user
 {turn.User}
 <|im_end|>
-<|im_start|>assistant
+<|im_start|>assistant";
+            if (turn.Bot is not null)
+            {
+                historyText += $@"
 {turn.Bot}
 <|im_end|>
 ";
-                res = historyText + res;
+            }
 
-                if(res.Length > approxMaxTokens * 4)
-                {
-                    return res;
-                }
+            res = historyText + res;
+
+            if (res.Length > approxMaxTokens * 4)
+            {
+                return res;
             }
         }
 
