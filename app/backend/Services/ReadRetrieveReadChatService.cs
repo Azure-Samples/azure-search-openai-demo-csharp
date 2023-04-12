@@ -90,7 +90,6 @@ public class ReadRetrieveReadChatService
             answerContext["$injected_prompt"] = overrides.PromptTemplate[3..];
             answerFunction = CreateAnswerPromptFunction(ReadRetrieveReadChatService.AnswerPromptTemplate, overrides);
             prompt = ReadRetrieveReadChatService.AnswerPromptTemplate;
-
         }
         else if (overrides?.PromptTemplate is string promptTemplate)
         {
