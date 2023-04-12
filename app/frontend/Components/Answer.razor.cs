@@ -5,11 +5,11 @@ namespace ClientApp.Components;
 public sealed partial class Answer
 {
     [Parameter, EditorRequired] public required AskResponse Retort { get; set; }
+    [Parameter, EditorRequired] public required EventCallback<string> FollowupQuestionClicked { get; set; }
 
     [Inject] public required IDialogService Dialog { get; set; }
 
     [Inject] public required IStringLocalizer<Answer> Localizer { get; set; }
-
 
     private HtmlParsedAnswer? _parsedAnswer; 
 
@@ -21,6 +21,14 @@ public sealed partial class Answer
         _parsedAnswer = ParseAnswerToHtml(Retort.Answer);
 
         base.OnParametersSet();
+    }
+
+    private async Task OnAskFollowupAsync(string followupQuestion)
+    {
+        if (FollowupQuestionClicked.HasDelegate)
+        {
+            await FollowupQuestionClicked.InvokeAsync(followupQuestion);
+        }
     }
 
     private void OnShowCitation(CitationDetails citation)

@@ -3,7 +3,7 @@
 <PageTitle>@Chat</PageTitle>
 
 <MudGrid Justify="Justify.Center">
-    <MudItem xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
+    <MudItem id="replies" xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
         @if (_isReceivingResponse && _intermediateResponse is null)
         {
             <Loading />
@@ -64,4 +64,9 @@
             </MudItem>
         </MudGrid>
     </MudItem>
+    <MudScrollToTop Selector="#replies"
+                    VisibleCssClass="visible absolute"
+                    HiddenCssClass="invisible">
+        <MudFab Color="Color.Warning" IconSize="Size.Large" StartIcon="@Icons.Material.Filled.ArrowUpward" />
+    </MudScrollToTop>
 </MudGrid>
