@@ -114,10 +114,10 @@ public class ReadRetrieveReadChatService
     {
         var queryPromptTemplate = """
             Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base about employee healthcare plans and the employee handbook.
-                Generate a search query based on the conversation and the new question. 
-                Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
-                Do not include any text inside [] or <<>> in the search query terms.
-                If the question is not in English, translate the question to English before generating the search query.
+            Generate a search query based on the conversation and the new question. 
+            Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
+            Do not include any text inside [] or <<>> in the search query terms.
+            If the question is not in English, translate the question to English before generating the search query.
 
             Chat History:
             {{$chat_history}}

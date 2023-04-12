@@ -144,7 +144,7 @@ ul, ol {
 }
 
 .filter-shadow {
-    filter: drop-shadow(1px 1px 10px #555);
+    filter: drop-shadow(0px 0px 5px rbga(0,0,0,.5));
 }
 
 .clickable {
@@ -161,4 +161,8 @@ ul, ol {
 iframe {
     min-height: 60vh;
     min-width: 100%;
+}
+
+.icon-huge {
+    font-size: 4rem;
 }

@@ -10,7 +10,7 @@
             @if (_questionAndAnswerMap is { Count: 0 })
             {
                 <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
-                    <Examples OnExampleClicked="@OnExampleClickedAsync" />
+                    <Examples Message="Chat with your data" OnExampleClicked="@OnAskQuestionAsync" />
                 </div>
             }
             else foreach (var (question, answer) in _questionAndAnswerMap)
@@ -27,18 +27,26 @@
                     <div style="max-width: 80%; min-width: 80%;">
                         @if (answer is null)
                         {
-                            <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary" 
-                                Icon="@Icons.Material.Filled.Info">
+                            <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+                                Icon="@Icons.Material.Filled.Lightbulb" Class="full-width">
                                 <MudPaper Class="pa-6" Elevation="3">
                                     <Loading />
                                 </MudPaper>
                             </MudBadge>
                         }
+                        else if (answer is { Error.Length: > 0 })
+                        {
+                            <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Error"
+                                Icon="@Icons.Material.Filled.Error">
+                                    <AnswerError Error="@answer" Question="@question" 
+                                        OnRetryClicked="@OnAskQuestionAsync" />
+                                </MudBadge>
+                        }
                         else
                         {
                             <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
                                       Icon="@Icons.Material.Filled.AutoAwesome">
-                                <Answer Retort="@answer" FollowupQuestionClicked="@OnFollowupQuestionClickedAsync" />
+                                    <Answer Retort="@answer" FollowupQuestionClicked="@OnAskQuestionAsync" />
                             </MudBadge>
                         }
                     </div>

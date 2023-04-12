@@ -4,6 +4,7 @@ namespace ClientApp.Components;
 
 public sealed partial class Examples
 {
+    [Parameter, EditorRequired] public required string Message { get; set; }
     [Parameter, EditorRequired] public EventCallback<string> OnExampleClicked { get; set; }
 
     [Inject] public required IStringLocalizer<Examples> Localizer { get; set; }

@@ -21,13 +21,10 @@ public sealed partial class Ask
                 : Approach.RetrieveThenRead;
     }
 
-    private Task OnFollowupQuestionClickedAsync(string followupQuestion) =>
-        OnExampleClickedAsync(followupQuestion);
-
-    private async Task OnExampleClickedAsync(string exampleText)
+    private Task OnAskQuestionAsync(string question)
     {
-        _userQuestion = exampleText;
-        await OnAskClickedAsync();
+        _userQuestion = question;
+        return OnAskClickedAsync();
     }
 
     private async Task OnAskClickedAsync()

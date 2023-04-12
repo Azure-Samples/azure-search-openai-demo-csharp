@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using ClientApp.Components;
+
 namespace ClientApp.Pages;
 
 public sealed partial class Chat
@@ -32,13 +34,10 @@ public sealed partial class Chat
                 : Approach.ReadRetrieveRead;
     }
 
-    private Task OnFollowupQuestionClickedAsync(string followupQuestion) =>
-        OnExampleClickedAsync(followupQuestion);
-
-    private async Task OnExampleClickedAsync(string exampleText)
+    private Task OnAskQuestionAsync(string question)
     {
-        _userQuestion = exampleText;
-        await OnAskClickedAsync();
+        _userQuestion = question;
+        return OnAskClickedAsync();
     }
 
     private async Task OnAskClickedAsync()
@@ -79,7 +78,11 @@ public sealed partial class Chat
             }
             else
             {
-                // TODO: error
+                _questionAndAnswerMap[_userQuestion] = new ApproachResponse(
+                    $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}",
+                    null,
+                    Array.Empty<string>(),
+                    "Unable to retrieve valid response from the server.");
             }
         }
         finally

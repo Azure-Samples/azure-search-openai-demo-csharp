@@ -45,7 +45,6 @@ public sealed partial class VoiceChat : IDisposable
         {
             _responses = responses;
         }
-        _voicePreferences = new VoicePreferences(LocalStorage);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -53,6 +52,7 @@ public sealed partial class VoiceChat : IDisposable
         if (firstRender)
         {
             await SpeechRecognition.InitializeModuleAsync();
+            _voicePreferences = new VoicePreferences(LocalStorage);
         }
     }
 

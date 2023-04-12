@@ -13,12 +13,16 @@
         else if (_approachResponse is null)
         {
             <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
-                <Examples OnExampleClicked="@OnExampleClickedAsync" />
+                <Examples Message="Ask your data" OnExampleClicked="@OnAskQuestionAsync" />
             </div>
+        }
+        else if (_approachResponse is { Error.Length: > 0 })
+        {
+            <AnswerError Error="@_approachResponse" Question="_userQuestion" OnRetryClicked="@OnAskQuestionAsync" />
         }
         else
         {
-            <Answer Retort="@_approachResponse" FollowupQuestionClicked="@OnFollowupQuestionClickedAsync" />
+            <Answer Retort="@_approachResponse" FollowupQuestionClicked="@OnAskQuestionAsync" />
         }
     </MudItem>
     <MudItem xs="12" Class="rounded">
