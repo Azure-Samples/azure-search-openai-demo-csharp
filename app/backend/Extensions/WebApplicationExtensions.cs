@@ -64,7 +64,6 @@ internal static class WebApplicationExtensions
                 var reply = await rtr.ReplyAsync(request.Question);
                 return TypedResults.Ok(reply);
             }
-            
         }
 
         return Results.BadRequest();
