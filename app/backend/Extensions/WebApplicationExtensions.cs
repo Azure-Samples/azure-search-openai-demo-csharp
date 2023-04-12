@@ -38,7 +38,16 @@ internal static class WebApplicationExtensions
         return Results.Stream(await client.GetBlobClient(citation).OpenReadAsync(), contentType: contentType);
     }
 
-    private static Task<IResult> OnPostChatAsync() => throw new NotImplementedException();
+    private static async Task<IResult> OnPostChatAsync(ChatRequest request, ReadRetrieveReadChatService service)
+    {
+        if (request is { Approach: "rrr", History.Length: > 0 })
+        {
+            var response = await service.ReplyAsync(request.History, request.Overrides);
+            return TypedResults.Ok(response);
+        }
+
+        return Results.BadRequest();
+    }
 
     private static async Task<IResult> OnPostAskAsync(
         AskRequest request, RetrieveThenReadApproachService service)

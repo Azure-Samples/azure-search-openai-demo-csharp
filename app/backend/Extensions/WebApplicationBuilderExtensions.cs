@@ -48,6 +48,7 @@ internal static class WebApplicationBuilderExtensions
 
         builder.Services.AddSingleton(
             new RetrieveThenReadApproachService(searchClient, kernel));
+        builder.Services.AddSingleton(new ReadRetrieveReadChatService(searchClient, kernel));
 
         return builder;
     }
