@@ -124,7 +124,7 @@
     <value>Bing - Image Creater (powered by DALL-E)</value>
   </data>
   <data name="BingImageText" xml:space="preserve">
-    <value>This photo was created using generative AI</value>
+    <value>These photo were created using generative AI</value>
   </data>
   <data name="HomeTitle" xml:space="preserve">
     <value>Home</value>

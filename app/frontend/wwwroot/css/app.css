@@ -175,3 +175,7 @@ iframe {
         transition: all 0.5s ease-out;
         filter: brightness(95%);
     }
+
+.text-align-center {
+    text-align: center;
+}

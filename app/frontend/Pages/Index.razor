@@ -18,14 +18,26 @@
             <MudText Typo="Typo.h6">Blazor 💜 OpenAI</MudText>
         </CardHeaderContent>
     </MudCardHeader>
-    <MudCardMedia Image="bing-generated.jpg" Height="580" />
     <MudCardContent>
-        <MudText Typo="Typo.body2">
-            @BingImageText
-            <MudLink Href="https://www.bing.com/images/create/" Target="_blank">
-                @BingImageCreatorLinkText
-            </MudLink>.
-        </MudText>
+        <MudCarousel Class="mud-width-full"
+                     BulletsColor=Color.Primary Style="height: 58vh;"
+                     AutoCycle="true" TData="ImageAltPair" Context="image"
+                     ItemsSource=@_images AutoCycleTime=@TimeSpan.FromSeconds(5)>
+            <ItemTemplate>
+                <div class="d-flex flex-grow-1">
+                    <MudImage Fluid="true" Src=@image.Image
+                              Alt=@image.Alt Class="rounded-lg mx-auto my-auto" />
+                </div>
+            </ItemTemplate>
+        </MudCarousel>
+        <div class="full-width pt-6 text-align-center">
+            <MudText Typo="Typo.caption">
+                @BingImageText
+                <MudLink Href="https://www.bing.com/images/create/" Target="_blank" Class="mud-typography-caption">
+                    @BingImageCreatorLinkText
+                </MudLink>
+            </MudText>
+        </div>
     </MudCardContent>
     <MudCardActions>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Size="Size.Large" Target="_blank"

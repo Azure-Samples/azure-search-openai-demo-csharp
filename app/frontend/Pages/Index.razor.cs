@@ -19,4 +19,14 @@ public sealed partial class Index
     private string MicrosoftLearnContentLinkTitle => Localizer[nameof(MicrosoftLearnContentLinkTitle)];
 
     private string MudBlazorLink => Localizer[nameof(MudBlazorLink)];
+
+    private readonly HashSet<ImageAltPair> _images = new()
+    {
+        new("bing-generated-0.jpg", "Remote conference experience."),
+        new("bing-generated-1.jpg", "Smile community friends."),
+        new("bing-generated-2.jpg", "Drone flying fun."),
+        new("bing-generated-3.jpg", "Camera crew."),
+    };
 }
+
+internal readonly record struct ImageAltPair(string Image, string Alt);
