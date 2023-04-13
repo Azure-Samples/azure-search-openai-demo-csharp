@@ -55,9 +55,11 @@
         </MudDrawer>
         <MudMainContent>
             <MudContainer MaxWidth="MaxWidth.Large" Class="my-6 pt-6">
-                @Body
+                <CascadingValue Value="_settingsPanel?.Overrides">
+                    @Body
+                </CascadingValue>
             </MudContainer>
-            <SettingsPanel @bind-Open="@_settingsOpen" />
+            <SettingsPanel @ref="_settingsPanel" @bind-Open="@_settingsOpen" />
         </MudMainContent>
     </MudLayout>
 </MudRTLProvider>

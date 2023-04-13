@@ -21,6 +21,8 @@ public sealed partial class Chat
     
     [Inject] public required HttpClient ApiClient { get; set; }
 
+    [CascadingParameter] public RequestOverrides? Overrides { get; set; }
+
     private string Prompt => Localizer[nameof(Prompt)];
     private string ChatTitle => Localizer[nameof(ChatTitle)];
     private string ChatPrompt => Localizer[nameof(ChatPrompt)];
@@ -55,10 +57,7 @@ public sealed partial class Chat
 
             history.Add(new ChatTurn(_userQuestion));
             
-            var request = new ChatRequest(history.ToArray(), _approach, new RequestOverrides
-                {
-                SuggestFollowupQuestions = true
-            });
+            var request = new ChatRequest(history.ToArray(), _approach, Overrides);
             var json = JsonSerializer.Serialize(
                 request,
                 new JsonSerializerOptions(JsonSerializerDefaults.Web));

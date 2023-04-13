@@ -12,7 +12,9 @@ public sealed partial class Ask
 
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
     [Inject] public required HttpClient ApiClient { get; set; }
-
+    
+    [CascadingParameter] public RequestOverrides? Overrides { get; set; }
+    
     protected override void OnInitialized()
     {
         _approach =
@@ -34,7 +36,7 @@ public sealed partial class Ask
 
         try
         {
-            var request = new AskRequest(_userQuestion, _approach);
+            var request = new AskRequest(_userQuestion, _approach, Overrides);
             var json = JsonSerializer.Serialize(
                 request,
                 new JsonSerializerOptions(JsonSerializerDefaults.Web));
@@ -49,7 +51,11 @@ public sealed partial class Ask
             }
             else
             {
-                // TODO: error
+                _approachResponse = new ApproachResponse(
+                    $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}",
+                    null,
+                    Array.Empty<string>(),
+                    "Unable to retrieve valid response from the server.");
             }
         }
         finally

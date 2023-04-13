@@ -13,6 +13,8 @@ public sealed partial class SettingsPanel : IDisposable
     [Inject] public required IStringLocalizer<SettingsPanel> Localizer { get; set; }
     [Inject] public required NavigationManager Nav { get; set; }
 
+    public RequestOverrides Overrides => _overrides;
+
     [Parameter]
 #pragma warning disable BL0007 // Component parameters should be auto properties
     public bool Open

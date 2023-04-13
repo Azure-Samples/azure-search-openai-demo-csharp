@@ -52,7 +52,6 @@ public sealed partial class VoiceChat : IDisposable
         if (firstRender)
         {
             await SpeechRecognition.InitializeModuleAsync();
-            _voicePreferences = new VoicePreferences(LocalStorage);
         }
     }
 
@@ -87,7 +86,8 @@ public sealed partial class VoiceChat : IDisposable
                     _intermediateResponse = null;
                     _isReadingResponse = true;
 
-                    var (voice, rate, isEnabled) = _voicePreferences!;
+                    _voicePreferences = new VoicePreferences(LocalStorage);
+                    var (voice, rate, isEnabled) = _voicePreferences;
                     if (isEnabled)
                     {
                         var utterance = new SpeechSynthesisUtterance
