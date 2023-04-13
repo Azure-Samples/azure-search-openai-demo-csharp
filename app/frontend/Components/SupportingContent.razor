@@ -1,8 +1,14 @@
 ﻿<MudList Clickable="false">
-    @foreach (var (title, content) in _supportingContent)
+    @foreach (var (index, (title, content)) in _supportingContent.Select((item, i) => (i, item)))
     {
+        var last = index == _supportingContent.Length - 1;
+        @if (index is not 0 && last is false)
+        {
+            <MudDivider />
+        }
+
         <MudListItem>
-            <MudText Typo="Typo.subtitle2">@title</MudText>
+            <MudText Typo="Typo.subtitle1" Class="pb-2" Style="font-weight: bold;">@title</MudText>
             <MudText Typo="Typo.body1">@((MarkupString)content)</MudText>
         </MudListItem>
     }

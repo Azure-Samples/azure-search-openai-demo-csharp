@@ -148,14 +148,13 @@ ul, ol {
 }
 
 .clickable {
-    border: 2px solid transparent;
+    border: 3px solid transparent;
     cursor: pointer;
 }
 
     .clickable:hover {
-        border-style: inset;
-        border-width: 2px;
-        border-color: var(--mud-palette-secondary);
+        border-width: 3px;
+        border-color: var(--mud-palette-secondary-lighten);
     }
 
 iframe {
@@ -171,10 +170,10 @@ iframe {
     filter: brightness(90%);
 }
 
-    .dim:hover {
-        transition: all 0.5s ease-out;
-        filter: brightness(95%);
-    }
+.dim:hover {
+    transition: all 0.3s ease-out;
+    filter: brightness(75%);
+}
 
 .text-align-center {
     text-align: center;
