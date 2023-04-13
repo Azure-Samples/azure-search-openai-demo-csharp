@@ -46,9 +46,11 @@ internal static class WebApplicationBuilderExtensions
         kernel.Config.AddTextCompletionService(azureOpenaiGPTDeployment!, _ => openAIService, true);
         builder.Services.AddSingleton(kernel);
 
+        builder.Services.AddSingleton(openAIService);
         builder.Services.AddSingleton(
             new RetrieveThenReadApproachService(searchClient, kernel));
         builder.Services.AddSingleton(new ReadRetrieveReadChatService(searchClient, kernel));
+        builder.Services.AddSingleton(new ReadRetrieveReadApproachService(searchClient, openAIService));
 
         return builder;
     }

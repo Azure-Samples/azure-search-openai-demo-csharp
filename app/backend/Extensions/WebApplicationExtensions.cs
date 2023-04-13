@@ -50,12 +50,20 @@ internal static class WebApplicationExtensions
     }
 
     private static async Task<IResult> OnPostAskAsync(
-        AskRequest request, RetrieveThenReadApproachService service)
+        AskRequest request, RetrieveThenReadApproachService rtr, ReadRetrieveReadApproachService rrr)
     {
         if (request is { Question.Length: > 0 })
         {
-            var reply = await service.ReplyAsync(request.Question);
-            return TypedResults.Ok(reply);
+            if (request.Approach == "rrr")
+            {
+                var rrrReply = await rrr.ReplyAsync(request.Question, request.Overrides);
+                return TypedResults.Ok(rrrReply);
+            }
+            else
+            {
+                var reply = await rtr.ReplyAsync(request.Question);
+                return TypedResults.Ok(reply);
+            }
         }
 
         return Results.BadRequest();

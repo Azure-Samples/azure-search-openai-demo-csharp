@@ -2,7 +2,7 @@
 
 namespace Backend.Services;
 
-internal sealed class AzureOpenAITextCompletionService : ITextCompletion
+public sealed class AzureOpenAITextCompletionService : ITextCompletion
 {
     private readonly OpenAIClient _openAIClient;
     private readonly string _deployedModelName;

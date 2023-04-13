@@ -86,7 +86,7 @@ public static class Utils
                 if (sourcePageValue is string sourcePage && contentValue is string content)
                 {
                     content = content.Replace('\r', ' ').Replace('\n', ' ');
-                    sb.AppendLine($"{sourcePage}:{content}");
+                    sb.AppendLine($"{sourcePage}:{content[..250]}");
                 }
             }
             documentContents = sb.ToString();

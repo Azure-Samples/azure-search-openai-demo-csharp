@@ -2,4 +2,4 @@
 
 namespace Backend.Models;
 
-public record AskRequest(string Question);
+public record AskRequest(string Question, string Approach, RequestOverrides? Overrides);
