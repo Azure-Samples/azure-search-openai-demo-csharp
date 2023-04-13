@@ -24,21 +24,24 @@
     <MudLayout class="@(_isRightToLeft ? "rtl-lang" : "")">
         <MudAppBar Elevation="20">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Secondary" id="nav-toggle"
-                            Title="@ToggleNavBar"
-                            Size="Size.Large" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                        Title="@ToggleNavBar"
+                        Size="Size.Large" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
             <MudSpacer />
             <MudToggleIconButton Toggled="@_isDarkTheme" ToggledChanged=@OnToggledChanged Size="Size.Large"
-                ToggledSize="Size.Large"
-                Title="@SwitchToDarkTheme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Inherit"
-                ToggledTitle="@SwitchToLightTheme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Warning />
-            <MudIconButton Icon="@Icons.Material.Filled.Language" Color="Color.Info" Size="Size.Large"
-                            OnClick="@ShowCultureDialog" Title="@SelectLanguageTitle" id="select-language" />
+                                ToggledSize="Size.Large"
+                                Title="@SwitchToDarkTheme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Info"
+                                ToggledTitle="@SwitchToLightTheme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Warning />
+            <MudIconButton Icon="@Icons.Material.Filled.Language" Color="Color.Error" Size="Size.Large"
+                        OnClick="@ShowCultureDialog" Title="@SelectLanguageTitle" id="select-language" />
             <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Size="Size.Large"
-                            Title="@VisitGitHubRepository"
-                            Href="https://github.com/Azure-Samples/azure-search-openai-demo-csharp" Target="_blank" />
-            <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Tertiary" Size="Size.Large"
-                            Title="Open the developer settings side panel"
-                            OnClick="@(_ => _settingsOpen = _settingsOpen is false)" />
+                        Title="@VisitGitHubRepository"
+                        Href="https://github.com/Azure-Samples/azure-search-openai-demo-csharp" Target="_blank" />
+            @if (SettingsDisabled is false)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Tertiary" Size="Size.Large"
+                               Title="Open the developer settings side panel"
+                               OnClick="@(_ => _settingsOpen = _settingsOpen is false)" />
+            }
         </MudAppBar>
         <MudDrawer @bind-Open="_drawerOpen" Elevation="5" id="drawer">
             <MudDrawerHeader>
