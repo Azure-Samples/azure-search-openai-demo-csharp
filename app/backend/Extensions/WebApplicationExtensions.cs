@@ -92,11 +92,11 @@ internal static class WebApplicationExtensions
         AskRequest request, RetrieveThenReadApproachService rtr, ReadRetrieveReadApproachService rrr, ReadDecomposeAskApproachService rda)
     {
         if (request is { Question.Length: > 0 })
-        {
-            if (request.Approach == "rrr")
+        {            
+            if (request.Approach is Approach.ReadRetrieveRead)
             {
-                var rrrReply = await rrr.ReplyAsync(request.Question, request.Overrides);
-                return TypedResults.Ok(rrrReply);
+                var reply = await rrr.ReplyAsync(request.Question, request.Overrides);
+                return TypedResults.Ok(reply);
             }
             else if (request.Approach == "rtr")
             {

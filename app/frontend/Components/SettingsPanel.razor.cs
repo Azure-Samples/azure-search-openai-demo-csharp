@@ -4,8 +4,6 @@ namespace ClientApp.Components;
 
 public sealed partial class SettingsPanel : IDisposable
 {
-    private readonly RequestOverrides _overrides = new();
-
     private Approach _approach = Approach.RetrieveThenRead;
     private bool _open;
     private SupportedSettings _supportedSettings;
@@ -13,7 +11,7 @@ public sealed partial class SettingsPanel : IDisposable
     [Inject] public required IStringLocalizer<SettingsPanel> Localizer { get; set; }
     [Inject] public required NavigationManager Nav { get; set; }
 
-    public RequestOverrides Overrides => _overrides;
+    public RequestOverrides Overrides { get; } = new();
 
     [Parameter]
 #pragma warning disable BL0007 // Component parameters should be auto properties

@@ -4,29 +4,18 @@ namespace ClientApp.Pages;
 
 public sealed partial class Index
 {
+    private readonly string[] _images = Enumerable.Range(0, 10)
+        .Select(i => $"bing-generated-{i}.jpg")
+        .ToArray();
+
     [Inject] public required IStringLocalizer<Index> Localizer { get; set; }
 
     private string HomeTitle => Localizer[nameof(HomeTitle)];
-
     private string BingImageText => Localizer[nameof(BingImageText)];
-
     private string BingImageCreatorLinkText => Localizer[nameof(BingImageCreatorLinkText)];
-
     private string AzureSdkGitHubLinkTitle => Localizer[nameof(AzureSdkGitHubLinkTitle)];
-
     private string NuGetLinkAzureOpenAI => Localizer[nameof(NuGetLinkAzureOpenAI)];
-
     private string MicrosoftLearnContentLinkTitle => Localizer[nameof(MicrosoftLearnContentLinkTitle)];
-
     private string MudBlazorLink => Localizer[nameof(MudBlazorLink)];
-
-    private readonly HashSet<ImageAltPair> _images = new()
-    {
-        new("bing-generated-0.jpg", "Remote conference experience."),
-        new("bing-generated-1.jpg", "Smile community friends."),
-        new("bing-generated-2.jpg", "Drone flying fun."),
-        new("bing-generated-3.jpg", "Camera crew."),
-    };
+    private string MarkdigLink => Localizer[nameof(MarkdigLink)];
 }
-
-internal readonly record struct ImageAltPair(string Image, string Alt);

@@ -24,27 +24,27 @@
 
         <MudTextField T="string" Lines="5" Variant="Variant.Outlined"
                       Label="@OverridePromptTemplate" Placeholder="@OverridePromptTemplate" Class="pa-2"
-            @bind-Value="_overrides.PromptTemplate" Clearable="true" />
+                      @bind-Value="Overrides.PromptTemplate" Clearable="true" />
 
-        <MudNumericField @bind-Value="_overrides.Top"
+        <MudNumericField @bind-Value="Overrides.Top"
                          Class="pa-2" Placeholder="@RetrieveNumberOfDocs"
              Label="@RetrieveNumberOfDocs" 
              Variant="Variant.Outlined" Min="1" Max="50" />
 
         <MudTextField T="string" Variant="Variant.Outlined"
                       Label="@ExcludeCategory" Placeholder="@ExcludeCategory" Class="pa-2"
-            @bind-Value="_overrides.ExcludeCategory" Clearable="true" />
+                      @bind-Value="Overrides.ExcludeCategory" Clearable="true" />
 
-        <MudCheckBox @bind-Checked="@_overrides.SemanticRanker" Size="Size.Large"
+        <MudCheckBox @bind-Checked="@Overrides.SemanticRanker" Size="Size.Large"
                     Color="Color.Primary" Label="@UseSemanticRanker" />
 
-        <MudCheckBox @bind-Checked="@_overrides.SemanticCaptions" Size="Size.Large"
+        <MudCheckBox @bind-Checked="@Overrides.SemanticCaptions" Size="Size.Large"
                     Color="Color.Primary" 
                     Label="@UseQueryContext" />
     
         @if (_supportedSettings is not SupportedSettings.Ask)
         {
-            <MudCheckBox @bind-Checked="@_overrides.SuggestFollowupQuestions" Size="Size.Large"
+            <MudCheckBox @bind-Checked="@Overrides.SuggestFollowupQuestions" Size="Size.Large"
                         Color="Color.Primary" 
                         Label="@SuggestFollowups" />
         }

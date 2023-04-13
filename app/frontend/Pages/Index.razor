@@ -21,12 +21,12 @@
     <MudCardContent>
         <MudCarousel Class="mud-width-full"
                      BulletsColor=Color.Primary Style="height: 58vh;"
-                     AutoCycle="true" TData="ImageAltPair" Context="image"
-                     ItemsSource=@_images AutoCycleTime=@TimeSpan.FromSeconds(5)>
+                     AutoCycle="true" TData="string" Context="image"
+                     ItemsSource=@_images AutoCycleTime=@TimeSpan.FromSeconds(3)>
             <ItemTemplate>
                 <div class="d-flex flex-grow-1">
-                    <MudImage Fluid="true" Src=@image.Image
-                              Alt=@image.Alt Class="rounded-lg mx-auto my-auto" />
+                    <MudImage Fluid="true" Src=@image Elevation="10"
+                              Alt="An AI generated image from Bing / Create." Class="rounded-lg mx-auto my-auto" />
                 </div>
             </ItemTemplate>
         </MudCarousel>
