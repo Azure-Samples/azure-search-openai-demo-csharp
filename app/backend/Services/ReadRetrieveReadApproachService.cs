@@ -53,7 +53,6 @@ Answer:
         _kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
         _kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, "Answer", "Answer", "answer questions using given sources",
             maxTokens: 1024, temperature: overrides?.Temperature ?? 0.7);
-
         var planner = _kernel.ImportSkill(new PlannerSkill(_kernel));
         var sb = new StringBuilder();
 
