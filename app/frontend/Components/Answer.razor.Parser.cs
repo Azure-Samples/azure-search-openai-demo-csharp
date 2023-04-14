@@ -6,8 +6,6 @@ public sealed partial class Answer
 {
     internal HtmlParsedAnswer ParseAnswerToHtml(string answer)
     {
-        Console.WriteLine(answer);
-
         var citations = new List<CitationDetails>();
         var followupQuestions = new HashSet<string>();
 

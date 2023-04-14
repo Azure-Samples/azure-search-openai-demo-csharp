@@ -136,11 +136,8 @@ public class ReadRetrieveReadChatService
                 stopSequences: new[] { "\n" });
     }
 
-    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides)
-    {
-        return _kernel.CreateSemanticFunction(answerTemplate,
+    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides) => _kernel.CreateSemanticFunction(answerTemplate,
                        temperature: overrides?.Temperature ?? 0.7,
                        maxTokens: 1024,
                        stopSequences: new[] { "<|im_end|>", "<|im_start|>" });
-    }
 }

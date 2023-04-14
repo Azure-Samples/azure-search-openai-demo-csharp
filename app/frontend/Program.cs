@@ -18,6 +18,10 @@ builder.Services.AddMudServices();
 builder.Services.AddLocalization();
 builder.Services.AddScoped<CultureService>();
 
+await JSHost.ImportAsync(
+    moduleName: nameof(JavaScriptModule),
+    moduleUrl: $"../js/i-frame.js?{Guid.NewGuid()}");
+
 var host = builder.Build()
     .DetectClientCulture();
 

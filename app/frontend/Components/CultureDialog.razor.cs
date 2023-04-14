@@ -19,10 +19,8 @@ public sealed partial class CultureDialog
     private IDictionary<CultureInfo, AzureCulture>? _supportedCultures;
     private CultureInfo _selectedCulture = CultureInfo.CurrentCulture;
 
-    protected override async Task OnInitializedAsync()
-    {
+    protected override async Task OnInitializedAsync() =>
         _supportedCultures = await CultureService.GetAvailableCulturesAsync();
-    }
 
     private void OnSaveCulture()
     {

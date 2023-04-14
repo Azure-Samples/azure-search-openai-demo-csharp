@@ -13,7 +13,6 @@ public class LookupSkill
         _requestOverrides = requestOverrides;
     }
 
-
     [SKFunction("Look up knowledge")]
     [SKFunctionName("Lookup")]
     [SKFunctionInput(Description = "lookup query")]

@@ -31,8 +31,7 @@ public sealed partial class Answer
         }
     }
 
-    private void OnShowCitation(CitationDetails citation)
-    {
+    private void OnShowCitation(CitationDetails citation) =>
         Dialog.Show<PdfViewerDialog>(
             citation.Name,
             new DialogParameters
@@ -46,5 +45,4 @@ public sealed partial class Answer
                 CloseButton = true,
                 CloseOnEscapeKey = true
             });
-    }
 }

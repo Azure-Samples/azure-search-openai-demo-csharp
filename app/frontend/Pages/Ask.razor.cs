@@ -14,14 +14,11 @@ public sealed partial class Ask
     [Inject] public required HttpClient ApiClient { get; set; }
     
     [CascadingParameter] public RequestOverrides? Overrides { get; set; }
-    
-    protected override void OnInitialized()
-    {
-        _approach =
+
+    protected override void OnInitialized() => _approach =
             SessionStorage.GetItem<Approach?>(StorageKeys.ClientApproach) is { } approach
                 ? approach
                 : Approach.RetrieveThenRead;
-    }
 
     private Task OnAskQuestionAsync(string question)
     {

@@ -2,7 +2,19 @@
     <DialogContent>
         <MudContainer Style="min-height: 60vh; max-height: 75vh; overflow-y: scroll">
             <!-- TODO: Make this URL dynamic -->
-            <iframe src=@($"https://localhost:7181/api/content/{Title}#view-fitV") frameborder="1" title="@Title" />
+            <div style="@_pdfViewerVisibilityStyle">
+                <iframe id="pdf-viewer" src=@($"https://localhost:7181/api/content/{Title}#view-fitV") 
+                    frameborder="1" title="@Title" />
+            </div>
+            @if (_isLoaded is false)
+            {
+                <MudSkeleton />
+                <MudSkeleton SkeletonType="SkeletonType.Circle" />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20rem" />
+                <MudSkeleton />
+                <MudSkeleton />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" />
+            }
         </MudContainer>
     </DialogContent>
     <DialogActions>

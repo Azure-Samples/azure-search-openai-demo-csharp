@@ -10,10 +10,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D8F48C94-8F1C-4F2A-A01C-A546B13A2ED6}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		..\.gitignore = ..\.gitignore
 		..\.github\workflows\dotnet-build.yml = ..\.github\workflows\dotnet-build.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "shared\Shared\Shared.csproj", "{B54798B7-C176-4373-86D4-9D7376AD2E17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "shared\Shared\Shared.csproj", "{B54798B7-C176-4373-86D4-9D7376AD2E17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

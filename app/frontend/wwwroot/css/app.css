@@ -186,10 +186,13 @@ iframe {
 }
 
 .mud-input-control.mud-input-number-control input[type=number] {
+    -moz-appearance: textfield;
+    -webkit-appearance: textfield;
     appearance: textfield;
 }
 
 button {
+    -moz-user-select: none;
     -webkit-user-select: none;
     user-select: none;
 }

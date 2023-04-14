@@ -68,9 +68,9 @@ public sealed class CultureService
                 {
                     clientSupportedCultures.Add((culture, azureCulture));
                 }
-                else
+                else if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogInformation(
+                    _logger.LogDebug(
                         "Unable to find cultures for lang: {Key} - from: {Source}",
                         group.Key, string.Join(", ", cultureList.Select(c => c.Name)));
                 }
