@@ -11,8 +11,8 @@ public class ReadDecomposeAskApproachService
     private readonly ILogger? _logger;
     private readonly AzureOpenAITextCompletionService _completionService;
     private const string AnswerPromptPrefix = """
-        Answer questions using the given source only. For tabular information return it as an HTML table. Do not return markdown format.
-        Each source has a name followed by a colon and the actual information, always include the source name for each fact you use in the answer.
+        Answer questions using the given knowledge only. For tabular information return it as an HTML table. Do not return markdown format.
+        Each knowledge has a source name followed by a colon and the actual information, always include the source name for each knowledge you use in the answer.
         If you don't know the answer, say you don't know.
 
         ### EXAMPLE
@@ -29,7 +29,7 @@ public class ReadDecomposeAskApproachService
         
         ###
         Knowledge:
-        {{$input}}
+        {{$knowledge}}
 
         Question:
         {{$question}}
@@ -46,40 +46,62 @@ public class ReadDecomposeAskApproachService
         Question:
         {{$question}}
 
-        ### EXAMPLE reply
-        true
+        ### EXAMPLE
+        Knowledge:
+
+        Question: 'What is the deductible for the employee plan for a visit to Overlake in Bellevue?'
+
+        Your reply: false
+
+        Knowledge: 'Microsoft is a software company'
+        Question: 'What is Microsoft'
+        Your reply: true
         ###
 
         Your reply:
         """;
 
     private const string ExplainPrefix = """
-        Explain why the knowledge is not enough to answer the question.
+        Summarize the knowledge you need to know to answer the question. Please don't include
+        the existing knowledge in the answer
 
+        ### EXAMPLES:
+        Knowledge: ''
+        Question: 'What is the deductible for the employee plan for a visit to Overlake in Bellevue?'
+        Explain: I need to know the information of employee plan and Overlake in Bellevue.
+
+        Knowledge: 'Microsoft is a software company'
+        Question: 'When is annual review time for employees in Microsoft'
+        Explain: I need to know the information of annual review time for employees in Microsoft.
+
+        Knowledge: 'Microsoft is a software company'
+        Question: 'What is included in my Northwind Health Plus plan that is not in standard?'
+        Explain: I need to know what's Northwind Health Plus Plan and what's not standard in that plan.
+        ###
         Knowledge:
         {{$knowledge}}
 
         Question:
         {{$question}}
 
-        Your reply:
+        Explain:
         """;
 
     private const string GenerateLookupPrompt = """
-        Generate lookup term from explanation.
+        Generate lookup terms from explanation, seperate multiple terms with comma.
 
         ### EXAMPLE:
-        Explanation: 'The employee handbook does not mention the deductible for the employee plan for a visit to Overlake in Bellevue.'
-        Lookup term: 'deductible for the employee plan for a visit to Overlake in Bellevue'
+        Explanation: I need to know the information of employee plan and Overlake in Bellevue
+        Lookup term: employee plan, Overlake Bellevue
 
-        Explanation: 'The product manager is not mentioned in given knowledge'
-        Lookup term: 'product manager'
+        Explanation: I need to know the duty of product manager
+        Lookup term: product manager
 
-        Explanation: 'The eye exam is not mentioned in given knowledge'
-        Lookup term: 'eye exam'
+        Explanation: I need to know information of annual eye exam.
+        Lookup term: annual eye exam
 
-        Explanation: 'What is included in my Northwind Health Plus plan that is not in standard?'
-        Lookup term: 'Northwind Health Plus plan'
+        Explanation: I need to know what's Northwind Health Plus Plan and what's not standard in that plan.
+        Lookup term: Northwind Health Plus plan
         ###
 
         Explanation:
@@ -89,15 +111,16 @@ public class ReadDecomposeAskApproachService
 
     private const string SummarizeThoughtProcessPrompt = """
         Summarize the entire process you take from question to answer. Describe in detail that
-        - How you generate lookup term based on question
+        - What lookup term you generate from question and why you generate that lookup term.
         - What useful information you find that help you answer the question
         - how you form the answer based on the information you find
+        - how you formalize the answer
         You can use markdown format.
 
         question:
         {{$question}}
 
-        query:
+        lookup term:
         {{$query}}
 
         information:
@@ -110,13 +133,12 @@ public class ReadDecomposeAskApproachService
         """;
 
     private const string PlannerPrefix = """
-        Check if you can answer the given quesiton with knowledge. If yes return answer, otherwise do the following steps until you get the answer:
+        1:Check if you can answer the given quesiton with existing knowledge. If yes return answer, otherwise do the following steps until you get the answer:
          - explain why you can't answer the question
          - generating query from explanation
          - use query to lookup or search information, and append the lookup or search result to $knowledge
-
-        Then, save answer to $ANSWER.
-        Then, save summarize to $SUMMARY.
+        2:Answer to $ANSWER.
+        3:Summarize and set to Summary variable.
         """;
 
     public ReadDecomposeAskApproachService(SearchClient searchClient, AzureOpenAITextCompletionService completionService, ILogger? logger = null)
@@ -136,7 +158,7 @@ public class ReadDecomposeAskApproachService
         kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.AnswerPromptPrefix, functionName: "Answer", description: "answer question",
             maxTokens: 1024, temperature: overrides?.Temperature ?? 0.7);
         kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.ExplainPrefix, functionName: "Explain", description: "explain if knowledge is enough with reason", temperature: 1,
-            presencePenalty: 0.5, frequencyPenalty: 0.5);
+            presencePenalty: 0, frequencyPenalty: 0);
         kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.GenerateLookupPrompt, functionName: "GenerateQuery", description: "Generate query for lookup or search from given explanation", temperature: 1,
             presencePenalty: 0.5, frequencyPenalty: 0.5);
         kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.CheckAnswerAvailablePrefix, functionName: "CheckAnswerAvailablity", description: "Check if answer is available, return true if yes, return false if not available", temperature: 1,
