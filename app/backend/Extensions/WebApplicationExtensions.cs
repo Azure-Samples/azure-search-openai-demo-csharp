@@ -50,7 +50,7 @@ internal static class WebApplicationExtensions
     }
 
     private static async Task<IResult> OnPostAskAsync(
-        AskRequest request, RetrieveThenReadApproachService rtr, ReadRetrieveReadApproachService rrr, ReadDecompoeAskApproachService rda)
+        AskRequest request, RetrieveThenReadApproachService rtr, ReadRetrieveReadApproachService rrr, ReadDecomposeAskApproachService rda)
     {
         if (request is { Question.Length: > 0 })
         {

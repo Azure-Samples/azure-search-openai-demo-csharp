@@ -5,7 +5,7 @@ using Microsoft.SemanticKernel.CoreSkills;
 
 namespace Backend.Services;
 
-public class ReadDecompoeAskApproachService
+public class ReadDecomposeAskApproachService
 {
     private readonly SearchClient _searchClient;
     private readonly ILogger _logger;
@@ -119,7 +119,7 @@ public class ReadDecompoeAskApproachService
         Then, save summarize to $SUMMARY.
         """;
 
-    public ReadDecompoeAskApproachService(SearchClient searchClient, AzureOpenAITextCompletionService completionService, ILogger logger)
+    public ReadDecomposeAskApproachService(SearchClient searchClient, AzureOpenAITextCompletionService completionService, ILogger logger)
     {
         _searchClient = searchClient;
         _completionService = completionService;
@@ -134,21 +134,21 @@ public class ReadDecompoeAskApproachService
         kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
         kernel.ImportSkill(new LookupSkill(_searchClient, overrides));
         kernel.ImportSkill(new UpdateContextVariableSkill());
-        kernel.CreateSemanticFunction(ReadDecompoeAskApproachService.AnswerPromptPrefix, functionName: "Answer", description: "answer question",
+        kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.AnswerPromptPrefix, functionName: "Answer", description: "answer question",
             maxTokens: 1024, temperature: overrides?.Temperature ?? 0.7);
-        kernel.CreateSemanticFunction(ReadDecompoeAskApproachService.ExplainPrefix, functionName: "Explain", description: "explain if knowledge is enough with reason", temperature: 1,
+        kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.ExplainPrefix, functionName: "Explain", description: "explain if knowledge is enough with reason", temperature: 1,
             presencePenalty: 0.5, frequencyPenalty: 0.5);
-        kernel.CreateSemanticFunction(ReadDecompoeAskApproachService.GenerateLookupPrompt, functionName: "GenerateQuery", description: "Generate query for lookup or search from given explanation", temperature: 1,
+        kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.GenerateLookupPrompt, functionName: "GenerateQuery", description: "Generate query for lookup or search from given explanation", temperature: 1,
             presencePenalty: 0.5, frequencyPenalty: 0.5);
-        kernel.CreateSemanticFunction(ReadDecompoeAskApproachService.CheckAnswerAvailablePrefix, functionName: "CheckAnswerAvailablity", description: "Check if answer is available, return true if yes, return false if not available", temperature: 1,
+        kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.CheckAnswerAvailablePrefix, functionName: "CheckAnswerAvailablity", description: "Check if answer is available, return true if yes, return false if not available", temperature: 1,
             presencePenalty: 0.5, frequencyPenalty: 0.5);
-        kernel.CreateSemanticFunction(ReadDecompoeAskApproachService.SummarizeThoughtProcessPrompt, functionName: "Summarize", description: "Summarize the entire process of getting answer.", temperature: 0.3,
+        kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.SummarizeThoughtProcessPrompt, functionName: "Summarize", description: "Summarize the entire process of getting answer.", temperature: 0.3,
             presencePenalty: 0.5, frequencyPenalty: 0.5, maxTokens: 2048);
 
         var planner = kernel.ImportSkill(new PlannerSkill(kernel));
         var sb = new StringBuilder();
 
-        var planInstruction = $"{ReadDecompoeAskApproachService.PlannerPrefix}";
+        var planInstruction = $"{ReadDecomposeAskApproachService.PlannerPrefix}";
 
         var executingResult = await kernel.RunAsync(planInstruction, planner["CreatePlan"]);
         Console.WriteLine(executingResult.Variables.ToPlan().PlanString);
