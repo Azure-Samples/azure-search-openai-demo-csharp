@@ -39,14 +39,14 @@
                             <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Error"
                                 Icon="@Icons.Material.Filled.Error">
                                     <AnswerError Error="@answer" Question="@question" 
-                                        OnRetryClicked="@OnAskQuestionAsync" />
+                                                 OnRetryClicked="@OnAskQuestionAsync" />
                                 </MudBadge>
                         }
                         else
                         {
                             <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
                                       Icon="@Icons.Material.Filled.AutoAwesome">
-                                    <Answer Retort="@answer" FollowupQuestionClicked="@OnAskQuestionAsync" />
+                                <Answer Retort="@answer" FollowupQuestionClicked="@OnAskQuestionAsync" />
                             </MudBadge>
                         }
                     </div>

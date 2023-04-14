@@ -23,7 +23,7 @@
 <MudRTLProvider RightToLeft="_isRightToLeft">
     <MudLayout class="@(_isRightToLeft ? "rtl-lang" : "")">
         <MudAppBar Elevation="20">
-            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Secondary" id="nav-toggle"
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" id="nav-toggle"
                         Title="@ToggleNavBar"
                         Size="Size.Large" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
             <MudSpacer />
@@ -51,6 +51,7 @@
                     Blazor OpenAI
                 </MudText>
             </MudDrawerHeader>
+            <MudDivider Style="flex-grow: 0;" />
             <NavMenu />
         </MudDrawer>
         <MudMainContent>

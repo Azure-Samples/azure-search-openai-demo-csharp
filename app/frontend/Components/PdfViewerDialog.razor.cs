@@ -7,6 +7,8 @@ public sealed partial class PdfViewerDialog
     private bool _isLoaded = false;
     private string _pdfViewerVisibilityStyle => _isLoaded ? "display:default;" : "display:none;";
 
+    [Inject] public required HttpClient ApiClient { get; set; }
+
     [Parameter] public required string Title { get; set; }
 
     [CascadingParameter] public required MudDialogInstance Dialog { get; set; }

@@ -1,10 +1,11 @@
 ﻿<MudDialog DisableSidePadding="true">
     <DialogContent>
         <MudContainer Style="min-height: 60vh; max-height: 75vh; overflow-y: scroll">
-            <!-- TODO: Make this URL dynamic -->
             <div style="@_pdfViewerVisibilityStyle">
-                <iframe id="pdf-viewer" src=@($"https://localhost:7181/api/content/{Title}#view-fitV") 
-                    frameborder="1" title="@Title" />
+                @{
+                    var url = $"{ApiClient.BaseAddress}api/content/{Title}#view-fitV";
+                }
+                <iframe id="pdf-viewer" src="@url" title="@Title" />
             </div>
             @if (_isLoaded is false)
             {
