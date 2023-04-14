@@ -7,7 +7,7 @@ public class RetrieveRelatedDocumentSkill
     private readonly SearchClient _searchClient;
     private readonly RequestOverrides? _requestOverrides;
     private readonly string? _filter;
-    
+
     public RetrieveRelatedDocumentSkill(SearchClient searchClient, RequestOverrides? requestOverrides)
     {
         _searchClient = searchClient;
@@ -22,7 +22,7 @@ public class RetrieveRelatedDocumentSkill
     {
         if (searchQuery is string query)
         {
-            var result = await Utils.QueryDocumentsAsync(query, _searchClient,
+            var result = await _searchClient.QueryDocumentsAsync(query,
                 _requestOverrides?.Top ?? 3,
                 useSemanticCaptions: _requestOverrides?.SemanticCaptions ?? false,
                 useSemanticRanker: _requestOverrides?.SemanticRanker ?? false,

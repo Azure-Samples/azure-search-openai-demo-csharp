@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using MinimalApi.Extensions;
+
 namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService
@@ -45,7 +47,7 @@ public class ReadRetrieveReadChatService
         // use llm to get query
         var queryFunction = CreateQueryPromptFunction(history);
         var context = new ContextVariables();
-        var historyText = Utils.GetChatHistoryAsText(history, includeLastTurn: false);
+        var historyText = history.GetChatHistoryAsText(includeLastTurn: false);
         context["chat_history"] = historyText;
         var userQuestion = history.LastOrDefault()?.User;
         if (userQuestion is null)
@@ -61,14 +63,14 @@ public class ReadRetrieveReadChatService
 
         // step 2
         // use query to search related docs
-        var  documentContents = await Utils.QueryDocumentsAsync(query.Result, _searchClient, top, filter, useSemanticRanker, useSemanticCaptions);
+        var  documentContents = await _searchClient.QueryDocumentsAsync(query.Result, top, filter, useSemanticRanker, useSemanticCaptions);
 
         // step 3
         // use llm to get answer
         var answerContext = new ContextVariables();
         ISKFunction answerFunction;
         string prompt;
-        answerContext["chat_history"] = Utils.GetChatHistoryAsText(history);
+        answerContext["chat_history"] = history.GetChatHistoryAsText();
         answerContext["sources"] = documentContents;
         if (overrides?.SuggestFollowupQuestions is true)
         {

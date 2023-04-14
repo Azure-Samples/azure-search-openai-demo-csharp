@@ -48,7 +48,7 @@ public sealed class RetrieveThenReadApproachService
 
     public async Task<ApproachResponse> ReplyAsync(string question)
     {
-        var text = await Utils.QueryDocumentsAsync(question, _searchClient);
+        var text = await _searchClient.QueryDocumentsAsync(question);
         var context = _kernel.CreateNewContext();
         context["retrieve"] = text;
         context["question"] = question;

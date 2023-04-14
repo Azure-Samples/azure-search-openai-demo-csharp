@@ -1,40 +1,16 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace MinimalApi.Services;
+namespace MinimalApi.Extensions;
 
-public static class Utils
+internal static class SearchClientExtensions
 {
-    public static string GetChatHistoryAsText(ChatTurn[] history, bool includeLastTurn = true, int approxMaxTokens = 1000)
-    {
-        var res = string.Empty;
-        var skip = includeLastTurn ? 0 : 1;
-        foreach (var turn in history.SkipLast(skip).Reverse())
-        {
-            var historyText = $@"
-<|im_start|>user
-{turn.User}
-<|im_end|>
-<|im_start|>assistant";
-            if (turn.Bot is not null)
-            {
-                historyText += $@"
-{turn.Bot}
-<|im_end|>
-";
-            }
-
-            res = historyText + res;
-
-            if (res.Length > approxMaxTokens * 4)
-            {
-                return res;
-            }
-        }
-
-        return res;
-    }
-
-    public static async Task<string> QueryDocumentsAsync(string query, SearchClient searchClient, int top = 3, string? filter = null, bool useSemanticRanker = false, bool useSemanticCaptions = false)
+    internal static async Task<string> QueryDocumentsAsync(
+        this SearchClient searchClient,
+        string query,
+        int top = 3,
+        string? filter = null,
+        bool useSemanticRanker = false,
+        bool useSemanticCaptions = false)
     {
         SearchResults<SearchDocument> searchResult;
         var documentContents = string.Empty;
@@ -50,7 +26,9 @@ public static class Utils
                 Filter = filter,
                 Size = top,
             };
-            var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption);
+            var searchResultResponse =
+                await searchClient.SearchAsync<SearchDocument>(query, searchOption);
+            
             if (searchResultResponse.Value is null)
             {
                 throw new InvalidOperationException("fail to get search result");
