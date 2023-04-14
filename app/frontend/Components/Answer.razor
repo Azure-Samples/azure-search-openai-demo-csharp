@@ -18,9 +18,12 @@
                                 <MudText Typo="Typo.subtitle2" Class="pb-2">Citations:</MudText>
                                 @foreach (var citation in answer.Citations)
                                 {
+                                    var icon = citation.Name.EndsWith(".pdf")
+                                        ? @Icons.Custom.FileFormats.FilePdf
+                                        : null;
                                     <MudChip Variant="Variant.Text" Color="Color.Info"
-                                        OnClick="@(_ => OnShowCitation(citation))">
-                                            @($"{citation.Index}. {citation.Name}")
+                                             Icon="@icon" OnClick="@(_ => OnShowCitation(citation))">
+                                        @($"{citation.Index}. {citation.Name}")
                                     </MudChip>
                                 }
                             </div>

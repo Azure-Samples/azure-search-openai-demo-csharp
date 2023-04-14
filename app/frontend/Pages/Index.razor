@@ -25,7 +25,7 @@
                      ItemsSource=@_images AutoCycleTime=@TimeSpan.FromSeconds(3)>
             <ItemTemplate>
                 <div class="d-flex flex-grow-1">
-                    <MudImage Fluid="true" Src=@image Elevation="10"
+                    <MudImage Fluid="true" Src=@image Elevation="5" ObjectPosition="ObjectPosition.Center"
                               Alt="An AI generated image from Bing / Create." Class="rounded-lg mx-auto my-auto" />
                 </div>
             </ItemTemplate>
@@ -47,7 +47,10 @@
         <MudIconButton Icon="@Icons.Custom.Brands.Microsoft" Size="Size.Large" Target="_blank"
                        Href="https://learn.microsoft.com/azure/cognitive-services/openai"
                        Title="@MicrosoftLearnContentLinkTitle" />
+        <MudSpacer />
         <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Size="Size.Large" Target="_blank"
                        Href="https://www.mudblazor.com/" Title="@MudBlazorLink" />
+        <MudIconButton Icon="@Icons.Material.Filled.Html" Size="Size.Large" Target="_blank"
+                       Href="https://github.com/xoofx/markdig" Title="@MarkdigLink" />
     </MudCardActions>
 </MudCard>
