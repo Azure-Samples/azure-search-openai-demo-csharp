@@ -13,7 +13,7 @@ public class ReadRetrieveReadApproachService
 
     private const string PlanPrompt = """
         Retrieve infomation of question and append to $knowledge,
-        Answer question.
+        Answer question as $Answer.
         """;
     private const string Prefix = """
 You are an intelligent assistant helping Contoso Inc employees with their healthcare plan questions and employee handbook questions.

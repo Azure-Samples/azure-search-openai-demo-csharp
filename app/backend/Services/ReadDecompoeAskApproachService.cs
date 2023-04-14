@@ -8,7 +8,7 @@ namespace Backend.Services;
 public class ReadDecomposeAskApproachService
 {
     private readonly SearchClient _searchClient;
-    private readonly ILogger _logger;
+    private readonly ILogger? _logger;
     private readonly AzureOpenAITextCompletionService _completionService;
     private const string AnswerPromptPrefix = """
         Answer questions using the given source only. For tabular information return it as an HTML table. Do not return markdown format.
@@ -119,7 +119,7 @@ public class ReadDecomposeAskApproachService
         Then, save summarize to $SUMMARY.
         """;
 
-    public ReadDecomposeAskApproachService(SearchClient searchClient, AzureOpenAITextCompletionService completionService, ILogger logger)
+    public ReadDecomposeAskApproachService(SearchClient searchClient, AzureOpenAITextCompletionService completionService, ILogger? logger = null)
     {
         _searchClient = searchClient;
         _completionService = completionService;
@@ -128,8 +128,7 @@ public class ReadDecomposeAskApproachService
 
     public async Task<AnswerResponse> ReplyAsync(string question, RequestOverrides? overrides)
     {
-        var kernel = Kernel.Builder
-                        .WithLogger(_logger).Build();
+        var kernel = Kernel.Builder.Build();
         kernel.Config.AddTextCompletionService("openai", (kernel) => _completionService, true);
         kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
         kernel.ImportSkill(new LookupSkill(_searchClient, overrides));
