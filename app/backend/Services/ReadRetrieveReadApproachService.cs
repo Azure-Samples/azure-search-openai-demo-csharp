@@ -10,6 +10,11 @@ public class ReadRetrieveReadApproachService
     private IKernel? _kernel;
     private readonly SearchClient _searchClient;
     private readonly AzureOpenAITextCompletionService _completionService;
+
+    private const string PlanPrompt = """
+        Retrieve infomation of question and append to $knowledge,
+        Answer question and set to $Answer.
+        """;
     private const string Prefix = """
 You are an intelligent assistant helping Contoso Inc employees with their healthcare plan questions and employee handbook questions.
 Use 'you' to refer to the individual asking the questions even if they ask with 'I'.
@@ -35,7 +40,7 @@ Question:
 {{$question}}
 
 Sources:
-{{$retrieve}}
+{{$knowledge}}
 
 Answer:
 """;
@@ -51,15 +56,16 @@ Answer:
         _kernel = Kernel.Builder.Build();
         _kernel.Config.AddTextCompletionService("openai", (_kernel) => _completionService, true);
         _kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
-        _kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, "Answer", "Answer", "answer questions using given sources",
+        _kernel.ImportSkill(new UpdateContextVariableSkill());
+        _kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, functionName: "Answer", description: "answer question",
             maxTokens: 1024, temperature: overrides?.Temperature ?? 0.7);
-
         var planner = _kernel.ImportSkill(new PlannerSkill(_kernel));
         var sb = new StringBuilder();
 
-        question = $"first retrieve related documents using question and save result to retrieve, then answer question. The question is {question}";
-        var executingResult = await _kernel.RunAsync(question, planner["CreatePlan"]);
+        var executingResult = await _kernel.RunAsync(ReadRetrieveReadApproachService.PlanPrompt, planner["CreatePlan"]);
         var step = 1;
+        executingResult.Variables["question"] = question;
+        Console.WriteLine(executingResult.Variables.ToPlan().PlanString);
 
         do
         {
@@ -76,8 +82,8 @@ Answer:
         while (!executingResult.Variables.ToPlan().IsComplete);
 
         return new AnswerResponse(
-               DataPoints: executingResult["retrieve"].ToString().Split('\r'),
-               Answer: executingResult.Variables.ToPlan().Result,
+               DataPoints: executingResult["knowledge"].ToString().Split('\r'),
+               Answer: executingResult["Answer"],
                Thoughts: sb.ToString().Replace("\n", "<br>"));
     }
 }

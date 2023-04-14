@@ -16,13 +16,12 @@ public class RetrieveRelatedDocumentSkill
         _filter = _requestOverrides?.ExcludeCategory is null ? null : $"category ne '{_requestOverrides.ExcludeCategory}'";
     }
 
-    [SKFunction("RetrieveRelatedDocument")]
-    [SKFunctionName("RetrieveRelatedDocument")]
-    [SKFunctionInput(Description = "The question to retrieve, and result shall be saved to $retrieve")]
-    [SKFunctionContextParameter(Name = "question", Description = "The question to retrieve")]
-    public async Task<string> QueryAsync(string question, SKContext context)
+    [SKFunction("Search more information")]
+    [SKFunctionName("Search")]
+    [SKFunctionInput(Description = "search query")]
+    public async Task<string> QueryAsync(string searchQuery, SKContext context)
     {
-        if (question is string query)
+        if (searchQuery is string query)
         {
             var res = await Utils.QueryDocumentsAsync(query, _searchClient,
                 _requestOverrides?.Top ?? 3,
