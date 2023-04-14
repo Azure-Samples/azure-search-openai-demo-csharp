@@ -66,9 +66,12 @@
                               autocomplete="off" title="@(ChatPrompt)" />
             </MudItem>
             <MudItem xs="1" Class="flex align-self-center">
-                <MudFab Color="Color.Secondary" Size="Size.Large"
-                        StartIcon=@Icons.Material.Filled.Send
-                        OnClick="@OnAskClickedAsync" Disabled=@_isReceivingResponse />
+                <MudTooltip Text="Send message" Placement="Placement.Top">
+                    <MudFab Color="Color.Secondary" Size="Size.Large"
+                            StartIcon=@Icons.Material.Filled.Send
+                            Label="Ask" aria-label="Send message button."
+                            OnClick="@OnAskClickedAsync" Disabled=@_isReceivingResponse />
+                </MudTooltip>
             </MudItem>
         </MudGrid>
     </MudItem>

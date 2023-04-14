@@ -1,17 +1,18 @@
 ﻿<MudNavMenu Rounded="true" Margin=Margin.Normal Class="pa-2" Color=Color.Secondary>
     <MudNavLink Href="" Match="NavLinkMatch.All"
-                Icon="@Icons.Material.Filled.Home">
+                Icon="@Icons.Material.Filled.Home"
+                aria-label="Home navigation option.">
         @HomeNavLabel
     </MudNavLink>
-    <MudNavLink Href="voicechat"
+    <MudNavLink Href="voicechat" aria-label="Voice chat navigation option."
                 Icon="@Icons.Material.Filled.VoiceChat">
         @VoiceChatNavLabel
     </MudNavLink>
-    <MudNavLink Href="ask"
+    <MudNavLink Href="ask" aria-label="Questions and answers navigation option."
                 Icon="@Icons.Material.Filled.QuestionAnswer">
         @AskNavLabel
     </MudNavLink>
-    <MudNavLink Href="chat"
+    <MudNavLink Href="chat" aria-label="Chat navigation option."
                 Icon="@Icons.Material.Filled.Chat">
         @ChatNavLabel
     </MudNavLink>

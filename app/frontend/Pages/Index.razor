@@ -11,7 +11,8 @@
         </CardHeaderAvatar>
         <CardHeaderContent>
             <MudText Typo="Typo.h5">
-                <MudLink Href="https://www.nuget.org/packages/Azure.AI.OpenAI" Target="_blank">
+                <MudLink Href="https://www.nuget.org/packages/Azure.AI.OpenAI" Color="Color.Secondary" 
+                         Target="_blank" aria-label="The official Azure.AI.OpenAI .NET NuGet link.">
                     Azure.AI.OpenAI 📦
                 </MudLink>
             </MudText>
@@ -33,7 +34,9 @@
         <div class="full-width pt-6 text-align-center">
             <MudText Typo="Typo.caption">
                 @BingImageText
-                <MudLink Href="https://www.bing.com/images/create/" Target="_blank" Class="mud-typography-caption">
+                <MudLink Href="https://www.bing.com/images/create/" Target="_blank" 
+                         Class="mud-typography-caption mud-secondary-text"
+                         aria-label="Microsoft Bing Create link.">
                     @BingImageCreatorLinkText
                 </MudLink>
             </MudText>
@@ -41,16 +44,21 @@
     </MudCardContent>
     <MudCardActions>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Size="Size.Large" Target="_blank"
+                       aria-label="Azure SDK for .NET link."
                        Href="https://github.com/Azure/azure-sdk-for-net" Title="@AzureSdkGitHubLinkTitle" />
         <MudIconButton Icon="@Icons.Material.Filled.GetApp" Size="Size.Large" Target="_blank"
+                       aria-label="Azure.AI.OpenAI .NET NuGet link."
                        Href="https://www.nuget.org/packages/Azure.AI.OpenAI" Title="@NuGetLinkAzureOpenAI" />
         <MudIconButton Icon="@Icons.Custom.Brands.Microsoft" Size="Size.Large" Target="_blank"
+                       aria-label="Azure Cognitive Services OpenAI link."
                        Href="https://learn.microsoft.com/azure/cognitive-services/openai"
                        Title="@MicrosoftLearnContentLinkTitle" />
         <MudSpacer />
         <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Size="Size.Large" Target="_blank"
+                       aria-label="MudBlazor (Blazor component library) link."
                        Href="https://www.mudblazor.com/" Title="@MudBlazorLink" />
         <MudIconButton Icon="@Icons.Material.Filled.Html" Size="Size.Large" Target="_blank"
+                       aria-label="Markdig (GitHub repository) link."
                        Href="https://github.com/xoofx/markdig" Title="@MarkdigLink" />
     </MudCardActions>
 </MudCard>

@@ -178,3 +178,24 @@ iframe {
 .text-align-center {
     text-align: center;
 }
+
+/* Address various Lighthouse audit issues */
+.mud-snackbar.mud-snackbar-blurred {
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+}
+
+.mud-input-control.mud-input-number-control input[type=number] {
+    appearance: textfield;
+}
+
+button {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.mud-tooltip-root {
+    width: -moz-fit-content;
+    width: -webkit-fit-content;
+    width: fit-content;
+}

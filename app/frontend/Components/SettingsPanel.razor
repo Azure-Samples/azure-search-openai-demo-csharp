@@ -1,7 +1,9 @@
 ﻿<MudDrawer @bind-Open="@Open" Anchor="@Anchor.End" Elevation="5"
     Variant="@DrawerVariant.Temporary" Width="25rem">
     <MudDrawerHeader>
-        <MudText Typo="Typo.h5">
+        <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Medium" 
+                 Color="Color.Tertiary" Class="ma-1" />
+        <MudText Typo="Typo.h5" Class="pl-2">
             @Title
         </MudText>
     </MudDrawerHeader>
@@ -25,11 +27,12 @@
         <MudTextField T="string" Lines="5" Variant="Variant.Outlined"
                       Label="@OverridePromptTemplate" Placeholder="@OverridePromptTemplate" Class="pa-2"
                       @bind-Value="Overrides.PromptTemplate" Clearable="true" />
-
-        <MudNumericField @bind-Value="Overrides.Top"
-                         Class="pa-2" Placeholder="@RetrieveNumberOfDocs"
-             Label="@RetrieveNumberOfDocs" 
-             Variant="Variant.Outlined" Min="1" Max="50" />
+                      
+        <MudNumericField @bind-Value="Overrides.Top" Class="pa-2"
+                         Placeholder="@RetrieveNumberOfDocs"
+                         Label="@RetrieveNumberOfDocs" HideSpinButtons="true"
+                         aria-label="Number input for the number of documents to search."
+                         Variant="Variant.Outlined" Min="1" Max="50" />
 
         <MudTextField T="string" Variant="Variant.Outlined"
                       Label="@ExcludeCategory" Placeholder="@ExcludeCategory" Class="pa-2"
@@ -39,20 +42,21 @@
                     Color="Color.Primary" Label="@UseSemanticRanker" />
 
         <MudCheckBox @bind-Checked="@Overrides.SemanticCaptions" Size="Size.Large"
-                    Color="Color.Primary" 
-                    Label="@UseQueryContext" />
+                     Color="Color.Primary" 
+                     Label="@UseQueryContext" />
     
         @if (_supportedSettings is not SupportedSettings.Ask)
         {
             <MudCheckBox @bind-Checked="@Overrides.SuggestFollowupQuestions" Size="Size.Large"
-                        Color="Color.Primary" 
-                        Label="@SuggestFollowups" />
+                         Color="Color.Primary" Label="@SuggestFollowups"
+                         aria-label="Suggest follow-up questions checkbox." />
         }
     </div>
     <div class="d-flex align-content-end flex-wrap flex-grow-1 pa-6">
         <MudButton Variant="Variant.Filled" Color="Color.Secondary"
             OnClick="@(_ => Open = Open is false)" Size="Size.Large"
-            StartIcon="@Icons.Material.Filled.Close">
+            StartIcon="@Icons.Material.Filled.Close"
+            aria-label="Close setting panel button.">
             @Close
         </MudButton>
     </div>
