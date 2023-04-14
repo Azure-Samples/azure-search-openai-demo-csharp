@@ -81,7 +81,7 @@ Answer:
         }
         while (!executingResult.Variables.ToPlan().IsComplete);
 
-        return new AnswerResponse(
+        return new ApproachResponse(
                DataPoints: executingResult["knowledge"].ToString().Split('\r'),
                Answer: executingResult["Answer"],
                Thoughts: sb.ToString().Replace("\n", "<br>"));
