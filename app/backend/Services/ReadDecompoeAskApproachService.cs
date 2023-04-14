@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Backend.Services.Skills;
-using Microsoft.SemanticKernel.CoreSkills;
-
-namespace Backend.Services;
+namespace MinimalApi.Services;
 
 public class ReadDecomposeAskApproachService
 {
@@ -148,7 +145,7 @@ public class ReadDecomposeAskApproachService
         _logger = logger;
     }
 
-    public async Task<AnswerResponse> ReplyAsync(string question, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides)
     {
         var kernel = Kernel.Builder.Build();
         kernel.Config.AddTextCompletionService("openai", (kernel) => _completionService, true);
@@ -179,21 +176,21 @@ public class ReadDecomposeAskApproachService
         do
         {
             var result = await kernel.RunAsync(executingResult.Variables, planner["ExecutePlan"]);
-            if (!result.Variables.ToPlan().IsSuccessful)
+            var plan = result.Variables.ToPlan();
+
+            if (!plan.IsSuccessful)
             {
-                Console.WriteLine(result.Variables.ToPlan().PlanString);
-                throw new InvalidOperationException(result.Variables.ToPlan().Result);
+                Console.WriteLine(plan.PlanString);
+                throw new InvalidOperationException(plan.Result);
             }
             sb.AppendLine($"Step {step++} - Execution results:\n");
-            sb.AppendLine(result.Variables.ToPlan().Result + "\n");
+            sb.AppendLine(plan.Result + "\n");
 
             executingResult = result;
         }
         while (!executingResult.Variables.ToPlan().IsComplete);
 
-        //Console.WriteLine(sb.ToString());
-
-        return new AnswerResponse(
+        return new ApproachResponse(
                DataPoints: executingResult["knowledge"].ToString().Split('\r'),
                Answer: executingResult.Variables["Answer"],
                Thoughts: executingResult.Variables["SUMMARY"].Replace("\n", "<br>"));

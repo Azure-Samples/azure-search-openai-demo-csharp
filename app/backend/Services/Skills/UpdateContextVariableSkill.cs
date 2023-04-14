@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Microsoft.SemanticKernel.SkillDefinition;
-
-namespace Backend.Services.Skills;
+namespace MinimalApi.Services.Skills;
 
 public class UpdateContextVariableSkill
 {
@@ -12,9 +10,9 @@ public class UpdateContextVariableSkill
     [SKFunctionContextParameter(Name = "knowledge", Description = "variable to update")]
     public void AddOrAppend(string variableValue, SKContext context)
     {
-        if(context.Variables.ContainsKey("knowledge"))
+        if (context.Variables.ContainsKey("knowledge"))
         {
-            context.Variables["knowledge"] = context.Variables["knowledge"] + "\r" + variableValue;
+            context.Variables["knowledge"] = $"{context.Variables["knowledge"]}\r{variableValue}";
         }
         else
         {

@@ -66,48 +66,29 @@ internal static class WebApplicationExtensions
         }
     }
     
-    private static async Task<IResult> OnPostChatAsync(ChatRequest request, IServiceProvider sp)
+    private static async Task<IResult> OnPostChatAsync(
+        ChatRequest request, ReadRetrieveReadChatService chatService)
     {
         if (request is { History.Length: > 0 })
         {
-            if (request.Approach is Approach.RetrieveThenRead)
-            {
-                var service = sp.GetRequiredService<RetrieveThenReadApproachService>();
-                var question = request.History[^1].User;
-                var response = await service.ReplyAsync(question);
-                return TypedResults.Ok(response);
-            }
-            else if (request.Approach is Approach.ReadRetrieveRead)
-            {
-                var service = sp.GetRequiredService<ReadRetrieveReadChatService>();
-                var response = await service.ReplyAsync(request.History, request.Overrides); ;
-                return TypedResults.Ok(response);
-            }           
+            var response = await chatService.ReplyAsync(
+                request.History, request.Overrides);
+            
+            return TypedResults.Ok(response);
         }
 
         return Results.BadRequest();
     }
 
     private static async Task<IResult> OnPostAskAsync(
-        AskRequest request, RetrieveThenReadApproachService rtr, ReadRetrieveReadApproachService rrr, ReadDecomposeAskApproachService rda)
+        AskRequest request, ApproachServiceResponseFactory factory)
     {
         if (request is { Question.Length: > 0 })
-        {            
-            if (request.Approach is Approach.ReadRetrieveRead)
-            {
-                var reply = await rrr.ReplyAsync(request.Question, request.Overrides);
-                return TypedResults.Ok(reply);
-            }
-            else if (request.Approach == "rtr")
-            {
-                var reply = await rtr.ReplyAsync(request.Question);
-                return TypedResults.Ok(reply);
-            }
-            else if (request.Approach == "rda")
-            {
-                var reply = await rda.ReplyAsync(request.Question, request.Overrides);
-                return TypedResults.Ok(reply);
-            }
+        {
+            var approachResponse = await factory.GetApproachResponseAsync(
+                request.Approach, request.Question, request.Overrides);
+
+            return TypedResults.Ok(approachResponse);
         }
 
         return Results.BadRequest();

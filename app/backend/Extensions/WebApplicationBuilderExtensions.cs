@@ -54,6 +54,8 @@ internal static class WebApplicationBuilderExtensions
         builder.Services.AddSingleton(new ReadRetrieveReadApproachService(searchClient, openAIService));
         builder.Services.AddSingleton<ReadDecomposeAskApproachService>();
 
+        builder.Services.AddSingleton<ApproachServiceResponseFactory>();
+
         return builder;
     }
     
