@@ -84,7 +84,7 @@
             <MudItem xs="2">
                 <MudGrid Justify="Justify.Center">
                     <MudItem xs="9" Class="pa-2">
-                        <MudFab Color="Color.Info" Label=@(_isRecognizingSpeech ? Stop : Speak) Size="Size.Large"
+                        <MudFab Color="Color.Primary" Label=@(_isRecognizingSpeech ? Stop : Speak) Size="Size.Large"
                                 StartIcon=@(_isRecognizingSpeech ? @Icons.Material.Filled.MicOff : Icons.Material.Filled.Mic)
                                 OnClick="@OnRecognizeSpeechClick" Disabled=@_isReceivingResponse Class="full-width" />
                     </MudItem>
