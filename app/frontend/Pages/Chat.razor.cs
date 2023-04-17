@@ -84,4 +84,10 @@ public sealed partial class Chat
             _isReceivingResponse = false;
         }
     }
+
+    private void OnClearChat()
+    {
+        _userQuestion = _lastReferenceQuestion = "";
+        _questionAndAnswerMap.Clear();
+    }
 }

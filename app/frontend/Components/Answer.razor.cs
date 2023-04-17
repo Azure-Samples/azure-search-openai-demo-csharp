@@ -33,7 +33,7 @@ public sealed partial class Answer
 
     private void OnShowCitation(CitationDetails citation) =>
         Dialog.Show<PdfViewerDialog>(
-            citation.Name,
+            $"📄 {citation.Name}",
             new DialogParameters
             {
                 [nameof(PdfViewerDialog.Title)] = citation.Name,
