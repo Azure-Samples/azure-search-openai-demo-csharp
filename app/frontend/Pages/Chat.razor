@@ -6,53 +6,56 @@
 
 <MudGrid Justify="Justify.Center">
     <MudItem id="answers" xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
-        <MudStack Reverse="true" Spacing="12">
-            @if (_questionAndAnswerMap is { Count: 0 })
-            {
-                <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
-                    <Examples Message="Chat with your data" OnExampleClicked="@OnAskQuestionAsync" />
-                </div>
-            }
-            else foreach (var (question, answer) in _questionAndAnswerMap)
-            {
-                <MudStack Justify="Justify.Center" AlignItems="AlignItems.Start" Spacing="4">
-                    <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+        @if (_questionAndAnswerMap is { Count: 0 })
+        {
+            <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
+                <Examples Message="Chat with your data" OnExampleClicked="@OnAskQuestionAsync" />
+            </div>
+        }
+        else
+        {
+            <MudStack Reverse="true" Spacing="12">
+                @foreach (var (question, answer) in _questionAndAnswerMap)
+                {
+                    <MudStack Justify="Justify.Center" AlignItems="AlignItems.Start" Spacing="4">
+                        <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
                           Icon="@Icons.Material.Filled.QuestionMark" Class="d-flex align-self-end">
-                        <MudPaper Class="pa-6" Elevation="3">
-                            <MudText Typo="Typo.body1">
-                                @question
-                            </MudText>
-                        </MudPaper>
-                    </MudBadge>
-                    <div style="max-width: 80%; min-width: 80%;">
-                        @if (answer is null)
-                        {
-                            <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
-                                Icon="@Icons.Material.Filled.Lightbulb" Class="full-width">
-                                <MudPaper Class="pa-6" Elevation="3">
-                                    <Loading />
-                                </MudPaper>
-                            </MudBadge>
-                        }
-                        else if (answer is { Error.Length: > 0 })
-                        {
-                            <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Error"
-                                Icon="@Icons.Material.Filled.Error">
-                                    <AnswerError Error="@answer" Question="@question" 
-                                                 OnRetryClicked="@OnAskQuestionAsync" />
+                            <MudPaper Class="pa-6" Elevation="3">
+                                <MudText Typo="Typo.body1">
+                                    @question
+                                </MudText>
+                            </MudPaper>
+                        </MudBadge>
+                        <div style="max-width: 80%; min-width: 80%;">
+                            @if (answer is null)
+                            {
+                                <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+                              Icon="@Icons.Material.Filled.Lightbulb" Class="full-width">
+                                    <MudPaper Class="pa-6" Elevation="3">
+                                        <Loading />
+                                    </MudPaper>
                                 </MudBadge>
-                        }
-                        else
-                        {
-                            <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
-                                      Icon="@Icons.Material.Filled.AutoAwesome">
-                                <Answer Retort="@answer" FollowupQuestionClicked="@OnAskQuestionAsync" />
-                            </MudBadge>
-                        }
-                    </div>
-                </MudStack>
-            }
-        </MudStack>
+                            }
+                            else if (answer is { Error.Length: > 0 })
+                            {
+                                <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Error"
+                              Icon="@Icons.Material.Filled.Error">
+                                    <AnswerError Error="@answer" Question="@question"
+                                     OnRetryClicked="@OnAskQuestionAsync" />
+                                </MudBadge>
+                            }
+                            else
+                            {
+                                <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+                              Icon="@Icons.Material.Filled.AutoAwesome">
+                                    <Answer Retort="@answer" FollowupQuestionClicked="@OnAskQuestionAsync" />
+                                </MudBadge>
+                            }
+                        </div>
+                    </MudStack>
+                }
+            </MudStack>
+        }
     </MudItem>
     <MudItem xs="12" Class="rounded">
         <MudGrid>
