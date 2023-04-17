@@ -12,6 +12,7 @@ blockquote:not(:empty) {
     padding: 1rem 1.5rem;
     border-radius: 6px;
     background: rgba(0,0,0,.2);
+    margin-top: 1.5rem;
     margin-bottom: 1.5rem;
 }
 

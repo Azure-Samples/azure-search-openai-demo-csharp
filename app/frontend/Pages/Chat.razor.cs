@@ -27,9 +27,9 @@ public sealed partial class Chat
     private string Ask => Localizer[nameof(Ask)];
 
     protected override void OnInitialized() => _approach =
-            SessionStorage.GetItem<Approach?>(StorageKeys.ClientApproach) is { } approach
-                ? approach
-                : Approach.ReadRetrieveRead;
+        SessionStorage.GetItem<Approach?>(StorageKeys.ClientApproach) is { } approach
+            ? approach
+            : Approach.ReadRetrieveRead;
 
     private Task OnAskQuestionAsync(string question)
     {

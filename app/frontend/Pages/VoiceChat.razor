@@ -4,28 +4,62 @@
 
 <MudGrid Justify="Justify.Center">
     <MudItem id="replies" xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
-        @if (_isReceivingResponse && _intermediateResponse is null)
+        @if (_questionAndAnswerMap is { Count: 0 })
         {
-            <Loading />
+            <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
+                <MudGrid Justify="Justify.Center" Spacing="2">
+                    <MudItem xs="12">
+                        <MudStack Class="pb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome"
+                                     Class="icon-huge align-self-center" Color="Color.Primary" />
+                            <MudText Typo="Typo.h2" Class="align-self-center">
+                                Ask a question with voice chat.
+                            </MudText>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </div>
         }
-        <MudStack Reverse="true">
-            @foreach (var response in _responses)
-            {
-                <MudPaper Class="pa-3" Elevation="3">
-                    <MudText Typo="Typo.body1">
-                        @((MarkupString)response)
-                    </MudText>
-                </MudPaper>
-            }
-            @if (_intermediateResponse is not null)
-            {
-                <MudPaper Class="pa-3" Elevation="10" Outlined="true">
-                    <MudText Typo="Typo.body1">
-                        @((MarkupString)_intermediateResponse)
-                    </MudText>
-                </MudPaper>
-            }
-        </MudStack>
+        else
+        {
+            <MudStack Reverse="true" Spacing="12">
+                @foreach (var (question, answer) in _questionAndAnswerMap)
+                {
+                    <MudStack Justify="Justify.Center" AlignItems="AlignItems.Start" Spacing="4">
+                        <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+                                  Icon="@Icons.Material.Filled.QuestionMark" Class="d-flex align-self-end">
+                            <MudPaper Class="pa-6" Elevation="3">
+                                <MudText Typo="Typo.body1">
+                                    @question
+                                </MudText>
+                            </MudPaper>
+                        </MudBadge>
+                        <div style="max-width: 80%; min-width: 80%;">
+                            @if (answer is null)
+                            {
+                                <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+                                          Icon="@Icons.Material.Filled.Lightbulb" Class="full-width">
+                                    <MudPaper Class="pa-6" Elevation="3">
+                                        <Loading />
+                                    </MudPaper>
+                                </MudBadge>
+                            }
+                            else
+                            {
+                                <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+                                          Icon="@Icons.Material.Filled.AutoAwesome">
+                                    <MudPaper Class="pa-6" Elevation="3">
+                                        <MudText Typo="Typo.body1">
+                                            @((MarkupString)answer)
+                                        </MudText>
+                                    </MudPaper>
+                                </MudBadge>
+                            }
+                        </div>
+                    </MudStack>
+                }
+            </MudStack>
+        }
     </MudItem>
     <MudItem xs="12" Class="rounded">
         <MudGrid>

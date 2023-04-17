@@ -30,7 +30,7 @@
                             @if (answer is null)
                             {
                                 <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
-                              Icon="@Icons.Material.Filled.Lightbulb" Class="full-width">
+                                          Icon="@Icons.Material.Filled.Lightbulb" Class="full-width">
                                     <MudPaper Class="pa-6" Elevation="3">
                                         <Loading />
                                     </MudPaper>
@@ -39,7 +39,7 @@
                             else if (answer is { Error.Length: > 0 })
                             {
                                 <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Error"
-                              Icon="@Icons.Material.Filled.Error">
+                                          Icon="@Icons.Material.Filled.Error">
                                     <AnswerError Error="@answer" Question="@question"
                                      OnRetryClicked="@OnAskQuestionAsync" />
                                 </MudBadge>

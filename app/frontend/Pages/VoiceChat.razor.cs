@@ -8,11 +8,11 @@ public sealed partial class VoiceChat : IDisposable
     private bool _isRecognizingSpeech = false;
     private bool _isReceivingResponse = false;
     private bool _isReadingResponse = false;
-    private string? _intermediateResponse = null;
     private IDisposable? _recognitionSubscription;
     private SpeechRecognitionErrorEvent? _errorEvent;
     private VoicePreferences? _voicePreferences;
-    private HashSet<string> _responses = new();
+    private Dictionary<string, string> _questionAndAnswerMap =
+        new(StringComparer.OrdinalIgnoreCase);
     private readonly MarkdownPipeline _pipeline = new MarkdownPipelineBuilder()
         .ConfigureNewLine("\n")
         .UseAdvancedExtensions()
@@ -40,10 +40,10 @@ public sealed partial class VoiceChat : IDisposable
 
     protected override void OnInitialized()
     {
-        if (SessionStorage.GetItem<HashSet<string>>(
-            "openai-prompt-responses") is { Count: > 0 } responses)
+        if (SessionStorage.GetItem<Dictionary<string, string>>(
+            "openai-prompt-responses") is { Count: > 0 } questionAndAnswerMap)
         {
-            _responses = responses;
+            _questionAndAnswerMap = questionAndAnswerMap;
         }
     }
 
@@ -66,26 +66,18 @@ public sealed partial class VoiceChat : IDisposable
 
         OpenAIPrompts.Enqueue(
             _userPrompt,
-            async response => await InvokeAsync(() =>
+            async (PromptResponse response) => await InvokeAsync(() =>
             {
-                var (_, responseText, isComplete) = response;
-                var promptWithResponseText = $"""
-                > {_userPrompt}
+                var (prompt, responseText, isComplete) = response;                
+                var html = Markdown.ToHtml(responseText, _pipeline);
 
-                {responseText}
-                """;
-                var html = Markdown.ToHtml(promptWithResponseText, _pipeline);
-
-                _intermediateResponse = html;
+                _questionAndAnswerMap[prompt] = html;
 
                 if (isComplete)
                 {
-                    _responses.Add(_intermediateResponse);
-                    SessionStorage.SetItem("openai-prompt-responses", _responses);
+                    SessionStorage.SetItem("openai-prompt-responses", _questionAndAnswerMap);
 
-                    _intermediateResponse = null;
                     _isReadingResponse = true;
-
                     _voicePreferences = new VoicePreferences(LocalStorage);
                     var (voice, rate, isEnabled) = _voicePreferences;
                     if (isEnabled)
@@ -151,7 +143,7 @@ public sealed partial class VoiceChat : IDisposable
 
     private async Task ShowVoiceDialogAsync()
     {
-        var dialog = await Dialog.ShowAsync<VoiceDialog>(title: TTSPreferences);
+        var dialog = await Dialog.ShowAsync<VoiceDialog>(title: $"🔊 {TTSPreferences}");
         var result = await dialog.Result;
         if (result is not { Canceled: true })
         {
