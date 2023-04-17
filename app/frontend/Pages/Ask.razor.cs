@@ -12,7 +12,7 @@ public sealed partial class Ask
 
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
     [Inject] public required HttpClient ApiClient { get; set; }
-    
+
     [CascadingParameter] public RequestOverrides? Overrides { get; set; }
 
     protected override void OnInitialized() => _approach =
@@ -59,5 +59,11 @@ public sealed partial class Ask
         {
             _isReceivingResponse = false;
         }
+    }
+
+    private void OnClearChat()
+    {
+        _userQuestion = _lastReferenceQuestion = "";
+        _approachResponse = null;
     }
 }

@@ -39,26 +39,30 @@
                               autocomplete="off" title=@ChatPrompt />
             </MudItem>
             <MudItem xs="2">
-                <MudGrid Justify="Justify.Center" Class="align-content-center flex-wrap flex-grow-1">
-                    <MudItem xs="9">
-                        <MudFab Color="Color.Info" Label=@(_isRecognizingSpeech ? Stop : Speak) Size="Size.Small"
+                <MudGrid Justify="Justify.Center">
+                    <MudItem xs="9" Class="pa-2">
+                        <MudFab Color="Color.Info" Label=@(_isRecognizingSpeech ? Stop : Speak) Size="Size.Large"
                                 StartIcon=@(_isRecognizingSpeech ? @Icons.Material.Filled.MicOff : Icons.Material.Filled.Mic)
                                 OnClick="@OnRecognizeSpeechClick" Disabled=@_isReceivingResponse Class="full-width" />
                     </MudItem>
-                    <MudItem xs="3">
-                        <MudFab Color="Color.Tertiary" Size="Size.Small"
-                                StartIcon="@Icons.Material.Filled.SettingsVoice"
-                                OnClick="@ShowVoiceDialogAsync" />
+                    <MudItem xs="3" Class="pa-2">
+                        <MudTooltip Text="Open text-to-speech seetings dialog?" Placement="Placement.Top">
+                            <MudFab Color="Color.Tertiary" Size="Size.Medium"
+                                    StartIcon="@Icons.Material.Filled.SettingsVoice"
+                                    OnClick="@ShowVoiceDialogAsync" />
+                        </MudTooltip>
                     </MudItem>
-                    <MudItem xs="9">
-                        <MudFab Color="Color.Secondary" Label="@(Ask)" Size="Size.Small"
+                    <MudItem xs="9" Class="pa-2">
+                        <MudFab Color="Color.Secondary" Label="@Ask" Size="Size.Large"
                                 StartIcon=@Icons.Material.Filled.Send Class="full-width"
                                 OnClick="@OnSendPrompt" Disabled=@(_isRecognizingSpeech || _isReceivingResponse) />
                     </MudItem>
-                    <MudItem xs="3">
-                        <MudFab Color="Color.Error" Size="Size.Small"
-                                StartIcon="@Icons.Material.Filled.Stop"
-                                OnClick="@StopTalking" Disabled=@(_isReadingResponse is false) />
+                    <MudItem xs="3" Class="pa-2">
+                        <MudTooltip Text=@(_isReadingResponse ? "Stop active text-to-speech?": "") Placement="Placement.Right">
+                            <MudFab Color="Color.Error" Size="Size.Medium"
+                                    StartIcon="@Icons.Material.Filled.Stop"
+                                    OnClick="@StopTalking" Disabled=@(_isReadingResponse is false) />
+                        </MudTooltip>
                     </MudItem>
                 </MudGrid>
             </MudItem>

@@ -27,7 +27,7 @@
     </MudItem>
     <MudItem xs="12" Class="rounded">
         <MudGrid>
-            <MudItem xs="11">
+            <MudItem xs="10">
                 <MudTextField @bind-Value="_userQuestion" Label="Question"
                               Variant="Variant.Outlined" Adornment="Adornment.End"
                               AdornmentIcon="@Icons.Material.Filled.QuestionAnswer"
@@ -36,13 +36,23 @@
                               Disabled=@_isReceivingResponse IconSize="Size.Large"
                               autocomplete="off" title="Example: Does my plan cover annual eye exams?" />
             </MudItem>
-            <MudItem xs="1" Class="flex align-self-center">
-                <MudTooltip Text="Send question" Placement="Placement.Top">
-                    <MudFab Color="Color.Secondary" Size="Size.Large"
-                            StartIcon=@Icons.Material.Filled.Send
-                            Label="Ask" aria-label="Send question button."
-                            OnClick="@OnAskClickedAsync" Disabled=@_isReceivingResponse />
-                </MudTooltip>
+            <MudItem xs="2" Class="d-flex align-self-center">
+                <MudGrid Justify="Justify.Center">
+                    <MudItem xs="9" Class="pa-2">
+                        <MudFab Color="Color.Secondary" Size="Size.Large"
+                                StartIcon=@Icons.Material.Filled.Send Class="full-width"
+                                Label="Ask" aria-label="Ask question button."
+                                OnClick="@OnAskClickedAsync" Disabled=@_isReceivingResponse />
+                    </MudItem>
+                    <MudItem xs="3" Class="pa-2">
+                        <MudTooltip Arrow="true" Text="Clear question and answer" Placement="Placement.Top">
+                            <MudFab Color="Color.Primary" Size="Size.Medium"
+                                    StartIcon=@Icons.Material.Filled.DeleteForever
+                                    aria-label="Clear chat."
+                                    OnClick="@OnClearChat" Disabled=@_isReceivingResponse />
+                        </MudTooltip>
+                    </MudItem>               
+                </MudGrid>
             </MudItem>
         </MudGrid>
     </MudItem>
