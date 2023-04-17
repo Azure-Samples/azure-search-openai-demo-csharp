@@ -18,7 +18,7 @@
         }
         else if (_approachResponse is { Error.Length: > 0 })
         {
-            <AnswerError Error="@_approachResponse" Question="_userQuestion" OnRetryClicked="@OnAskQuestionAsync" />
+            <AnswerError Error="@_approachResponse" Question="@_userQuestion" OnRetryClicked="@OnAskQuestionAsync" />
         }
         else
         {

@@ -5,4 +5,7 @@ namespace Shared.Models;
 public record ChatRequest(
     ChatTurn[] History,
     Approach Approach,
-    RequestOverrides? Overrides = null);
+    RequestOverrides? Overrides = null)
+{
+    public string? LastUserQuestion => History?.LastOrDefault()?.User;
+}

@@ -8,7 +8,7 @@
         </MudText>
     </MudDrawerHeader>
     <div class="pa-6">
-        @if (_supportedSettings is not SupportedSettings.Ask)
+        @if (_supportedSettings is not SupportedSettings.Chat)
         {
             <MudText Typo="Typo.subtitle1">@ApproachLabel</MudText>
             <MudRadioGroup @bind-SelectedOption="_approach" Class="pa-2">
@@ -45,7 +45,7 @@
                      Color="Color.Primary" 
                      Label="@UseQueryContext" />
     
-        @if (_supportedSettings is not SupportedSettings.Ask)
+        @if (_supportedSettings is not SupportedSettings.Chat)
         {
             <MudCheckBox @bind-Checked="@Overrides.SuggestFollowupQuestions" Size="Size.Large"
                          Color="Color.Primary" Label="@SuggestFollowups"
