@@ -34,7 +34,7 @@ public sealed partial class MainLayout
         _ => true
     };
 
-    private void ShowCultureDialog() => Dialog.Show<CultureDialog>(SelectLanguageTitle);
+    private void ShowCultureDialog() => Dialog.Show<CultureDialog>($"🌐 {SelectLanguageTitle}");
 
     private void DrawerToggle() => _drawerOpen = !_drawerOpen;
 
