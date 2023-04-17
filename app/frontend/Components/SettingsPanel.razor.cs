@@ -4,14 +4,13 @@ namespace ClientApp.Components;
 
 public sealed partial class SettingsPanel : IDisposable
 {
-    private Approach _approach = Approach.ReadDecomposeAsk;
     private bool _open;
     private SupportedSettings _supportedSettings;
 
     [Inject] public required IStringLocalizer<SettingsPanel> Localizer { get; set; }
     [Inject] public required NavigationManager Nav { get; set; }
 
-    public RequestOverrides Overrides { get; } = new();
+    public RequestSettingsOverrides Settings { get; } = new();
 
     [Parameter]
 #pragma warning disable BL0007 // Component parameters should be auto properties

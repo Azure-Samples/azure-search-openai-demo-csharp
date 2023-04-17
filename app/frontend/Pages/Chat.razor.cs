@@ -11,25 +11,19 @@ public sealed partial class Chat
     private readonly Dictionary<string, ApproachResponse?> _questionAndAnswerMap =
         new(StringComparer.OrdinalIgnoreCase);
 
-    private Approach _approach;
-
     [Inject] public required IStringLocalizer<Chat> Localizer { get; set; }    
 
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
     
     [Inject] public required HttpClient ApiClient { get; set; }
 
-    [CascadingParameter] public RequestOverrides? Overrides { get; set; }
+    [CascadingParameter(Name = nameof(Settings))]
+    public required RequestSettingsOverrides Settings { get; set; }
 
     private string Prompt => Localizer[nameof(Prompt)];
     private string ChatTitle => Localizer[nameof(ChatTitle)];
     private string ChatPrompt => Localizer[nameof(ChatPrompt)];
     private string Ask => Localizer[nameof(Ask)];
-
-    protected override void OnInitialized() => _approach =
-        SessionStorage.GetItem<Approach?>(StorageKeys.ClientApproach) is { } approach
-            ? approach
-            : Approach.ReadDecomposeAsk;
 
     private Task OnAskQuestionAsync(string question)
     {
@@ -52,7 +46,7 @@ public sealed partial class Chat
 
             history.Add(new ChatTurn(_userQuestion));
             
-            var request = new ChatRequest(history.ToArray(), _approach, Overrides);
+            var request = new ChatRequest(history.ToArray(), Settings.Approach, Settings.Overrides);
             var json = JsonSerializer.Serialize(
                 request,
                 new JsonSerializerOptions(JsonSerializerDefaults.Web));

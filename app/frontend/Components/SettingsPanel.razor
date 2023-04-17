@@ -11,7 +11,7 @@
         @if (_supportedSettings is not SupportedSettings.Chat)
         {
             <MudText Typo="Typo.subtitle1">@ApproachLabel</MudText>
-            <MudRadioGroup @bind-SelectedOption="_approach" Class="pa-2">
+            <MudRadioGroup @bind-SelectedOption="@Settings.Approach" Class="pa-2">
                 <MudRadio Option="@Approach.RetrieveThenRead" Color="Color.Primary">
                     @RetrieveThenRead
                 </MudRadio>
@@ -26,9 +26,9 @@
 
         <MudTextField T="string" Lines="5" Variant="Variant.Outlined"
                       Label="@OverridePromptTemplate" Placeholder="@OverridePromptTemplate" Class="pa-2"
-                      @bind-Value="Overrides.PromptTemplate" Clearable="true" />
+                      @bind-Value="Settings.Overrides.PromptTemplate" Clearable="true" />
                       
-        <MudNumericField @bind-Value="Overrides.Top" Class="pa-2"
+        <MudNumericField @bind-Value="Settings.Overrides.Top" Class="pa-2"
                          Placeholder="@RetrieveNumberOfDocs"
                          Label="@RetrieveNumberOfDocs" HideSpinButtons="true"
                          aria-label="Number input for the number of documents to search."
@@ -36,18 +36,18 @@
 
         <MudTextField T="string" Variant="Variant.Outlined"
                       Label="@ExcludeCategory" Placeholder="@ExcludeCategory" Class="pa-2"
-                      @bind-Value="Overrides.ExcludeCategory" Clearable="true" />
+                      @bind-Value="Settings.Overrides.ExcludeCategory" Clearable="true" />
 
-        <MudCheckBox @bind-Checked="@Overrides.SemanticRanker" Size="Size.Large"
+        <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticRanker" Size="Size.Large"
                     Color="Color.Primary" Label="@UseSemanticRanker" />
 
-        <MudCheckBox @bind-Checked="@Overrides.SemanticCaptions" Size="Size.Large"
+        <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticCaptions" Size="Size.Large"
                      Color="Color.Primary" 
                      Label="@UseQueryContext" />
     
         @if (_supportedSettings is not SupportedSettings.Chat)
         {
-            <MudCheckBox @bind-Checked="@Overrides.SuggestFollowupQuestions" Size="Size.Large"
+            <MudCheckBox @bind-Checked="@Settings.Overrides.SuggestFollowupQuestions" Size="Size.Large"
                          Color="Color.Primary" Label="@SuggestFollowups"
                          aria-label="Suggest follow-up questions checkbox." />
         }

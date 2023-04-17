@@ -40,7 +40,7 @@ public sealed partial class VoiceChat : IDisposable
 
     protected override void OnInitialized()
     {
-        if (SessionStorage.GetItem<Dictionary<string, string>>(
+        if (SessionStorage.GetItem<Dictionary<string, string?>>(
             "openai-prompt-responses") is { Count: > 0 } questionAndAnswerMap)
         {
             _questionAndAnswerMap = questionAndAnswerMap;

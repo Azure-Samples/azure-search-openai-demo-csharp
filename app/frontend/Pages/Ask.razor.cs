@@ -8,17 +8,12 @@ public sealed partial class Ask
     private string _lastReferenceQuestion = "";
     private bool _isReceivingResponse = false;
     private ApproachResponse? _approachResponse = null;
-    private Approach _approach;
 
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
     [Inject] public required HttpClient ApiClient { get; set; }
 
-    [CascadingParameter] public RequestOverrides? Overrides { get; set; }
-
-    protected override void OnInitialized() => _approach =
-            SessionStorage.GetItem<Approach?>(StorageKeys.ClientApproach) is { } approach
-                ? approach
-                : Approach.RetrieveThenRead;
+    [CascadingParameter(Name = nameof(Settings))]
+    public required RequestSettingsOverrides Settings { get; set; }
 
     private Task OnAskQuestionAsync(string question)
     {
@@ -33,7 +28,7 @@ public sealed partial class Ask
 
         try
         {
-            var request = new AskRequest(_userQuestion, _approach, Overrides);
+            var request = new AskRequest(_userQuestion, Settings.Approach, Settings.Overrides);
             var json = JsonSerializer.Serialize(
                 request,
                 new JsonSerializerOptions(JsonSerializerDefaults.Web));
