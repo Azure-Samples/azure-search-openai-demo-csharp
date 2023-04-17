@@ -3,7 +3,7 @@
 <PageTitle>@Chat</PageTitle>
 
 <MudGrid Justify="Justify.Center">
-    <MudItem id="replies" xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
+    <MudItem id="replies" xs="12" Style="min-height: 73vh; max-height: 73vh" Class="overflow-x-auto">
         @if (_questionAndAnswerMap is { Count: 0 })
         {
             <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
@@ -17,7 +17,7 @@
                             </MudText>
                             <MudText Typo="Typo.h1" Class="align-self-center"
                                      Style="font-family: monospace;">
-                                Blazor Clippy 📎
+                                Blazor 📎 Clippy
                             </MudText>
                             <MudText Typo="Typo.h2" Class="align-self-center">
                                 using voice chat.
@@ -75,7 +75,9 @@
                               Variant="Variant.Outlined" Adornment="Adornment.End"
                               AdornmentIcon="@Icons.Material.Filled.VoiceChat"
                               AdornmentColor="Color.Secondary" AutoFocus="true"
-                              Placeholder=@ChatPrompt Lines="3"
+                              Placeholder=@ChatPrompt Lines="3" Immediate="true"
+                              HelperText="Use Shift + Enter for new lines."
+                              OnKeyUp="@OnKeyUp" Clearable="true" Counter="1000" MaxLength="1000"
                               Disabled=@(_isRecognizingSpeech || _isReceivingResponse) IconSize="Size.Large"
                               autocomplete="off" title=@ChatPrompt />
             </MudItem>

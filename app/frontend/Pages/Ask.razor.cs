@@ -66,4 +66,12 @@ public sealed partial class Ask
         _userQuestion = _lastReferenceQuestion = "";
         _approachResponse = null;
     }
+
+    private async Task OnKeyUpAsync(KeyboardEventArgs args)
+    {
+        if (args is { Key: "Enter", ShiftKey: false })
+        {
+            await OnAskClickedAsync();
+        }
+    }
 }

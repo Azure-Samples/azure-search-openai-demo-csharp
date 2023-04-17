@@ -5,7 +5,7 @@
 <PageTitle>@ChatTitle</PageTitle>
 
 <MudGrid Justify="Justify.Center">
-    <MudItem id="answers" xs="12" Style="min-height: 75vh; max-height: 75vh" Class="overflow-x-auto">
+    <MudItem id="answers" xs="12" Style="min-height: 73vh; max-height: 73vh" Class="overflow-x-auto">
         @if (_questionAndAnswerMap is { Count: 0 })
         {
             <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
@@ -64,7 +64,9 @@
                               Variant="Variant.Outlined" Adornment="Adornment.End"
                               AdornmentIcon="@Icons.Material.Filled.QuestionAnswer"
                               AdornmentColor="Color.Secondary" AutoFocus="true"
-                              Placeholder="@(ChatPrompt)" Lines="3"
+                              Placeholder="@(ChatPrompt)" Lines="3" Immediate="true"
+                              HelperText="Use Shift + Enter for new lines."
+                              OnKeyUp="@OnKeyUpAsync" Clearable="true" Counter="1000" MaxLength="1000"
                               Disabled=@_isReceivingResponse IconSize="Size.Large"
                               autocomplete="off" title="@(ChatPrompt)" />
             </MudItem>

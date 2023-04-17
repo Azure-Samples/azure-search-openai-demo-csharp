@@ -4,7 +4,7 @@ namespace ClientApp.Components;
 
 public sealed partial class SettingsPanel : IDisposable
 {
-    private Approach _approach = Approach.RetrieveThenRead;
+    private Approach _approach = Approach.ReadDecomposeAsk;
     private bool _open;
     private SupportedSettings _supportedSettings;
 

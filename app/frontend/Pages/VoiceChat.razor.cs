@@ -113,6 +113,14 @@ public sealed partial class VoiceChat : IDisposable
             }));
     }
 
+    private void OnKeyUp(KeyboardEventArgs args)
+    {
+        if (args is { Key: "Enter", ShiftKey: false })
+        {
+            OnSendPrompt();
+        }
+    }
+
     protected override void OnAfterRender(bool firstRender) =>
         JavaScript.InvokeVoid("highlight");
 

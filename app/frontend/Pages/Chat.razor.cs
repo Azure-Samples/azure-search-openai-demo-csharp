@@ -29,7 +29,7 @@ public sealed partial class Chat
     protected override void OnInitialized() => _approach =
         SessionStorage.GetItem<Approach?>(StorageKeys.ClientApproach) is { } approach
             ? approach
-            : Approach.ReadRetrieveRead;
+            : Approach.ReadDecomposeAsk;
 
     private Task OnAskQuestionAsync(string question)
     {
@@ -89,5 +89,13 @@ public sealed partial class Chat
     {
         _userQuestion = _lastReferenceQuestion = "";
         _questionAndAnswerMap.Clear();
+    }
+
+    private async Task OnKeyUpAsync(KeyboardEventArgs args)
+    {
+        if (args is { Key: "Enter", ShiftKey: false })
+        {
+            await OnAskClickedAsync();
+        }
     }
 }
