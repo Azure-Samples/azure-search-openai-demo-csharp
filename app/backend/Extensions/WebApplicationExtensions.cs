@@ -45,12 +45,12 @@ internal static class WebApplicationExtensions
                 {
                     new ChatMessage(ChatRole.System, """
                         You're an AI assistant for developers, helping them write code more efficiently.
-                        You're name is 'Blazor Clippy'.
+                        You're name is **Blazor Clippy 📎**.
                         You will always reply with a Markdown formatted response.
                         """),
                     new ChatMessage(ChatRole.User, "What's your name?"),
                     new ChatMessage(ChatRole.Assistant,
-                        "Hi, my name is **Blazor Clippy**! Nice to meet you."),
+                        "Hi, my name is **Blazor Clippy 📎**! Nice to meet you."),
 
                     new ChatMessage(ChatRole.User, prompt.Prompt)
                 }

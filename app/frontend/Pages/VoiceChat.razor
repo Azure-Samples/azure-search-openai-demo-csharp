@@ -13,7 +13,14 @@
                             <MudIcon Icon="@Icons.Material.Filled.AutoAwesome"
                                      Class="icon-huge align-self-center" Color="Color.Primary" />
                             <MudText Typo="Typo.h2" Class="align-self-center">
-                                Interact with Blazor Clippy using voice chat.
+                                Interact with
+                            </MudText>
+                            <MudText Typo="Typo.h1" Class="align-self-center"
+                                     Style="font-family: monospace;">
+                                Blazor Clippy 📎
+                            </MudText>
+                            <MudText Typo="Typo.h2" Class="align-self-center">
+                                using voice chat.
                             </MudText>
                         </MudStack>
                     </MudItem>
@@ -93,7 +100,7 @@
                     </MudItem>
                     <MudItem xs="3" Class="pa-2">
                         <MudTooltip Text=@(_isReadingResponse ? "Stop active text-to-speech?": "") Placement="Placement.Right">
-                            <MudFab Color="Color.Error" Size="Size.Medium"
+                            <MudFab Color="Color.Warning" Size="Size.Medium"
                                     StartIcon="@Icons.Material.Filled.Stop"
                                     OnClick="@StopTalking" Disabled=@(_isReadingResponse is false) />
                         </MudTooltip>

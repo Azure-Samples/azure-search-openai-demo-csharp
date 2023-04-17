@@ -11,7 +11,7 @@ public sealed partial class VoiceChat : IDisposable
     private IDisposable? _recognitionSubscription;
     private SpeechRecognitionErrorEvent? _errorEvent;
     private VoicePreferences? _voicePreferences;
-    private Dictionary<string, string> _questionAndAnswerMap =
+    private Dictionary<string, string?> _questionAndAnswerMap =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly MarkdownPipeline _pipeline = new MarkdownPipelineBuilder()
         .ConfigureNewLine("\n")
@@ -63,6 +63,7 @@ public sealed partial class VoiceChat : IDisposable
         }
 
         _isReceivingResponse = true;
+        _questionAndAnswerMap[_userPrompt] = null;
 
         OpenAIPrompts.Enqueue(
             _userPrompt,

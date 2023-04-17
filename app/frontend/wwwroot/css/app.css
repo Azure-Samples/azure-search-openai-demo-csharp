@@ -173,7 +173,7 @@ iframe {
 
 .dim:hover {
     transition: all 0.3s ease-out;
-    filter: brightness(75%);
+    filter: brightness(80%);
 }
 
 .text-align-center {
