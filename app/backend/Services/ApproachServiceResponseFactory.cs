@@ -4,31 +4,19 @@ namespace MinimalApi.Services;
 
 public sealed class ApproachServiceResponseFactory
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IEnumerable<IApproachBasedService> _approachBasedServices;
 
-    public ApproachServiceResponseFactory(IServiceProvider serviceProvider) =>
-        _serviceProvider = serviceProvider;
+    public ApproachServiceResponseFactory(IEnumerable<IApproachBasedService> services) =>
+        _approachBasedServices = services;
 
     public async Task<ApproachResponse> GetApproachResponseAsync(
         Approach approach, string question, RequestOverrides? overrides = null)
     {
-        var approachResponse = approach switch
-        {
-            Approach.RetrieveThenRead =>
-                await _serviceProvider.GetRequiredService<RetrieveThenReadApproachService>()
-                    .ReplyAsync(question),
+        var service = _approachBasedServices.SingleOrDefault(s => s.Approach == approach)
+            ?? throw new ArgumentOutOfRangeException(
+                nameof(approach), $"Approach: {approach} value isn't supported.");
 
-            Approach.ReadRetrieveRead =>
-                await _serviceProvider.GetRequiredService<ReadRetrieveReadApproachService>()
-                    .ReplyAsync(question, overrides),
-            
-            Approach.ReadDecomposeAsk =>
-                await _serviceProvider.GetRequiredService<ReadDecomposeAskApproachService>()
-                    .ReplyAsync(question, overrides),
-
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(approach), $"Approach: {approach} value isn't supported.")
-        };
+        var approachResponse = await service.ReplyAsync(question, overrides);
 
         return approachResponse ?? throw new AIException(
             AIException.ErrorCodes.ServiceError,

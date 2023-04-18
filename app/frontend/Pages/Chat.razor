@@ -76,7 +76,8 @@
                         <MudFab Color="Color.Secondary" Size="Size.Large"
                                 StartIcon=@Icons.Material.Filled.Send Class="full-width"
                                 Label="Chat" aria-label="Ask question button."
-                                OnClick="@OnAskClickedAsync" Disabled=@_isReceivingResponse />
+                                OnClick="@OnAskClickedAsync"
+                                Disabled=@(_isReceivingResponse || string.IsNullOrWhiteSpace(_userQuestion)) />
                     </MudItem>
                     <MudItem xs="3" Class="pa-2">
                         <MudTooltip Arrow="true" Text="Clear chat history" Placement="Placement.Top">

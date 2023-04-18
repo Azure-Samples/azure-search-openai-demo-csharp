@@ -2,7 +2,7 @@
 
 namespace MinimalApi.Services;
 
-public class ReadRetrieveReadApproachService
+public class ReadRetrieveReadApproachService : IApproachBasedService
 {
     private IKernel? _kernel;
     private readonly SearchClient _searchClient;
@@ -41,6 +41,8 @@ Sources:
 
 Answer:
 """;
+
+    public Approach Approach => Approach.ReadRetrieveRead;
 
     public ReadRetrieveReadApproachService(SearchClient searchClient, AzureOpenAITextCompletionService service)
     {

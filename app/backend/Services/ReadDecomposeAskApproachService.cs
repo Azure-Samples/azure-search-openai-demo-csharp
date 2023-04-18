@@ -2,11 +2,12 @@
 
 namespace MinimalApi.Services;
 
-public class ReadDecomposeAskApproachService
+public class ReadDecomposeAskApproachService : IApproachBasedService
 {
     private readonly SearchClient _searchClient;
     private readonly ILogger? _logger;
     private readonly AzureOpenAITextCompletionService _completionService;
+
     private const string AnswerPromptPrefix = """
         Answer questions using the given knowledge only. For tabular information return it as an HTML table. Do not return markdown format.
         Each knowledge has a source name followed by a colon and the actual information, always include the source name for each knowledge you use in the answer.
@@ -130,13 +131,15 @@ public class ReadDecomposeAskApproachService
         """;
 
     private const string PlannerPrefix = """
-        1:Check if you can answer the given quesiton with existing knowledge. If yes return answer, otherwise do the following steps until you get the answer:
+        1:Check if you can answer the given question with existing knowledge. If yes return answer, otherwise do the following steps until you get the answer:
          - explain why you can't answer the question
          - generating query from explanation
          - use query to lookup or search information, and append the lookup or search result to $knowledge
         2:Answer to $ANSWER.
         3:Summarize and set to Summary variable.
         """;
+
+    public Approach Approach => Approach.ReadDecomposeAsk;
 
     public ReadDecomposeAskApproachService(SearchClient searchClient, AzureOpenAITextCompletionService completionService, ILogger? logger = null)
     {

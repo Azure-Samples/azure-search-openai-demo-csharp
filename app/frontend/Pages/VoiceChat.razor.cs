@@ -4,7 +4,7 @@ namespace ClientApp.Pages;
 
 public sealed partial class VoiceChat : IDisposable
 {
-    private string _userPrompt = "";
+    private string _userQuestion = "";
     private bool _isRecognizingSpeech = false;
     private bool _isReceivingResponse = false;
     private bool _isReadingResponse = false;
@@ -57,16 +57,16 @@ public sealed partial class VoiceChat : IDisposable
 
     private void OnSendPrompt()
     {
-        if (_isReceivingResponse)
+        if (_isReceivingResponse || string.IsNullOrWhiteSpace(_userQuestion))
         {
             return;
         }
 
         _isReceivingResponse = true;
-        _questionAndAnswerMap[_userPrompt] = null;
+        _questionAndAnswerMap[_userQuestion] = null;
 
         OpenAIPrompts.Enqueue(
-            _userPrompt,
+            _userQuestion,
             async (PromptResponse response) => await InvokeAsync(() =>
             {
                 var (prompt, responseText, isComplete) = response;                
@@ -106,7 +106,7 @@ public sealed partial class VoiceChat : IDisposable
                 _isReceivingResponse = isComplete is false;
                 if (isComplete)
                 {
-                    _userPrompt = "";
+                    _userQuestion = "";
                 }
 
                 StateHasChanged();
@@ -180,10 +180,10 @@ public sealed partial class VoiceChat : IDisposable
 
     private void OnRecognized(string transcript)
     {
-        _userPrompt = _userPrompt switch
+        _userQuestion = _userQuestion switch
         {
             null => transcript,
-            _ => $"{_userPrompt.Trim()} {transcript}".Trim()
+            _ => $"{_userQuestion.Trim()} {transcript}".Trim()
         };
 
         StateHasChanged();

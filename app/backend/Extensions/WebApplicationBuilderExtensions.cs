@@ -60,10 +60,12 @@ internal static class WebApplicationBuilderExtensions
         });
 
         builder.Services.AddSingleton<AzureOpenAITextCompletionService>();
-        builder.Services.AddSingleton<RetrieveThenReadApproachService>();
         builder.Services.AddSingleton<ReadRetrieveReadChatService>();
-        builder.Services.AddSingleton<ReadRetrieveReadApproachService>();
-        builder.Services.AddSingleton<ReadDecomposeAskApproachService>();
+
+        builder.Services.AddSingleton<IApproachBasedService, RetrieveThenReadApproachService>();
+        builder.Services.AddSingleton<IApproachBasedService, ReadRetrieveReadApproachService>();
+        builder.Services.AddSingleton<IApproachBasedService, ReadDecomposeAskApproachService>();
+
         builder.Services.AddSingleton<ApproachServiceResponseFactory>();
 
         return builder;

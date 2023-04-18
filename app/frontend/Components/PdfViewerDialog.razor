@@ -3,7 +3,7 @@
         <MudContainer Style="min-height: 60vh; max-height: 75vh; overflow-y: scroll">
             <div style="@_pdfViewerVisibilityStyle">
                 @{
-                    var url = $"{ApiClient.BaseAddress}api/content/{Title}#view-fitV";
+                    var url = $"{_baseAddress}api/content/{Title}#view-fitV";
                 }
                 <iframe id="pdf-viewer" src="@url" title="@Title" />
             </div>

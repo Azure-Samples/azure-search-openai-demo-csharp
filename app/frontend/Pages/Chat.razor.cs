@@ -33,6 +33,11 @@ public sealed partial class Chat
 
     private async Task OnAskClickedAsync()
     {
+        if (string.IsNullOrWhiteSpace(_userQuestion))
+        {
+            return;
+        }
+
         _isReceivingResponse = true;
         _lastReferenceQuestion = _userQuestion;
         _questionAndAnswerMap[_userQuestion] = null;

@@ -5,9 +5,10 @@ namespace ClientApp.Components;
 public sealed partial class PdfViewerDialog
 {
     private bool _isLoaded = false;
+    private Uri? _baseAddress;
     private string _pdfViewerVisibilityStyle => _isLoaded ? "display:default;" : "display:none;";
 
-    [Inject] public required HttpClient ApiClient { get; set; }
+    [Inject] public required IHttpClientFactory Factory { get; set; }
 
     [Parameter] public required string Title { get; set; }
 
@@ -15,6 +16,9 @@ public sealed partial class PdfViewerDialog
 
     protected override async Task OnInitializedAsync()
     {
+        var client = Factory.CreateClient(typeof(ApiClient).Name);
+        _baseAddress = client.BaseAddress;
+
         await base.OnInitializedAsync();
         await JavaScriptModule.RegisterIFrameLoadedAsync(
             "#pdf-viewer",

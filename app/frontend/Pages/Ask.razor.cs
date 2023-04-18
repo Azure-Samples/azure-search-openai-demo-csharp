@@ -23,6 +23,11 @@ public sealed partial class Ask
 
     private async Task OnAskClickedAsync()
     {
+        if (string.IsNullOrWhiteSpace(_userQuestion))
+        {
+            return;
+        }
+
         _isReceivingResponse = true;
         _lastReferenceQuestion = _userQuestion;
 
