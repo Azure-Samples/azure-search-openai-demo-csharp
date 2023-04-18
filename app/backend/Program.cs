@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddOutputCache();
+
 builder.AddCrossOriginResourceSharing();
 builder.AddAzureServices();
 
@@ -17,6 +19,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseOutputCache();
 app.UseCors();
 app.UseDefaultFiles();
 app.UseStaticFiles();

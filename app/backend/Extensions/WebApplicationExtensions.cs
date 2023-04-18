@@ -8,7 +8,7 @@ internal static class WebApplicationExtensions
     {
         var api = app.MapGroup("api");
 
-        api.MapGet("content/{citation}", OnGetCitationAsync);
+        api.MapGet("content/{citation}", OnGetCitationAsync).CacheOutput();
         api.MapPost("chat", OnPostChatAsync);
         api.MapPost("openai/chat", OnPostChatPromptAsync);
         api.MapPost("ask", OnPostAskAsync);
@@ -16,17 +16,19 @@ internal static class WebApplicationExtensions
         return app;
     }
 
-    private static async Task<IResult> OnGetCitationAsync(HttpContext http, string citation, BlobContainerClient client)
+    private static async Task<IResult> OnGetCitationAsync(
+        HttpContext http, string citation, BlobContainerClient client)
     {
         if (await client.ExistsAsync() is { Value: false })
         {
             return Results.NotFound("blob container not found");
         }
 
-        var contentDispositionHeader = new ContentDispositionHeaderValue("inline")
-        {
-            FileName = citation,
-        };
+        var contentDispositionHeader =
+            new ContentDispositionHeaderValue("inline")
+            {
+                FileName = citation,
+            };
 
         http.Response.Headers.ContentDisposition = contentDispositionHeader.ToString();
         var contentType = citation.EndsWith(".pdf") ? "application/pdf" : "application/octet-stream";
