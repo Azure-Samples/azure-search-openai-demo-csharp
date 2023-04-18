@@ -29,6 +29,8 @@ public sealed partial class VoiceChat : IDisposable
     [Inject] public required IJSInProcessRuntime JavaScript { get; set; }
     [Inject] public required IStringLocalizer<VoiceChat> Localizer { get; set; }
 
+    [CascadingParameter(Name = nameof(IsReversed))]
+    public required bool IsReversed { get; set; }
     private string Prompt => Localizer[nameof(Prompt)];
     private string Save => Localizer[nameof(Save)];
     private string Speak => Localizer[nameof(Speak)];

@@ -2,17 +2,18 @@
 
 namespace MinimalApi.Services;
 
-public sealed class ApproachServiceResponseFactory
+internal sealed class ApproachServiceResponseFactory
 {
     private readonly IEnumerable<IApproachBasedService> _approachBasedServices;
 
     public ApproachServiceResponseFactory(IEnumerable<IApproachBasedService> services) =>
         _approachBasedServices = services;
 
-    public async Task<ApproachResponse> GetApproachResponseAsync(
+    internal async Task<ApproachResponse> GetApproachResponseAsync(
         Approach approach, string question, RequestOverrides? overrides = null)
     {
-        var service = _approachBasedServices.SingleOrDefault(s => s.Approach == approach)
+        var service =
+            _approachBasedServices.SingleOrDefault(service => service.Approach == approach)
             ?? throw new ArgumentOutOfRangeException(
                 nameof(approach), $"Approach: {approach} value isn't supported.");
 

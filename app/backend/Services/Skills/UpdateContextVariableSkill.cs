@@ -2,7 +2,7 @@
 
 namespace MinimalApi.Services.Skills;
 
-public class UpdateContextVariableSkill
+public sealed class UpdateContextVariableSkill
 {
     [SKFunction("Update knowledge")]
     [SKFunctionName("UpdateKnowledgeVariable")]

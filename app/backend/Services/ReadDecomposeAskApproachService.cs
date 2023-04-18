@@ -2,7 +2,7 @@
 
 namespace MinimalApi.Services;
 
-public class ReadDecomposeAskApproachService : IApproachBasedService
+internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
 {
     private readonly SearchClient _searchClient;
     private readonly ILogger? _logger;

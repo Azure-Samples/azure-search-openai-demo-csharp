@@ -29,7 +29,7 @@
         }
         else
         {
-            <MudStack Reverse="true" Spacing="12">
+            <MudStack Reverse="@IsReversed" Spacing="12">
                 @foreach (var (question, answer) in _questionAndAnswerMap)
                 {
                     <MudStack Justify="Justify.Center" AlignItems="AlignItems.Start" Spacing="4">

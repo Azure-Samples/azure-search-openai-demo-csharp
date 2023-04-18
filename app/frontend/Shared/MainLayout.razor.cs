@@ -15,6 +15,12 @@ public sealed partial class MainLayout
         set => LocalStorage.SetItem<bool>(StorageKeys.PrefersDarkTheme, value);
     }
 
+    private bool _isReversed
+    {
+        get => LocalStorage.GetItem<bool?>(StorageKeys.PrefersReversedConversationSorting) ?? true;
+        set => LocalStorage.SetItem<bool>(StorageKeys.PrefersReversedConversationSorting, value);
+    }
+
     private bool _isRightToLeft =>
         Thread.CurrentThread.CurrentUICulture is { TextInfo.IsRightToLeft: true };
 
@@ -33,10 +39,15 @@ public sealed partial class MainLayout
         "ask" or "chat" => false,
         _ => true
     };
+    private bool SortDisabled => new Uri(Nav.Uri).Segments.LastOrDefault() switch
+    {
+        "voicechat" or "chat" => false,
+        _ => true
+    };
 
     private void ShowCultureDialog() => Dialog.Show<CultureDialog>($"🌐 {SelectLanguageTitle}");
 
-    private void DrawerToggle() => _drawerOpen = !_drawerOpen;
-
-    private void OnToggledChanged() => _isDarkTheme = !_isDarkTheme;
+    private void OnMenuClicked() => _drawerOpen = !_drawerOpen;
+    private void OnThemeChanged() => _isDarkTheme = !_isDarkTheme;
+    private void OnIsReversedChanged() => _isReversed = !_isReversed;
 }

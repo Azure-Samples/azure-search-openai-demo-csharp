@@ -2,7 +2,7 @@
 
 namespace MinimalApi.Services.Skills;
 
-public class LookupSkill
+public sealed class LookupSkill
 {
     private readonly SearchClient _searchClient;
     private readonly RequestOverrides? _requestOverrides;

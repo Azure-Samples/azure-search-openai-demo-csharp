@@ -25,7 +25,17 @@
         <MudAppBar Elevation="20">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" id="nav-toggle"
                         Title="@ToggleNavBar"
-                        Size="Size.Large" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                        Size="Size.Large" Edge="Edge.Start" OnClick="@OnMenuClicked" />
+            @if (SortDisabled is false)
+            {
+                <MudTooltip Text="@(_isReversed ? "Sort conversations with latest answers on bottom" : "Sort conversations with latest answers on top")"
+                            Placement="Placement.Right">
+                    <MudToggleIconButton Toggled="@_isReversed" ToggledChanged=@OnIsReversedChanged Size="Size.Large"
+                                         ToggledSize="Size.Large"
+                                         Icon=@Icons.Material.Filled.ArrowCircleUp
+                                         ToggledIcon=@Icons.Material.Filled.ArrowCircleDown />
+                </MudTooltip>
+            }
             <MudSpacer />
             @if (SettingsDisabled is false)
             {
@@ -33,7 +43,7 @@
                            Title="Open the developer settings side panel"
                            OnClick="@(_ => _settingsOpen = _settingsOpen is false)" />
             }
-            <MudToggleIconButton Toggled="@_isDarkTheme" ToggledChanged=@OnToggledChanged Size="Size.Large"
+            <MudToggleIconButton Toggled="@_isDarkTheme" ToggledChanged=@OnThemeChanged Size="Size.Large"
                                 ToggledSize="Size.Large"
                                 Title="@SwitchToDarkTheme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Info"
                                 ToggledTitle="@SwitchToLightTheme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Warning />
@@ -57,7 +67,9 @@
         <MudMainContent>
             <MudContainer MaxWidth="MaxWidth.Large" Class="my-6 pt-6">
                 <CascadingValue Value="_settingsPanel?.Settings" Name="Settings">
-                    @Body
+                    <CascadingValue Value="_isReversed" Name="IsReversed">
+                        @Body
+                    </CascadingValue>
                 </CascadingValue>
             </MudContainer>
             <SettingsPanel @ref="_settingsPanel" @bind-Open="@_settingsOpen" />

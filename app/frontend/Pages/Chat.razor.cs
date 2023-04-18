@@ -20,6 +20,9 @@ public sealed partial class Chat
     [CascadingParameter(Name = nameof(Settings))]
     public required RequestSettingsOverrides Settings { get; set; }
 
+    [CascadingParameter(Name = nameof(IsReversed))]
+    public required bool IsReversed { get; set; }
+
     private string Prompt => Localizer[nameof(Prompt)];
     private string ChatTitle => Localizer[nameof(ChatTitle)];
     private string ChatPrompt => Localizer[nameof(ChatPrompt)];

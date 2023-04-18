@@ -2,7 +2,7 @@
 
 namespace MinimalApi.Services;
 
-public class ReadRetrieveReadApproachService : IApproachBasedService
+internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
 {
     private IKernel? _kernel;
     private readonly SearchClient _searchClient;

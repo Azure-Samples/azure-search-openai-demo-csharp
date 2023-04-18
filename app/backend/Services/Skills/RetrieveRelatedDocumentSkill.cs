@@ -2,7 +2,7 @@
 
 namespace MinimalApi.Services.Skills;
 
-public class RetrieveRelatedDocumentSkill
+public sealed class RetrieveRelatedDocumentSkill
 {
     private readonly SearchClient _searchClient;
     private readonly RequestOverrides? _requestOverrides;
