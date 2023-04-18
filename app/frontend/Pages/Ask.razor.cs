@@ -10,7 +10,7 @@ public sealed partial class Ask
     private ApproachResponse? _approachResponse = null;
 
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
-    [Inject] public required HttpClient ApiClient { get; set; }
+    [Inject] public required ApiClient ApiClient { get; set; }
 
     [CascadingParameter(Name = nameof(Settings))]
     public required RequestSettingsOverrides Settings { get; set; }
@@ -28,27 +28,12 @@ public sealed partial class Ask
 
         try
         {
-            var request = new AskRequest(_userQuestion, Settings.Approach, Settings.Overrides);
-            var json = JsonSerializer.Serialize(
-                request,
-                new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            var request = new AskRequest(
+                Question: _userQuestion,
+                Approach: Settings.Approach,
+                Overrides: Settings.Overrides);
 
-            using var body = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await ApiClient.PostAsync("api/ask", body);
-
-            if (response.IsSuccessStatusCode)
-            {
-                _approachResponse = await response.Content.ReadFromJsonAsync<ApproachResponse>();
-            }
-            else
-            {
-                _approachResponse = new ApproachResponse(
-                    $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}",
-                    null,
-                    Array.Empty<string>(),
-                    "Unable to retrieve valid response from the server.");
-            }
+            _approachResponse = await ApiClient.AskQuestionAsync(request);
         }
         finally
         {

@@ -15,7 +15,7 @@ public sealed partial class Chat
 
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
     
-    [Inject] public required HttpClient ApiClient { get; set; }
+    [Inject] public required ApiClient ApiClient { get; set; }
 
     [CascadingParameter(Name = nameof(Settings))]
     public required RequestSettingsOverrides Settings { get; set; }
@@ -47,30 +47,12 @@ public sealed partial class Chat
             history.Add(new ChatTurn(_userQuestion));
             
             var request = new ChatRequest(history.ToArray(), Settings.Approach, Settings.Overrides);
-            var json = JsonSerializer.Serialize(
-                request,
-                new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            var result = await ApiClient.ChatConversationAsync(request);
 
-            using var body = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await ApiClient.PostAsync("api/chat", body);
-
-            if (response.IsSuccessStatusCode)
+            _questionAndAnswerMap[_userQuestion] = result.Response;
+            if (result.IsSuccessful)
             {
-                var answer = await response.Content.ReadFromJsonAsync<ApproachResponse>();
-                if (answer is not null)
-                {
-                    _questionAndAnswerMap[_userQuestion] = answer;
-                    _userQuestion = "";
-                }
-            }
-            else
-            {
-                _questionAndAnswerMap[_userQuestion] = new ApproachResponse(
-                    $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}",
-                    null,
-                    Array.Empty<string>(),
-                    "Unable to retrieve valid response from the server.");
+                _userQuestion = "";
             }
         }
         finally

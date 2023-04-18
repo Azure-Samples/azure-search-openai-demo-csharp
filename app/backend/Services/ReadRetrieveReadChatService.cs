@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using MinimalApi.Extensions;
-
 namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService

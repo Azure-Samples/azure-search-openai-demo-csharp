@@ -5,7 +5,7 @@ namespace ClientApp.Pages;
 public sealed partial class Index
 {
     private readonly string[] _images = Enumerable.Range(0, 10)
-        .Select(i => $"bing-generated-{i}.jpg")
+        .Select(i => $"media/bing-generated-{i}.jpg")
         .ToArray();
 
     [Inject] public required IStringLocalizer<Index> Localizer { get; set; }
