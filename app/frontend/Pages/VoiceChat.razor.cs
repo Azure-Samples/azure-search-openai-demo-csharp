@@ -12,7 +12,7 @@ public sealed partial class VoiceChat : IDisposable
     private IDisposable? _recognitionSubscription;
     private SpeechRecognitionErrorEvent? _errorEvent;
     private VoicePreferences? _voicePreferences;
-    private Dictionary<UserQuestion, string?> _questionAndAnswerMap = new();
+    private readonly Dictionary<UserQuestion, string?> _questionAndAnswerMap = new();
     private readonly MarkdownPipeline _pipeline = new MarkdownPipelineBuilder()
         .ConfigureNewLine("\n")
         .UseAdvancedExtensions()
@@ -25,7 +25,6 @@ public sealed partial class VoiceChat : IDisposable
     [Inject] public required ISpeechRecognitionService SpeechRecognition { get; set; }
     [Inject] public required ISpeechSynthesisService SpeechSynthesis { get; set; }
     [Inject] public required ILocalStorageService LocalStorage { get; set; }
-    [Inject] public required ISessionStorageService SessionStorage { get; set; }
     [Inject] public required IJSInProcessRuntime JavaScript { get; set; }
     [Inject] public required IStringLocalizer<VoiceChat> Localizer { get; set; }
 
@@ -39,15 +38,6 @@ public sealed partial class VoiceChat : IDisposable
     private string ChatPrompt => Localizer[nameof(ChatPrompt)];
     private string Ask => Localizer[nameof(Ask)];
     private string TTSPreferences => Localizer[nameof(TTSPreferences)];
-
-    protected override void OnInitialized()
-    {
-        if (SessionStorage.GetItem<Dictionary<UserQuestion, string?>>(
-            "openai-prompt-responses") is { Count: > 0 } questionAndAnswerMap)
-        {
-            _questionAndAnswerMap = questionAndAnswerMap;
-        }
-    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -79,8 +69,6 @@ public sealed partial class VoiceChat : IDisposable
 
                 if (isComplete)
                 {
-                    SessionStorage.SetItem("openai-prompt-responses", _questionAndAnswerMap);
-
                     _isReadingResponse = true;
                     _voicePreferences = new VoicePreferences(LocalStorage);
                     var (voice, rate, isEnabled) = _voicePreferences;
