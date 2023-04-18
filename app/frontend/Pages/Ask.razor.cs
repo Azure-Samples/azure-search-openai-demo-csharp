@@ -38,7 +38,8 @@ public sealed partial class Ask
                 Approach: Settings.Approach,
                 Overrides: Settings.Overrides);
 
-            _approachResponse = await ApiClient.AskQuestionAsync(request);
+            var result = await ApiClient.AskQuestionAsync(request);
+            _approachResponse = result.Response;
         }
         finally
         {

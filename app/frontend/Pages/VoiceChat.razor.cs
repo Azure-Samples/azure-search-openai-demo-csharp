@@ -5,14 +5,14 @@ namespace ClientApp.Pages;
 public sealed partial class VoiceChat : IDisposable
 {
     private string _userQuestion = "";
+    private UserQuestion _currentQuestion;
     private bool _isRecognizingSpeech = false;
     private bool _isReceivingResponse = false;
     private bool _isReadingResponse = false;
     private IDisposable? _recognitionSubscription;
     private SpeechRecognitionErrorEvent? _errorEvent;
     private VoicePreferences? _voicePreferences;
-    private Dictionary<string, string?> _questionAndAnswerMap =
-        new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<UserQuestion, string?> _questionAndAnswerMap = new();
     private readonly MarkdownPipeline _pipeline = new MarkdownPipelineBuilder()
         .ConfigureNewLine("\n")
         .UseAdvancedExtensions()
@@ -42,7 +42,7 @@ public sealed partial class VoiceChat : IDisposable
 
     protected override void OnInitialized()
     {
-        if (SessionStorage.GetItem<Dictionary<string, string?>>(
+        if (SessionStorage.GetItem<Dictionary<UserQuestion, string?>>(
             "openai-prompt-responses") is { Count: > 0 } questionAndAnswerMap)
         {
             _questionAndAnswerMap = questionAndAnswerMap;
@@ -65,16 +65,17 @@ public sealed partial class VoiceChat : IDisposable
         }
 
         _isReceivingResponse = true;
-        _questionAndAnswerMap[_userQuestion] = null;
+        _currentQuestion = new(_userQuestion, DateTime.Now);
+        _questionAndAnswerMap[_currentQuestion] = null;
 
         OpenAIPrompts.Enqueue(
             _userQuestion,
             async (PromptResponse response) => await InvokeAsync(() =>
             {
-                var (prompt, responseText, isComplete) = response;                
+                var (_, responseText, isComplete) = response;                
                 var html = Markdown.ToHtml(responseText, _pipeline);
 
-                _questionAndAnswerMap[prompt] = html;
+                _questionAndAnswerMap[_currentQuestion] = html;
 
                 if (isComplete)
                 {
@@ -109,6 +110,7 @@ public sealed partial class VoiceChat : IDisposable
                 if (isComplete)
                 {
                     _userQuestion = "";
+                    _currentQuestion = default;
                 }
 
                 StateHasChanged();

@@ -15,14 +15,17 @@
         else
         {
             <MudStack Reverse="@IsReversed" Spacing="12">
-                @foreach (var (question, answer) in _questionAndAnswerMap)
+                @foreach (var ((question, askedOn), answer) in _questionAndAnswerMap)
                 {
                     <MudStack Justify="Justify.Center" AlignItems="AlignItems.Start" Spacing="4">
                         <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
                           Icon="@Icons.Material.Filled.QuestionMark" Class="d-flex align-self-end">
-                            <MudPaper Class="pa-6" Elevation="3">
-                                <MudText Typo="Typo.body1">
+                            <MudPaper Class="pa-6 d-flex flex-column" Elevation="3">
+                                <MudText Typo="Typo.body1" Align="Align.End">
                                     @question
+                                </MudText>
+                                <MudText Typo="Typo.caption" Align="Align.End" Color="Color.Secondary">
+                                    @($"Asked at {askedOn:h:mm:ss tt} on {askedOn:M/dd/yy}")
                                 </MudText>
                             </MudPaper>
                         </MudBadge>

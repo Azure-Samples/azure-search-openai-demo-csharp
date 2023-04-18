@@ -8,33 +8,16 @@ public sealed class ApiClient
 
     public ApiClient(HttpClient httpClient) => _httpClient = httpClient;
 
-    public async Task<ApproachResponse?> AskQuestionAsync(AskRequest request)
+    public Task<AnswerResult<AskRequest>> AskQuestionAsync(AskRequest request) =>
+        PostRequestAsync(request, "api/ask");
+
+    public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request) =>
+        PostRequestAsync(request, "api/chat");
+
+    private async Task<AnswerResult<TRequest>> PostRequestAsync<TRequest>(
+        TRequest request, string apiRoute) where TRequest : ApproachRequest
     {
-        var json = JsonSerializer.Serialize(
-            request,
-            new JsonSerializerOptions(JsonSerializerDefaults.Web));
-
-        using var body = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync("api/ask", body);
-
-        if (response.IsSuccessStatusCode)
-        {
-            return await response.Content.ReadFromJsonAsync<ApproachResponse>();
-        }
-        else
-        {
-            return new ApproachResponse(
-                $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}",
-                null,
-                Array.Empty<string>(),
-                "Unable to retrieve valid response from the server.");
-        }
-    }
-
-    public async Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request)
-    {
-        var result = new AnswerResult<ChatRequest>(
+        var result = new AnswerResult<TRequest>(
             IsSuccessful: false,
             Response: null,
             Approach: request.Approach,
@@ -44,9 +27,10 @@ public sealed class ApiClient
             request,
             new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-        using var body = new StringContent(json, Encoding.UTF8, "application/json");
+        using var body = new StringContent(
+            json, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PostAsync("api/chat", body);
+        var response = await _httpClient.PostAsync(apiRoute, body);
 
         if (response.IsSuccessStatusCode)
         {

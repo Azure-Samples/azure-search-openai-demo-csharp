@@ -1,4 +1,4 @@
-﻿@inherits             LayoutComponentBase
+﻿@inherits LayoutComponentBase
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkTheme" Theme="_theme" />
 <MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Small"
@@ -29,11 +29,12 @@
             @if (SortDisabled is false)
             {
                 <MudTooltip Text="@(_isReversed ? "Sort conversations with latest answers on bottom" : "Sort conversations with latest answers on top")"
-                            Placement="Placement.Right">
+                            Placement="Placement.Right" Arrow="true" Color="Color.Primary"
+                            ShowOnHover="true" ShowOnClick="false">
                     <MudToggleIconButton Toggled="@_isReversed" ToggledChanged=@OnIsReversedChanged Size="Size.Large"
-                                         ToggledSize="Size.Large"
-                                         Icon=@Icons.Material.Filled.ArrowCircleUp
-                                         ToggledIcon=@Icons.Material.Filled.ArrowCircleDown />
+                                         ToggledSize="Size.Large" Color="Color.Inherit"
+                                         Icon=@Icons.Material.Filled.ArrowCircleDown ToggledColor="Color.Inherit"
+                                         ToggledIcon=@Icons.Material.Filled.ArrowCircleUp />
                 </MudTooltip>
             }
             <MudSpacer />

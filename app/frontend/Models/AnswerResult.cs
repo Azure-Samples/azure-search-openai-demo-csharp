@@ -6,4 +6,4 @@ public readonly record struct AnswerResult<TRequest>(
     bool IsSuccessful,
     ApproachResponse? Response,
     Approach Approach,
-    TRequest Request);
+    TRequest Request) where TRequest : ApproachRequest;
