@@ -2,11 +2,9 @@
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-//builder.Services.AddOptions<AppSettings>();
 builder.Services.Configure<AppSettings>(
     builder.Configuration.GetSection(nameof(AppSettings)));
 
-// This is for an IHttpClientFactory.
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<ApiClient>((sp, client) =>
 {
@@ -16,7 +14,7 @@ builder.Services.AddHttpClient<ApiClient>((sp, client) =>
 
     client.BaseAddress = new Uri(backendUri);
 });
-builder.Services.AddSingleton<OpenAIPromptQueue>();
+builder.Services.AddScoped<OpenAIPromptQueue>();
 builder.Services.AddLocalStorageServices();
 builder.Services.AddSessionStorageServices();
 builder.Services.AddSpeechSynthesisServices();
