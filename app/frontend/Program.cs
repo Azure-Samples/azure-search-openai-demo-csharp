@@ -1,15 +1,39 @@
 ﻿var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
+// load .env from embedded resource
+var assembly = typeof(Program).Assembly;
+var resourceName = "ClientApp.dotEnv";
+using (Stream stream = assembly.GetManifestResourceStream(resourceName)!)
+using (StreamReader reader = new StreamReader(stream))
+{
+    // read file line by line
+    // and set environment variables
+    var lines = reader.ReadToEnd().Split('\r');
+    
+    foreach(var line in lines)
+    {
+        var parts = line.Split("=");
+        if (parts.Length == 2)
+        {
+            var key = parts[0];
+            var value = parts[1];
+
+            // remove quotes
+            Environment.SetEnvironmentVariable(key, value[1..^1]);
+        }
+    }
+}
+
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.Configure<AppSettings>(
     builder.Configuration.GetSection(nameof(AppSettings)));
-
-builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<ApiClient>((sp, client) =>
 {
-    var config = sp.GetService<IOptions<AppSettings>>();
-    var backendUri = config?.Value?.BackendUri;
+    var backendUri = builder.Configuration["BACKEND_URI"] ??
+                Environment.GetEnvironmentVariable("BACKEND_URI") ??
+                "https://localhost:7181";
     ArgumentNullException.ThrowIfNullOrEmpty(backendUri);
 
     client.BaseAddress = new Uri(backendUri);

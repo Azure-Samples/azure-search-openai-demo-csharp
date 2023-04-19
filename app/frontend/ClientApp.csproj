@@ -31,4 +31,19 @@
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
+  <Target Name="WriteToDotEnv" BeforeTargets="PrepareForBuild">
+    <!--TODO call azd env get-values-->
+    <Exec Command="azd env get-values" ConsoleToMSBuild="true" StandardOutputImportance="High">
+      <Output TaskParameter="ConsoleOutput" ItemName="AZURE_ENVS_STR" />
+    </Exec>
+    <ItemGroup>
+      <BACKEND_URI Include="@(AZURE_ENVS_STR)" Condition="$([System.String]::Copy(%(Identity)).StartsWith('BACKEND_URI')) == 'TRUE'" />
+    </ItemGroup>
+    <Message Importance="high" Text="Command: %(BACKEND_URI.Identity)" />
+    <WriteLinesToFile File="dotEnv" Lines="@(BACKEND_URI)" Overwrite="true" Encoding="Unicode" />
+    <ItemGroup>
+      <EmbeddedResource Include="dotEnv" />
+    </ItemGroup>
+  </Target>
+
 </Project>
