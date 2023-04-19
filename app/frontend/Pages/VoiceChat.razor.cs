@@ -26,18 +26,9 @@ public sealed partial class VoiceChat : IDisposable
     [Inject] public required ISpeechSynthesisService SpeechSynthesis { get; set; }
     [Inject] public required ILocalStorageService LocalStorage { get; set; }
     [Inject] public required IJSInProcessRuntime JavaScript { get; set; }
-    [Inject] public required IStringLocalizer<VoiceChat> Localizer { get; set; }
 
     [CascadingParameter(Name = nameof(IsReversed))]
     public required bool IsReversed { get; set; }
-    private string Prompt => Localizer[nameof(Prompt)];
-    private string Save => Localizer[nameof(Save)];
-    private string Speak => Localizer[nameof(Speak)];
-    private string Stop => Localizer[nameof(Stop)];
-    private string Chat => Localizer[nameof(Chat)];
-    private string ChatPrompt => Localizer[nameof(ChatPrompt)];
-    private string Ask => Localizer[nameof(Ask)];
-    private string TTSPreferences => Localizer[nameof(TTSPreferences)];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -144,7 +135,7 @@ public sealed partial class VoiceChat : IDisposable
 
     private async Task ShowVoiceDialogAsync()
     {
-        var dialog = await Dialog.ShowAsync<VoiceDialog>(title: $"🔊 {TTSPreferences}");
+        var dialog = await Dialog.ShowAsync<VoiceDialog>(title: "🔊 Text-to-speech Preferences");
         var result = await dialog.Result;
         if (result is not { Canceled: true })
         {

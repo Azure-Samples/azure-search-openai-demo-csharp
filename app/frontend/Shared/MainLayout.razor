@@ -24,7 +24,7 @@
     <MudLayout class="@(_isRightToLeft ? "rtl-lang" : "")">
         <MudAppBar Elevation="20">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" id="nav-toggle"
-                        Title="@ToggleNavBar"
+                        Title="Toggle navigation sidebar"
                         Size="Size.Large" Edge="Edge.Start" OnClick="@OnMenuClicked" />
             @if (SortDisabled is false)
             {
@@ -46,12 +46,10 @@
             }
             <MudToggleIconButton Toggled="@_isDarkTheme" ToggledChanged=@OnThemeChanged Size="Size.Large"
                                 ToggledSize="Size.Large"
-                                Title="@SwitchToDarkTheme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Info"
-                                ToggledTitle="@SwitchToLightTheme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Warning />
-            <MudIconButton Icon="@Icons.Material.Filled.Language" Color="Color.Error" Size="Size.Large"
-                        OnClick="@ShowCultureDialog" Title="@SelectLanguageTitle" id="select-language" />
+                                Title="Switch to Dark theme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Info"
+                                ToggledTitle="Switch to Light theme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Warning />
             <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Size="Size.Large"
-                        Title="@VisitGitHubRepository"
+                        Title="Visit the Azure Sampls: GitHub repository for this app."
                         Href="https://github.com/Azure-Samples/azure-search-openai-demo-csharp" Target="_blank" />
         </MudAppBar>
         <MudDrawer @bind-Open="_drawerOpen" Elevation="5" id="drawer">
