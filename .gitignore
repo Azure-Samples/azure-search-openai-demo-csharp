@@ -440,8 +440,6 @@ FodyWeavers.xsd
 
 .env
 certs/
-launchSettings.json
-appsettings.development.json
 testsettings.development.json
 config.development.yaml
 .DS_Store
@@ -471,7 +469,6 @@ global.json
 **/bin/
 **/obj/
 _site
-wwwroot/
 
 # Yarn
 .yarn

@@ -18,8 +18,8 @@ jobs:
       with:
         dotnet-version: 7.0.x
     - name: Restore dependencies
-      run: dotnet restore ./app/backend/
+      run: dotnet restore ./app/app.sln
     - name: Build
-      run: dotnet build ./app/backend/ -c Release
+      run: dotnet build ./app/app.sln -c Release
     - name: Test
-      run: dotnet test ./app/backend/ --verbosity normal -c Release
+      run: dotnet test ./app/app.sln --verbosity normal -c Release

@@ -1,15 +1,18 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace Backend.Services;
+namespace MinimalApi.Services;
 
 public sealed class AzureOpenAITextCompletionService : ITextCompletion
 {
     private readonly OpenAIClient _openAIClient;
     private readonly string _deployedModelName;
 
-    public AzureOpenAITextCompletionService(OpenAIClient openAIClient, string deployedModelName)
+    public AzureOpenAITextCompletionService(OpenAIClient openAIClient, IConfiguration config)
     {
         _openAIClient = openAIClient;
+
+        var deployedModelName = config["AZURE_OPENAI_GPT_DEPLOYMENT"];
+        ArgumentNullException.ThrowIfNullOrEmpty(deployedModelName);
         _deployedModelName = deployedModelName;
     }
 

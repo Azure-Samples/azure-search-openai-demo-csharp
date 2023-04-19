@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Net.Http.Headers;
-
-namespace Backend.Extensions;
+namespace MinimalApi.Extensions;
 
 internal static class WebApplicationExtensions
 {
@@ -12,37 +8,75 @@ internal static class WebApplicationExtensions
     {
         var api = app.MapGroup("api");
 
-        api.MapGet("content/{citation}", OnGetCitationAsync);
+        api.MapGet("content/{citation}", OnGetCitationAsync).CacheOutput();
         api.MapPost("chat", OnPostChatAsync);
+        api.MapPost("openai/chat", OnPostChatPromptAsync);
         api.MapPost("ask", OnPostAskAsync);
 
         return app;
     }
 
-    private static async Task<IResult> OnGetCitationAsync(HttpContext http, string citation, BlobContainerClient client)
+    private static async Task<IResult> OnGetCitationAsync(
+        HttpContext http, string citation, BlobContainerClient client)
     {
         if (await client.ExistsAsync() is { Value: false })
         {
             return Results.NotFound("blob container not found");
         }
 
-        var contentDispositionHeader = new ContentDispositionHeaderValue("inline")
-        {
-            FileName = citation,
-        };
-
-        var contentType = citation.EndsWith(".pdf") ? "application/pdf" : "application/octet-stream";
+        var contentDispositionHeader =
+            new ContentDispositionHeaderValue("inline")
+            {
+                FileName = citation,
+            };
 
         http.Response.Headers.ContentDisposition = contentDispositionHeader.ToString();
+        var contentType = citation.EndsWith(".pdf") ? "application/pdf" : "application/octet-stream";
 
         return Results.Stream(await client.GetBlobClient(citation).OpenReadAsync(), contentType: contentType);
     }
 
-    private static async Task<IResult> OnPostChatAsync(ChatRequest request, ReadRetrieveReadChatService service)
+    private static async IAsyncEnumerable<string> OnPostChatPromptAsync(
+        ChatPromptRequest prompt, OpenAIClient client, IConfiguration config)
     {
-        if (request is { Approach: "rrr", History.Length: > 0 })
+        var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
+        var response = await client.GetChatCompletionsStreamingAsync(
+            deploymentId, new ChatCompletionsOptions
+            {
+                Messages =
+                {
+                    new ChatMessage(ChatRole.System, """
+                        You're an AI assistant for developers, helping them write code more efficiently.
+                        You're name is **Blazor 📎 Clippy**.
+                        You're an expert in ASP.NET Core and C#.
+                        You will always reply with a Markdown formatted response.
+                        """),
+                    new ChatMessage(ChatRole.User, "What's your name?"),
+                    new ChatMessage(ChatRole.Assistant,
+                        "Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
+
+                    new ChatMessage(ChatRole.User, prompt.Prompt)
+                }
+            });
+
+        using var completions = response.Value;
+        await foreach (var choice in completions.GetChoicesStreaming())
         {
-            var response = await service.ReplyAsync(request.History, request.Overrides);
+            await foreach (var message in choice.GetMessageStreaming())
+            {
+                yield return message.Content;
+            }
+        }
+    }
+    
+    private static async Task<IResult> OnPostChatAsync(
+        ChatRequest request, ReadRetrieveReadChatService chatService)
+    {
+        if (request is { History.Length: > 0 })
+        {
+            var response = await chatService.ReplyAsync(
+                request.History, request.Overrides);
+            
             return TypedResults.Ok(response);
         }
 
@@ -50,25 +84,14 @@ internal static class WebApplicationExtensions
     }
 
     private static async Task<IResult> OnPostAskAsync(
-        AskRequest request, RetrieveThenReadApproachService rtr, ReadRetrieveReadApproachService rrr, ReadDecomposeAskApproachService rda)
+        AskRequest request, ApproachServiceResponseFactory factory)
     {
         if (request is { Question.Length: > 0 })
         {
-            if (request.Approach == "rrr")
-            {
-                var rrrReply = await rrr.ReplyAsync(request.Question, request.Overrides);
-                return TypedResults.Ok(rrrReply);
-            }
-            else if (request.Approach == "rtr")
-            {
-                var reply = await rtr.ReplyAsync(request.Question);
-                return TypedResults.Ok(reply);
-            }
-            else if (request.Approach == "rda")
-            {
-                var reply = await rda.ReplyAsync(request.Question, request.Overrides);
-                return TypedResults.Ok(reply);
-            }
+            var approachResponse = await factory.GetApproachResponseAsync(
+                request.Approach, request.Question, request.Overrides);
+
+            return TypedResults.Ok(approachResponse);
         }
 
         return Results.BadRequest();

@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Backend.Services.Skills;
-using Microsoft.SemanticKernel.CoreSkills;
+namespace MinimalApi.Services;
 
-namespace Backend.Services;
-
-public class ReadRetrieveReadApproachService
+internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
 {
     private IKernel? _kernel;
     private readonly SearchClient _searchClient;
@@ -45,20 +42,22 @@ Sources:
 Answer:
 """;
 
+    public Approach Approach => Approach.ReadRetrieveRead;
+
     public ReadRetrieveReadApproachService(SearchClient searchClient, AzureOpenAITextCompletionService service)
     {
         _searchClient = searchClient;
         _completionService = service;
     }
 
-    public async Task<AnswerResponse> ReplyAsync(string question, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides)
     {
         _kernel = Kernel.Builder.Build();
         _kernel.Config.AddTextCompletionService("openai", (_kernel) => _completionService, true);
         _kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
         _kernel.ImportSkill(new UpdateContextVariableSkill());
         _kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, functionName: "Answer", description: "answer question",
-            maxTokens: 1024, temperature: overrides?.Temperature ?? 0.7);
+            maxTokens: 1_024, temperature: overrides?.Temperature ?? 0.7);
         var planner = _kernel.ImportSkill(new PlannerSkill(_kernel));
         var sb = new StringBuilder();
 
@@ -70,18 +69,21 @@ Answer:
         do
         {
             var result = await _kernel.RunAsync(executingResult.Variables, planner["ExecutePlan"]);
-            if (!result.Variables.ToPlan().IsSuccessful)
+            var plan = result.Variables.ToPlan();
+
+            if (!plan.IsSuccessful)
             {
                 throw new InvalidOperationException(result.Variables.ToPlan().Result);
             }
+            
             sb.AppendLine($"Step {step++} - Execution results:\n");
-            sb.AppendLine(result.Variables.ToPlan().PlanString + "\n");
-            sb.AppendLine(result.Variables.ToPlan().Result + "\n");
+            sb.AppendLine(plan.PlanString + "\n");
+            sb.AppendLine(plan.Result + "\n");
             executingResult = result;
         }
         while (!executingResult.Variables.ToPlan().IsComplete);
 
-        return new AnswerResponse(
+        return new ApproachResponse(
                DataPoints: executingResult["knowledge"].ToString().Split('\r'),
                Answer: executingResult["Answer"],
                Thoughts: sb.ToString().Replace("\n", "<br>"));

@@ -1,0 +1,27 @@
+﻿<MudDialog DisableSidePadding="true">
+    <DialogContent>
+        <MudContainer Style="min-height: 60vh; max-height: 75vh; overflow-y: scroll">
+            <div style="@_pdfViewerVisibilityStyle">
+                @{
+                    var url = $"{_baseAddress}api/content/{Title}#view-fitV";
+                }
+                <iframe id="pdf-viewer" src="@url" title="@Title" />
+            </div>
+            @if (_isLoaded is false)
+            {
+                <MudSkeleton Class="pa-2" />
+                <MudSkeleton Class="pa-2" SkeletonType="SkeletonType.Circle" Height="4rem" Width="4rem" />
+                <MudSkeleton Class="pa-2" SkeletonType="SkeletonType.Rectangle" Height="12rem" />
+                <MudSkeleton Class="pa-2" Height="2rem" />
+                <MudSkeleton Class="pa-2" Height="3rem" />
+                <MudSkeleton Class="pa-2" />
+                <MudSkeleton Class="pa-2" SkeletonType="SkeletonType.Rectangle" Height="12rem" />
+            }
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Close"
+                   OnClick="@OnCloseClick">Close</MudButton>
+    </DialogActions>
+</MudDialog>

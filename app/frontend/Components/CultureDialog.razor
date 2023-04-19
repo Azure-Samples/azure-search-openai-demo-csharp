@@ -1,0 +1,34 @@
+﻿<MudDialog>
+    <DialogContent>
+        @if (_supportedCultures is { Count: > 0 })
+        {
+            <MudItem>
+                <MudSelect Label="@SelectLanguageLabel"
+                       T="CultureInfo"
+                       AdornmentIcon="@Icons.Material.Filled.Language"
+                       AdornmentColor="Color.Secondary"
+                       AutoFocus="true" Strict="true" Variant="Variant.Outlined"
+                       @bind-Value="_selectedCulture">
+                    @foreach (var (culture, azureCulture) in _supportedCultures!.OrderBy(c => c.Key.Name))
+                    {
+                        if (culture is null || azureCulture is null)
+                        {
+                            continue;
+                        }
+
+                        <MudSelectItem Value="@(culture)">
+                            <span class="fi fi-@(GetCultureTwoLetterRegionName(culture))"></span>
+                            <span class="pl-3">@azureCulture.Name (@culture.Name)</span>
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudSpacer />
+        <MudButton Color="Color.Secondary" Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Check" Class="mr-4 mb-4"
+                   Variant="Variant.Filled" OnClick="OnSaveCulture">@(Select)</MudButton>
+    </DialogActions>
+</MudDialog>

@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Microsoft.SemanticKernel.SkillDefinition;
+namespace MinimalApi.Services.Skills;
 
-namespace Backend.Services.Skills;
-
-public class LookupSkill
+public sealed class LookupSkill
 {
     private readonly SearchClient _searchClient;
     private readonly RequestOverrides? _requestOverrides;
@@ -14,7 +12,6 @@ public class LookupSkill
         _searchClient = searchClient;
         _requestOverrides = requestOverrides;
     }
-
 
     [SKFunction("Look up knowledge")]
     [SKFunctionName("Lookup")]
@@ -33,7 +30,8 @@ public class LookupSkill
             var doc = response.Value.GetResults().FirstOrDefault()?.Document;
             if (doc is not null &&
                 doc.TryGetValue("content", out var content ) &&
-                content is string str && doc.TryGetValue("sourcepage", out var sourcePage) &&
+                content is string str &&
+                doc.TryGetValue("sourcepage", out var sourcePage) &&
                 sourcePage is string sourcePageString)
             {
                 str = str.Replace('\r', ' ').Replace('\n', ' ');
@@ -42,6 +40,9 @@ public class LookupSkill
 
             return string.Empty;
         }
-        throw new AIException(AIException.ErrorCodes.ServiceError, "Query skill failed to get query from context");
+        
+        throw new AIException(
+            AIException.ErrorCodes.ServiceError,
+            "Query skill failed to get query from context");
     }
 }

@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace Backend.Services;
+namespace MinimalApi.Services;
 
-public sealed class RetrieveThenReadApproachService
+internal sealed class RetrieveThenReadApproachService : IApproachBasedService
 {
     private readonly SearchClient _searchClient;
 
@@ -38,6 +38,8 @@ public sealed class RetrieveThenReadApproachService
     private readonly IKernel _kernel;
     private readonly ISKFunction _function;
 
+    public Approach Approach => Approach.RetrieveThenRead;
+
     public RetrieveThenReadApproachService(SearchClient searchClient, IKernel kernel)
     {
         _searchClient = searchClient;
@@ -46,17 +48,17 @@ public sealed class RetrieveThenReadApproachService
             SemanticFunction, maxTokens: 200, temperature: 0.7, topP: 0.5);
     }
 
-    public async Task<AnswerResponse> ReplyAsync(string question)
+    public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides = null)
     {
-        var text = await Utils.QueryDocumentsAsync(question, _searchClient);
+        var text = await _searchClient.QueryDocumentsAsync(question);
         var context = _kernel.CreateNewContext();
         context["retrieve"] = text;
         context["question"] = question;
 
         var answer = await _kernel.RunAsync(context.Variables, _function);
-        return new AnswerResponse(
+        return new ApproachResponse(
             DataPoints: text.Split('\r'),
             Answer: answer.ToString(),
-            Thoughts: $"question: {question} \r prompt: {context.Variables}");
+            Thoughts: $"Question: {question} \r Prompt: {context.Variables}");
     }
 }

@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Microsoft.SemanticKernel.SkillDefinition;
+namespace MinimalApi.Services.Skills;
 
-namespace Backend.Services.Skills;
-
-public class RetrieveRelatedDocumentSkill
+public sealed class RetrieveRelatedDocumentSkill
 {
     private readonly SearchClient _searchClient;
     private readonly RequestOverrides? _requestOverrides;
     private readonly string? _filter;
+
     public RetrieveRelatedDocumentSkill(SearchClient searchClient, RequestOverrides? requestOverrides)
     {
         _searchClient = searchClient;
@@ -23,15 +22,17 @@ public class RetrieveRelatedDocumentSkill
     {
         if (searchQuery is string query)
         {
-            var res = await Utils.QueryDocumentsAsync(query, _searchClient,
+            var result = await _searchClient.QueryDocumentsAsync(query,
                 _requestOverrides?.Top ?? 3,
                 useSemanticCaptions: _requestOverrides?.SemanticCaptions ?? false,
                 useSemanticRanker: _requestOverrides?.SemanticRanker ?? false,
                 filter: _filter);
 
-            return res;
+            return result;
         }
 
-        throw new AIException(AIException.ErrorCodes.ServiceError, "Query skill failed to get query from context");
+        throw new AIException(
+            AIException.ErrorCodes.ServiceError,
+            "Query skill failed to get query from context");
     }
 }

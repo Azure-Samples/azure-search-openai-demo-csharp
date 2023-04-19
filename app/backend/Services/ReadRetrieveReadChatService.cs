@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace Backend.Services;
+namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService
 {
@@ -33,7 +33,7 @@ public class ReadRetrieveReadChatService
         _kernel = kernel;
     }
 
-    public async Task<AnswerResponse> ReplyAsync(ChatTurn[] history, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(ChatTurn[] history, RequestOverrides? overrides)
     {
         var top = overrides?.Top ?? 3;
         var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
@@ -45,7 +45,7 @@ public class ReadRetrieveReadChatService
         // use llm to get query
         var queryFunction = CreateQueryPromptFunction(history);
         var context = new ContextVariables();
-        var historyText = Utils.GetChatHistoryAsText(history, includeLastTurn: false);
+        var historyText = history.GetChatHistoryAsText(includeLastTurn: false);
         context["chat_history"] = historyText;
         var userQuestion = history.LastOrDefault()?.User;
         if (userQuestion is null)
@@ -61,14 +61,14 @@ public class ReadRetrieveReadChatService
 
         // step 2
         // use query to search related docs
-        var  documentContents = await Utils.QueryDocumentsAsync(query.Result, _searchClient, top, filter, useSemanticRanker, useSemanticCaptions);
+        var  documentContents = await _searchClient.QueryDocumentsAsync(query.Result, top, filter, useSemanticRanker, useSemanticCaptions);
 
         // step 3
         // use llm to get answer
         var answerContext = new ContextVariables();
         ISKFunction answerFunction;
         string prompt;
-        answerContext["chat_history"] = Utils.GetChatHistoryAsText(history);
+        answerContext["chat_history"] = history.GetChatHistoryAsText();
         answerContext["sources"] = documentContents;
         if (overrides?.SuggestFollowupQuestions is true)
         {
@@ -79,7 +79,7 @@ public class ReadRetrieveReadChatService
             answerContext["follow_up_questions_prompt"] = string.Empty;         
         }
 
-        if (overrides is not null and { PromptTemplate: null })
+        if (overrides is null or { PromptTemplate: null })
         {
             answerContext["$injected_prompt"] = string.Empty;
             answerFunction = CreateAnswerPromptFunction(ReadRetrieveReadChatService.AnswerPromptTemplate, overrides);
@@ -104,7 +104,7 @@ public class ReadRetrieveReadChatService
         var ans = await _kernel.RunAsync(answerContext, answerFunction);
         prompt = await _kernel.PromptTemplateEngine.RenderAsync(prompt, ans);
 
-        return new AnswerResponse(
+        return new ApproachResponse(
             DataPoints: documentContents.Split('\r'),
             Answer: ans.Result,
             Thoughts: $"Searched for:<br>{query}<br><br>Prompt:<br>{prompt.Replace("\n", "<br>")}");
@@ -114,10 +114,10 @@ public class ReadRetrieveReadChatService
     {
         var queryPromptTemplate = """
             Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base about employee healthcare plans and the employee handbook.
-                Generate a search query based on the conversation and the new question. 
-                Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
-                Do not include any text inside [] or <<>> in the search query terms.
-                If the question is not in English, translate the question to English before generating the search query.
+            Generate a search query based on the conversation and the new question. 
+            Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
+            Do not include any text inside [] or <<>> in the search query terms.
+            If the question is not in English, translate the question to English before generating the search query.
 
             Chat History:
             {{$chat_history}}
@@ -134,11 +134,8 @@ public class ReadRetrieveReadChatService
                 stopSequences: new[] { "\n" });
     }
 
-    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides)
-    {
-        return _kernel.CreateSemanticFunction(answerTemplate,
+    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides) => _kernel.CreateSemanticFunction(answerTemplate,
                        temperature: overrides?.Temperature ?? 0.7,
                        maxTokens: 1024,
                        stopSequences: new[] { "<|im_end|>", "<|im_start|>" });
-    }
 }
