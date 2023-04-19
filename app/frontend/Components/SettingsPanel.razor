@@ -4,51 +4,51 @@
         <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Medium" 
                  Color="Color.Tertiary" Class="ma-1" />
         <MudText Typo="Typo.h5" Class="pl-2">
-            @Title
+            Configure Answer Generation
         </MudText>
     </MudDrawerHeader>
     <div class="pa-6">
         @if (_supportedSettings is not SupportedSettings.Chat)
         {
-            <MudText Typo="Typo.subtitle1">@ApproachLabel</MudText>
+            <MudText Typo="Typo.subtitle1">Approach</MudText>
             <MudRadioGroup @bind-SelectedOption="@Settings.Approach" Class="pa-2">
                 <MudRadio Option="@Approach.RetrieveThenRead" Color="Color.Primary">
-                    @RetrieveThenRead
+                    Retrieve-Then-Read
                 </MudRadio>
                 <MudRadio Option="@Approach.ReadRetrieveRead" Color="Color.Primary">
-                    @ReadRetrieveRead
+                    Read-Retrieve-Read
                 </MudRadio>
                 <MudRadio Option="@Approach.ReadDecomposeAsk" Color="Color.Primary">
-                    @ReadDecomposeAsk
+                    Read-Decompose-Ask
                 </MudRadio>
             </MudRadioGroup>
         }
 
         <MudTextField T="string" Lines="5" Variant="Variant.Outlined"
-                      Label="@OverridePromptTemplate" Placeholder="@OverridePromptTemplate" Class="pa-2"
+                      Label="Override prompt template" Placeholder="Override prompt template" Class="pa-2"
                       @bind-Value="Settings.Overrides.PromptTemplate" Clearable="true" />
                       
         <MudNumericField @bind-Value="Settings.Overrides.Top" Class="pa-2"
-                         Placeholder="@RetrieveNumberOfDocs"
-                         Label="@RetrieveNumberOfDocs" HideSpinButtons="true"
+                         Placeholder="Retrieve this many documents from search"
+                         Label="Retrieve this many documents from search" HideSpinButtons="true"
                          aria-label="Number input for the number of documents to search."
                          Variant="Variant.Outlined" Min="1" Max="50" />
 
         <MudTextField T="string" Variant="Variant.Outlined"
-                      Label="@ExcludeCategory" Placeholder="@ExcludeCategory" Class="pa-2"
+                      Label="Exclude category" Placeholder="Exclude category" Class="pa-2"
                       @bind-Value="Settings.Overrides.ExcludeCategory" Clearable="true" />
 
         <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticRanker" Size="Size.Large"
-                    Color="Color.Primary" Label="@UseSemanticRanker" />
+                     Color="Color.Primary" Label="Use semantic ranker for retrieval" />
 
         <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticCaptions" Size="Size.Large"
                      Color="Color.Primary" 
-                     Label="@UseQueryContext" />
+                     Label="Use query-contrextual summaries instead of whole documents" />
     
         @if (_supportedSettings is not SupportedSettings.Chat)
         {
             <MudCheckBox @bind-Checked="@Settings.Overrides.SuggestFollowupQuestions" Size="Size.Large"
-                         Color="Color.Primary" Label="@SuggestFollowups"
+                         Color="Color.Primary" Label="Suggest follow-up questions"
                          aria-label="Suggest follow-up questions checkbox." />
         }
     </div>
@@ -57,7 +57,7 @@
             OnClick="@(_ => Open = Open is false)" Size="Size.Large"
             StartIcon="@Icons.Material.Filled.Close"
             aria-label="Close setting panel button.">
-            @Close
+            Close
         </MudButton>
     </div>
 </MudDrawer>

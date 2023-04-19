@@ -1,6 +1,6 @@
 ﻿@page "/"
 
-<PageTitle>@HomeTitle</PageTitle>
+<PageTitle>Home</PageTitle>
 
 <MudCard Elevation="24">
     <MudCardHeader>
@@ -33,11 +33,11 @@
         </MudCarousel>
         <div class="full-width pt-6 text-align-center">
             <MudText Typo="Typo.caption">
-                @BingImageText
+                These photo were created using generative AI
                 <MudLink Href="https://www.bing.com/images/create/" Target="_blank" 
                          Class="mud-typography-caption mud-secondary-text"
                          aria-label="Microsoft Bing Create link.">
-                    @BingImageCreatorLinkText
+                    Bing - Image Creater (powered by DALL-E)
                 </MudLink>
             </MudText>
         </div>
@@ -45,20 +45,22 @@
     <MudCardActions>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Size="Size.Large" Target="_blank"
                        aria-label="Azure SDK for .NET link."
-                       Href="https://github.com/Azure/azure-sdk-for-net" Title="@AzureSdkGitHubLinkTitle" />
+                       Href="https://github.com/Azure/azure-sdk-for-net"
+                       Title="GitHub link for the Azure .NET SDK." />
         <MudIconButton Icon="@Icons.Material.Filled.GetApp" Size="Size.Large" Target="_blank"
                        aria-label="Azure.AI.OpenAI .NET NuGet link."
-                       Href="https://www.nuget.org/packages/Azure.AI.OpenAI" Title="@NuGetLinkAzureOpenAI" />
+                       Href="https://www.nuget.org/packages/Azure.AI.OpenAI" 
+                       Title="NuGet link for Azure.AI.OpenAI." />
         <MudIconButton Icon="@Icons.Custom.Brands.Microsoft" Size="Size.Large" Target="_blank"
-                       aria-label="Azure Cognitive Services OpenAI link."
+                       aria-label="Microsoft Learn link for Azure OpenAI."
                        Href="https://learn.microsoft.com/azure/cognitive-services/openai"
-                       Title="@MicrosoftLearnContentLinkTitle" />
+                       Title="Microsoft Learn link for Azure OpenAI." />
         <MudSpacer />
         <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Size="Size.Large" Target="_blank"
                        aria-label="MudBlazor (Blazor component library) link."
-                       Href="https://www.mudblazor.com/" Title="@MudBlazorLink" />
+                       Href="https://www.mudblazor.com/" Title="MudBlazor Component Library link." />
         <MudIconButton Icon="@Icons.Material.Filled.Html" Size="Size.Large" Target="_blank"
                        aria-label="Markdig (GitHub repository) link."
-                       Href="https://github.com/xoofx/markdig" Title="@MarkdigLink" />
+                       Href="https://github.com/xoofx/markdig" Title="Markdig GitHub repo link." />
     </MudCardActions>
 </MudCard>

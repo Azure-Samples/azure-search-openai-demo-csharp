@@ -9,12 +9,7 @@ public sealed partial class Answer
 
     [Inject] public required IDialogService Dialog { get; set; }
 
-    [Inject] public required IStringLocalizer<Answer> Localizer { get; set; }
-
     private HtmlParsedAnswer? _parsedAnswer; 
-
-    private string ShowThoughts => Localizer[nameof(ShowThoughts)];
-    private string ShowContent => Localizer[nameof(ShowContent)];
 
     protected override void OnParametersSet()
     {

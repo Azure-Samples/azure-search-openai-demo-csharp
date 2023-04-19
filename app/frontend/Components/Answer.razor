@@ -44,7 +44,8 @@
                     </MudPaper>
                 </ChildContent>
             </MudTabPanel>
-            <MudTabPanel Icon="@Icons.Material.Filled.Lightbulb" Text="Thought process" ToolTip="@ShowThoughts"
+            <MudTabPanel Icon="@Icons.Material.Filled.Lightbulb" Text="Thought process" 
+                         ToolTip="Show thought process."
                 Disabled="@(Retort is { Thoughts: null })">
                 <ChildContent>
                     <MudPaper Class="pa-6" Elevation="3">
@@ -55,7 +56,7 @@
                 </ChildContent>
             </MudTabPanel>
             <MudTabPanel Icon="@Icons.Material.Filled.TextSnippet" Text="Supporting Content"
-                ToolTip="@ShowContent" Disabled="@(Retort is { DataPoints: null } or { DataPoints.Length: 0 })">
+                         ToolTip="Show the supporting content." Disabled="@(Retort is { DataPoints: null } or { DataPoints.Length: 0 })">
                 <ChildContent>
                     <MudPaper Class="pa-6" Elevation="3">
                         <SupportingContent DataPoints="Retort.DataPoints" />
