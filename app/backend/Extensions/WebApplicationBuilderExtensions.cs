@@ -54,7 +54,7 @@ internal static class WebApplicationBuilderExtensions
             var openAIService = sp.GetRequiredService<AzureOpenAITextCompletionService>();
             var kernel = Kernel.Builder.Build();
             kernel.Config.AddTextCompletionService(
-                azureOpenAiGptDeployment!, _ => openAIService, true);
+                azureOpenAiGptDeployment!, _ => openAIService);
 
             return kernel;
         });

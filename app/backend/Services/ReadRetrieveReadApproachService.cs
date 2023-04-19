@@ -53,7 +53,7 @@ Answer:
     public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides)
     {
         _kernel = Kernel.Builder.Build();
-        _kernel.Config.AddTextCompletionService("openai", (_kernel) => _completionService, true);
+        _kernel.Config.AddTextCompletionService("openai", (_kernel) => _completionService);
         _kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
         _kernel.ImportSkill(new UpdateContextVariableSkill());
         _kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, functionName: "Answer", description: "answer question",
