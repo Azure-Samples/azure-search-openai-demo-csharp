@@ -225,12 +225,6 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
         }
         while (!executingResult.Variables.ToPlan().IsComplete);
 
-        Console.WriteLine(executingResult["answer_available"]);
-        Console.WriteLine(executingResult["answer"]);
-        Console.WriteLine(executingResult["keywords"]);
-        Console.WriteLine(executingResult["knowledge"]);
-        Console.WriteLine(executingResult["explanation"]);
-
         return new ApproachResponse(
                DataPoints: executingResult["knowledge"].ToString().Split('\r'),
                Answer: executingResult.Variables["Answer"],
