@@ -34,7 +34,7 @@
 
   <Target Name="WriteBackendUriToEmbedding" BeforeTargets="PrepareForBuild">
     <Message Importance="high" Text="Write: $(BACKEND_URI) to embedding" />
-    <WriteLinesToFile File="BackendURI" Lines="$(BACKEND_URI)" Overwrite="true" Encoding="Unicode" />
+    <WriteLinesToFile File="BackendUri" Lines="$(BACKEND_URI)" Overwrite="true" Encoding="Unicode" />
     <ItemGroup>
       <EmbeddedResource Include="BackendUri" />
     </ItemGroup>
