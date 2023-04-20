@@ -2,7 +2,7 @@
 
 // load backend from embedded resource
 var assembly = typeof(Program).Assembly;
-var resourceName = "ClientApp.BackendURI";
+var resourceName = "ClientApp.BackendUri";
 using (Stream stream = assembly.GetManifestResourceStream(resourceName)!)
 using (StreamReader reader = new StreamReader(stream))
 {
