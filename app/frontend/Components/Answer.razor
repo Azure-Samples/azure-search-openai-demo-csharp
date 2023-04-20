@@ -23,7 +23,7 @@
                                         : null;
                                     <MudChip Variant="Variant.Text" Color="Color.Info"
                                              Icon="@icon" OnClick="@(_ => OnShowCitation(citation))">
-                                        @($"{citation.Index}. {citation.Name}")
+                                        @($"{citation.Number}. {citation.Name}")
                                     </MudChip>
                                 }
                             </div>
@@ -58,7 +58,7 @@
             <MudTabPanel Icon="@Icons.Material.Filled.TextSnippet" Text="Supporting Content"
                          ToolTip="Show the supporting content." Disabled="@(Retort is { DataPoints: null } or { DataPoints.Length: 0 })">
                 <ChildContent>
-                    <MudPaper Class="pa-6" Elevation="3">
+                    <MudPaper Elevation="3">
                         <SupportingContent DataPoints="Retort.DataPoints" />
                     </MudPaper>
                 </ChildContent>
