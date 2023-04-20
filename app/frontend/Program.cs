@@ -1,27 +1,14 @@
 ﻿var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-// load .env from embedded resource
+// load backend from embedded resource
 var assembly = typeof(Program).Assembly;
-var resourceName = "ClientApp.dotEnv";
+var resourceName = "ClientApp.BackendURI";
 using (Stream stream = assembly.GetManifestResourceStream(resourceName)!)
 using (StreamReader reader = new StreamReader(stream))
 {
-    // read file line by line
     // and set environment variables
-    var lines = reader.ReadToEnd().Split('\r');
-    
-    foreach(var line in lines)
-    {
-        var parts = line.Split("=");
-        if (parts.Length == 2)
-        {
-            var key = parts[0];
-            var value = parts[1];
-
-            // remove quotes
-            Environment.SetEnvironmentVariable(key, value[1..^1]);
-        }
-    }
+    var backendURI = reader.ReadToEnd();
+    Environment.SetEnvironmentVariable("BACKEND_URI", backendURI);
 }
 
 builder.RootComponents.Add<App>("#app");

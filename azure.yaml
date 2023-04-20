@@ -11,7 +11,7 @@ services:
     hooks:
       prepackage:
         shell: pwsh
-        run: dotnet publish -o build
+        run: cd ../;./map-env.ps1 && cd frontend && dotnet publish -p:BACKEND_URI=$env:BACKEND_URI -o build 
         continueOnError: false
         interactive: true
       postdeploy:
