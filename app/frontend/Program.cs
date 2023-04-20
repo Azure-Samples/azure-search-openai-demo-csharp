@@ -7,7 +7,7 @@ using (Stream stream = assembly.GetManifestResourceStream(resourceName)!)
 using (StreamReader reader = new StreamReader(stream))
 {
     // and set environment variables
-    var backendURI = reader.ReadToEnd();
+    var backendUri = await reader.ReadToEndAsync();
     Environment.SetEnvironmentVariable("BACKEND_URI", backendURI);
 }
 
