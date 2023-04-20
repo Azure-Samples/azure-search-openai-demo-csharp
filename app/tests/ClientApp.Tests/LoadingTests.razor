@@ -8,13 +8,18 @@
 @inherits TestContext
 
 @code {
-    [Fact]
-    public void LoadingComponentDefaultRenderCorrectly()
+    private void Arrange()
     {
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
         JSInterop.Setup<BoundingClientRect>("mudElementRef.getBoundingClientRect", _ => true);
 
         Services.AddMudServices();
+    }
+
+    [Fact]
+    public void LoadingComponentDefaultRenderCorrectly()
+    {
+        Arrange();        
 
         var cut = Render(@<Loading />);
 
@@ -31,10 +36,7 @@
     [Fact]
     public void LoadingComponentParameterRenderCorrectly()
     {
-        JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
-        JSInterop.Setup<BoundingClientRect>("mudElementRef.getBoundingClientRect", _ => true);
-
-        Services.AddMudServices();
+        Arrange();
 
         var cut = Render(@<Loading BusyMessage="Loading, please wait..." />);
 
