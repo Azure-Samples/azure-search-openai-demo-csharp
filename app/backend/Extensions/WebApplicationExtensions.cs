@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure;
-
 namespace MinimalApi.Extensions;
 
 internal static class WebApplicationExtensions
