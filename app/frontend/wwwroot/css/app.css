@@ -3,6 +3,11 @@ pre {
     padding-bottom: 1.2rem;
 }
 
+div.mud-tabs-panels > div > pre {
+    padding-top: initial;
+    padding-bottom: initial;
+}
+
 blockquote:empty {
     display: none;
     pointer-events: none;

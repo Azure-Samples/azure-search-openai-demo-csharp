@@ -2,4 +2,4 @@
 
 namespace ClientApp.Models;
 
-public record CitationDetails(string Name, int Index = 0);
+public record CitationDetails(string Name, int Number = 0);

@@ -10,17 +10,15 @@ internal static class SearchClientExtensions
         RequestOverrides? overrides = null,
         CancellationToken cancellationToken = default)
     {
-        SearchResults<SearchDocument> searchResult;
         var documentContents = string.Empty;
         var top = overrides?.Top ?? 3;
         var exclude_category = overrides?.ExcludeCategory;
         var filter = exclude_category == null ? string.Empty : $"category ne '{exclude_category}'";
         var useSemanticRanker = overrides?.SemanticRanker ?? false;
         var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
-        SearchOptions searchOption;
-        if (useSemanticRanker)
-        {
-            searchOption = new SearchOptions
+
+        SearchOptions searchOption = useSemanticRanker
+            ? new SearchOptions
             {
                 Filter = filter,
                 QueryType = SearchQueryType.Semantic,
@@ -29,24 +27,20 @@ internal static class SearchClientExtensions
                 SemanticConfigurationName = "default",
                 Size = top,
                 QueryCaption = useSemanticCaptions ? QueryCaptionType.Extractive : QueryCaptionType.None,
-            };
-        }
-        else
-        {
-            searchOption = new SearchOptions
+            }
+            : new SearchOptions
             {
                 Filter = filter,
                 Size = top,
             };
-        }
+
         var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption, cancellationToken);
-            
         if (searchResultResponse.Value is null)
         {
             throw new InvalidOperationException("fail to get search result");
         }
 
-        searchResult = searchResultResponse.Value;
+        SearchResults<SearchDocument> searchResult = searchResultResponse.Value;
 
         // Assemble sources here.
         // Example output for each SearchDocument:
@@ -67,13 +61,13 @@ internal static class SearchClientExtensions
             {
                 if (useSemanticCaptions)
                 {
-                    IEnumerable<string> docs = (IEnumerable<string>)doc.Captions.Select(c => c.Text);
+                    var docs = doc.Captions.Select(c => c.Text);
                     contentValue = string.Join(" . ", docs);
                 }
                 else
                 {
-                    doc.Document.TryGetValue("content", out var _contentValue);
-                    contentValue = (string)_contentValue;
+                    doc.Document.TryGetValue("content", out var value);
+                    contentValue = (string)value;
                 }
             }
             catch (Exception)
@@ -121,15 +115,15 @@ internal static class SearchClientExtensions
         }
 
         var searchResult = searchResultResponse.Value;
-        if(searchResult.Answers is var answers && answers.Count > 0)
+        if (searchResult is { Answers.Count: > 0 })
         {
-            return answers[0].Text;
+            return searchResult.Answers[0].Text;
         }
 
-        if(searchResult.TotalCount > 0)
+        if (searchResult.TotalCount > 0)
         {
             var contents = new List<string>();
-            foreach(var doc in searchResult.GetResults())
+            await foreach (var doc in searchResult.GetResultsAsync())
             {
                 doc.Document.TryGetValue("content", out var contentValue);
                 if (contentValue is string content)

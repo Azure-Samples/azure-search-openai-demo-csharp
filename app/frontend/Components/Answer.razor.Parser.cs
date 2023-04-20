@@ -4,7 +4,7 @@ namespace ClientApp.Components;
 
 public sealed partial class Answer
 {
-    internal HtmlParsedAnswer ParseAnswerToHtml(string answer)
+    internal static HtmlParsedAnswer ParseAnswerToHtml(string answer)
     {
         var citations = new List<CitationDetails>();
         var followupQuestions = new HashSet<string>();
@@ -27,20 +27,20 @@ public sealed partial class Answer
             }
             else
             {
-                var citationIndex = citations.Count + 1;
+                var citationNumber = citations.Count + 1;
                 var existingCitation = citations.FirstOrDefault(c => c.Name == part);
                 if (existingCitation is not null)
                 {
-                    citationIndex = existingCitation.Index;
+                    citationNumber = existingCitation.Number;
                 }
                 else
                 {
-                    var citation = new CitationDetails(part, citationIndex);
+                    var citation = new CitationDetails(part, citationNumber);
                     citations.Add(citation);
                 }
 
                 return $"""
-                    <sup class="mud-chip mud-chip-text mud-chip-color-info rounded pa-1">{citationIndex}</sup>
+                    <sup class="mud-chip mud-chip-text mud-chip-color-info rounded pa-1">{citationNumber}</sup>
                     """;
             }
         });

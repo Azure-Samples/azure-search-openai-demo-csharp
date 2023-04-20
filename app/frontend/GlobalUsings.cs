@@ -26,3 +26,4 @@ global using MudBlazor.Services;
 global using Shared.Models;
 
 [assembly: System.Runtime.Versioning.SupportedOSPlatform("browser")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ClientApp.Tests")]
