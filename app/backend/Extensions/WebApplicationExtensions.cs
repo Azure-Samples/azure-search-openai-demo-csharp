@@ -89,8 +89,6 @@ internal static class WebApplicationExtensions
             var response = await chatService.ReplyAsync(
                 request.History, request.Overrides, cancellationToken);
 
-            Console.WriteLine(response);
-
             return TypedResults.Ok(response);
         }
 
@@ -106,8 +104,6 @@ internal static class WebApplicationExtensions
         {
             var approachResponse = await factory.GetApproachResponseAsync(
                 request.Approach, request.Question, request.Overrides, cancellationToken);
-
-            Console.WriteLine(approachResponse);
 
             return TypedResults.Ok(approachResponse);
         }
