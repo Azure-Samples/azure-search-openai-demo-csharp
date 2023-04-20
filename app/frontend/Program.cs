@@ -1,15 +1,25 @@
 ﻿var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
+// load backend from embedded resource
+var assembly = typeof(Program).Assembly;
+var resourceName = "ClientApp.BackendUri";
+using (Stream stream = assembly.GetManifestResourceStream(resourceName)!)
+using (StreamReader reader = new StreamReader(stream))
+{
+    // and set environment variables
+    var backendUri = await reader.ReadToEndAsync();
+    Environment.SetEnvironmentVariable("BACKEND_URI", backendUri ?? "https://localhost:7181");
+}
+
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.Configure<AppSettings>(
     builder.Configuration.GetSection(nameof(AppSettings)));
-
-builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<ApiClient>((sp, client) =>
 {
-    var config = sp.GetService<IOptions<AppSettings>>();
-    var backendUri = config?.Value?.BackendUri;
+    var backendUri = builder.Configuration["BACKEND_URI"] ??
+        Environment.GetEnvironmentVariable("BACKEND_URI");
     ArgumentNullException.ThrowIfNullOrEmpty(backendUri);
 
     client.BaseAddress = new Uri(backendUri);

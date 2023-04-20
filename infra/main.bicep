@@ -11,6 +11,7 @@ param location string
 
 param appServicePlanName string = ''
 param backendServiceName string = ''
+param frontendResourceLocation string = 'eastus2'
 param resourceGroupName string = ''
 
 param searchServiceName string = ''
@@ -89,8 +90,19 @@ module appServicePlan 'core/host/appserviceplan.bicep' = {
 }
 
 // The application frontend
+module frontend 'core/host/staticwebapp.bicep' = {
+  name: 'frontend'
+  scope: resourceGroup
+  params: {
+    name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesAppService}frontend-${resourceToken}'
+    location: frontendResourceLocation
+    tags: union(tags, { 'azd-service-name': 'frontend' })
+  }
+}
+
+// The application backend
 module backend 'core/host/appservice.bicep' = {
-  name: 'web'
+  name: 'backend'
   scope: resourceGroup
   params: {
     name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesAppService}backend-${resourceToken}'
@@ -102,6 +114,7 @@ module backend 'core/host/appservice.bicep' = {
     scmDoBuildDuringDeployment: false
     enableOryxBuild: false
     managedIdentity: true
+    allowedOrigins: [ frontend.outputs.uri ]
     appSettings: {
       AZURE_STORAGE_ACCOUNT: storage.outputs.name
       AZURE_STORAGE_CONTAINER: storageContainerName

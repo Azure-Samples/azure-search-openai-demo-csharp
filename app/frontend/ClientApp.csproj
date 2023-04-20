@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UserSecretsId>c1ddb026-bba7-49ff-960b-5603e48ee863</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,5 +29,13 @@
   <ItemGroup>
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
+
+  <Target Name="WriteBackendUriToEmbedding" BeforeTargets="PrepareForBuild">
+    <Message Importance="high" Text="Write: $(BACKEND_URI) to embedding" />
+    <WriteLinesToFile File="BackendUri" Lines="$(BACKEND_URI)" Overwrite="true" Encoding="Unicode" />
+    <ItemGroup>
+      <EmbeddedResource Include="BackendUri" />
+    </ItemGroup>
+  </Target>
 
 </Project>
