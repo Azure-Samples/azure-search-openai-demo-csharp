@@ -84,7 +84,12 @@ internal static class SearchClientExtensions
             if (sourcePageValue is string sourcePage && contentValue is string content)
             {
                 content = content.Replace('\r', ' ').Replace('\n', ' ');
-                sb.Append($"{sourcePage}:{content[..250]}\r");
+                if (content.Length > 500)
+                {
+                    content = content[..500];
+                }
+
+                sb.Append($"{sourcePage}:{content}\r");
             }
         }
         documentContents = sb.ToString();
