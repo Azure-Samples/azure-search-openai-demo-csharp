@@ -12,6 +12,7 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
         Retrieve infomation of question and append to $knowledge,
         Answer question and set to $Answer.
         """;
+
     private const string Prefix = """
 You are an intelligent assistant helping Contoso Inc employees with their healthcare plan questions and employee handbook questions.
 Use 'you' to refer to the individual asking the questions even if they ask with 'I'.
@@ -53,7 +54,7 @@ Answer:
     public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides)
     {
         _kernel = Kernel.Builder.Build();
-        _kernel.Config.AddTextCompletionService("openai", (_kernel) => _completionService, true);
+        _kernel.Config.AddTextCompletionService("openai", _ => _completionService);
         _kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
         _kernel.ImportSkill(new UpdateContextVariableSkill());
         _kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, functionName: "Answer", description: "answer question",
@@ -75,17 +76,16 @@ Answer:
             {
                 throw new InvalidOperationException(result.Variables.ToPlan().Result);
             }
-            
+
             sb.AppendLine($"Step {step++} - Execution results:\n");
             sb.AppendLine(plan.PlanString + "\n");
             sb.AppendLine(plan.Result + "\n");
             executingResult = result;
-        }
-        while (!executingResult.Variables.ToPlan().IsComplete);
+        } while (!executingResult.Variables.ToPlan().IsComplete);
 
         return new ApproachResponse(
-               DataPoints: executingResult["knowledge"].ToString().Split('\r'),
-               Answer: executingResult["Answer"],
-               Thoughts: sb.ToString().Replace("\n", "<br>"));
+            DataPoints: executingResult["knowledge"].ToString().Split('\r'),
+            Answer: executingResult["Answer"],
+            Thoughts: sb.ToString().Replace("\n", "<br>"));
     }
 }

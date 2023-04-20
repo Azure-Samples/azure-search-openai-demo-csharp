@@ -6,8 +6,9 @@ public class ReadRetrieveReadChatService
 {
     private readonly SearchClient _searchClient;
     private readonly IKernel _kernel;
+
     private const string FollowUpQuestionsPrompt = """
-        Generate three very brief follow-up questions that the user would likely ask next about their healthcare plan and employee handbook. 
+        Generate three very brief follow-up questions that the user would likely ask next about their healthcare plan and employee handbook.
         Use double angle brackets to reference the questions, e.g. <<Are there exclusions for prescriptions?>>.
         Try not to repeat questions that have already been asked.
         Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'
@@ -76,7 +77,7 @@ public class ReadRetrieveReadChatService
         }
         else
         {
-            answerContext["follow_up_questions_prompt"] = string.Empty;         
+            answerContext["follow_up_questions_prompt"] = string.Empty;
         }
 
         if (overrides is null or { PromptTemplate: null })
@@ -114,7 +115,7 @@ public class ReadRetrieveReadChatService
     {
         var queryPromptTemplate = """
             Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base about employee healthcare plans and the employee handbook.
-            Generate a search query based on the conversation and the new question. 
+            Generate a search query based on the conversation and the new question.
             Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
             Do not include any text inside [] or <<>> in the search query terms.
             If the question is not in English, translate the question to English before generating the search query.
@@ -129,13 +130,14 @@ public class ReadRetrieveReadChatService
             """;
 
         return _kernel.CreateSemanticFunction(queryPromptTemplate,
-                temperature: 0,
-                maxTokens: 32,
-                stopSequences: new[] { "\n" });
+            temperature: 0,
+            maxTokens: 32,
+            stopSequences: new[] { "\n" });
     }
 
-    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides) => _kernel.CreateSemanticFunction(answerTemplate,
-                       temperature: overrides?.Temperature ?? 0.7,
-                       maxTokens: 1024,
-                       stopSequences: new[] { "<|im_end|>", "<|im_start|>" });
+    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides) =>
+        _kernel.CreateSemanticFunction(answerTemplate,
+            temperature: overrides?.Temperature ?? 0.7,
+            maxTokens: 1024,
+            stopSequences: new[] { "<|im_end|>", "<|im_start|>" });
 }

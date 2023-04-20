@@ -14,7 +14,7 @@ public sealed partial class Answer
             followupQuestions.Add(match.Value);
             return "";
         });
-        
+
         parsedAnswer = parsedAnswer.Trim();
 
         var parts = SplitRegex().Split(parsedAnswer);
@@ -48,14 +48,13 @@ public sealed partial class Answer
         return new HtmlParsedAnswer(
             string.Join("", fragments),
             citations,
-            followupQuestions.Select(
-                f => f.Replace("<<", "").Replace(">>", ""))
+            followupQuestions.Select(f => f.Replace("<<", "").Replace(">>", ""))
                 .ToHashSet());
     }
 
     [GeneratedRegex(@"<<([^>>]+)>>", RegexOptions.Multiline | RegexOptions.Compiled)]
     private static partial Regex ReplacementRegex();
-    
+
     [GeneratedRegex(@"\[([^\]]+)\]", RegexOptions.Multiline | RegexOptions.Compiled)]
     private static partial Regex SplitRegex();
 }

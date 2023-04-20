@@ -12,7 +12,9 @@ public sealed class RetrieveRelatedDocumentSkill
     {
         _searchClient = searchClient;
         _requestOverrides = requestOverrides;
-        _filter = _requestOverrides?.ExcludeCategory is null ? null : $"category ne '{_requestOverrides.ExcludeCategory}'";
+        _filter = _requestOverrides?.ExcludeCategory is null
+            ? null
+            : $"category ne '{_requestOverrides.ExcludeCategory}'";
     }
 
     [SKFunction("Search more information")]
