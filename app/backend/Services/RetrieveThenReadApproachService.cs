@@ -50,7 +50,7 @@ internal sealed class RetrieveThenReadApproachService : IApproachBasedService
 
     public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides = null)
     {
-        var text = await _searchClient.QueryDocumentsAsync(question);
+        var text = await _searchClient.QueryDocumentsAsync(question, overrides);
         var context = _kernel.CreateNewContext();
         context["retrieve"] = text;
         context["question"] = question;
