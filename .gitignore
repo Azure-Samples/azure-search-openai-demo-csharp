@@ -439,7 +439,6 @@ FodyWeavers.xsd
 *.key
 
 .env
-dotEnv
 BackendURI
 certs/
 testsettings.development.json
