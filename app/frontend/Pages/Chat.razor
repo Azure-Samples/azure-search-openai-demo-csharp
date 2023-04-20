@@ -2,7 +2,7 @@
 
 <!-- This page is intended for conversational Q&A. -->
 
-<PageTitle>@ChatTitle</PageTitle>
+<PageTitle>Chat</PageTitle>
 
 <MudGrid Justify="Justify.Center">
     <MudItem id="answers" xs="12" Class="overflow-x-auto">
@@ -63,15 +63,15 @@
     <MudItem xs="12" Class="rounded">
         <MudGrid>
             <MudItem xs="12" lg="10">
-                <MudTextField @bind-Value="_userQuestion" Label="@(Prompt)"
+                <MudTextField @bind-Value="_userQuestion" Label="Prompt"
                               Variant="Variant.Outlined" Adornment="Adornment.End"
                               AdornmentIcon="@Icons.Material.Filled.QuestionAnswer"
                               AdornmentColor="Color.Secondary" AutoFocus="true"
-                              Placeholder="@(ChatPrompt)" Lines="3" Immediate="true"
+                              Placeholder="Enter OpenAI + Azure Search prompt" Lines="3" Immediate="true"
                               HelperText="Use Shift + Enter for new lines."
                               OnKeyUp="@OnKeyUpAsync" Clearable="true" Counter="1000" MaxLength="1000"
                               Disabled=@_isReceivingResponse IconSize="Size.Large"
-                              autocomplete="off" title="@(ChatPrompt)" />
+                              autocomplete="off" title="Enter OpenAI + Azure Search prompt" />
             </MudItem>
             <MudItem xs="0" lg="2" Class="d-flex align-self-center">
                 <MudGrid Justify="Justify.Center">

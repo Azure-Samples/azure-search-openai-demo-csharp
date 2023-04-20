@@ -27,11 +27,11 @@ public sealed class AzureOpenAITextCompletionService : ITextCompletion
             Temperature = Convert.ToSingle(requestSettings.Temperature),
             Prompts = { text },
         };
-        
+
         foreach (var stopSequence in requestSettings.StopSequences)
         {
             option.StopSequences.Add(stopSequence);
-        }        
+        }
 
         var response =
             await _openAIClient.GetCompletionsAsync(

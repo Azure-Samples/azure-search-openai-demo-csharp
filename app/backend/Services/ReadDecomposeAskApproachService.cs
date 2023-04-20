@@ -15,16 +15,16 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
 
         ### EXAMPLE
         Question: 'What is the deductible for the employee plan for a visit to Overlake in Bellevue?'
-        
+
         Knowledge:
         info1.txt: deductibles depend on whether you are in-network or out-of-network. In-network deductibles are $500 for employees and $1000 for families. Out-of-network deductibles are $1000 for employees and $2000 for families.
         info2.pdf: Overlake is in-network for the employee plan.
         info3.pdf: Overlake is the name of the area that includes a park and ride near Bellevue.
         info4.pdf: In-network institutions include Overlake, Swedish, and others in the region
-        
+
         Answer:
         In-network deductibles are $500 for employees and $1000 for families [info1.txt] and Overlake is in-network for the employee plan [info2.pdf][info4.pdf].
-        
+
         ###
         Knowledge:
         {{$knowledge}}
@@ -151,7 +151,7 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
     public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides)
     {
         var kernel = Kernel.Builder.Build();
-        kernel.Config.AddTextCompletionService("openai", (kernel) => _completionService, true);
+        kernel.Config.AddTextCompletionService("openai", (kernel) => _completionService);
         kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
         kernel.ImportSkill(new LookupSkill(_searchClient, overrides));
         kernel.ImportSkill(new UpdateContextVariableSkill());
@@ -186,16 +186,16 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
                 Console.WriteLine(plan.PlanString);
                 throw new InvalidOperationException(plan.Result);
             }
+
             sb.AppendLine($"Step {step++} - Execution results:\n");
             sb.AppendLine(plan.Result + "\n");
 
             executingResult = result;
-        }
-        while (!executingResult.Variables.ToPlan().IsComplete);
+        } while (!executingResult.Variables.ToPlan().IsComplete);
 
         return new ApproachResponse(
-               DataPoints: executingResult["knowledge"].ToString().Split('\r'),
-               Answer: executingResult.Variables["Answer"],
-               Thoughts: executingResult.Variables["SUMMARY"].Replace("\n", "<br>"));
+            DataPoints: executingResult["knowledge"].ToString().Split('\r'),
+            Answer: executingResult.Variables["Answer"],
+            Thoughts: executingResult.Variables["SUMMARY"].Replace("\n", "<br>"));
     }
 }

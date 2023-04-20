@@ -76,6 +76,7 @@ internal static class SearchClientExtensions
                 }
             }
             catch (Exception)
+            if (searchResultResponse.Value is null)
             {
                 contentValue = null;
             }

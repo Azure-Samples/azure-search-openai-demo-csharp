@@ -11,8 +11,6 @@ public sealed partial class Chat
 
     private readonly Dictionary<UserQuestion, ApproachResponse?> _questionAndAnswerMap = new();
 
-    [Inject] public required IStringLocalizer<Chat> Localizer { get; set; }    
-
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
     
     [Inject] public required ApiClient ApiClient { get; set; }
@@ -22,11 +20,6 @@ public sealed partial class Chat
 
     [CascadingParameter(Name = nameof(IsReversed))]
     public required bool IsReversed { get; set; }
-
-    private string Prompt => Localizer[nameof(Prompt)];
-    private string ChatTitle => Localizer[nameof(ChatTitle)];
-    private string ChatPrompt => Localizer[nameof(ChatPrompt)];
-    private string Ask => Localizer[nameof(Ask)];
 
     private Task OnAskQuestionAsync(string question)
     {

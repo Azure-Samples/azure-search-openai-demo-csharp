@@ -18,11 +18,11 @@ public sealed class LookupSkill
     [SKFunctionInput(Description = "lookup query")]
     public async Task<string> ExecAsync(string lookupQuery, SKContext context)
     {
-        if (lookupQuery is string query)
+        if (lookupQuery is string)
         {
             return await _searchClient.LookupAsync(lookupQuery, _requestOverrides);
         }
-        
+
         throw new AIException(
             AIException.ErrorCodes.ServiceError,
             "Query skill failed to get query from context");

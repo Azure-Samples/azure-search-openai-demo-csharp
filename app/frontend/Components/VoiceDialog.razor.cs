@@ -16,16 +16,6 @@ public sealed partial class VoiceDialog : IDisposable
 
     [CascadingParameter] public required MudDialogInstance Dialog { get; set; }
 
-    [Inject] public required IStringLocalizer<VoiceDialog> Localizer { get; set; }
-
-    public string ClientVoicesMessage => Localizer[nameof(ClientVoicesMessage)];
-    public string Voice => Localizer[nameof(Voice)];
-    public string VoiceSpeed => Localizer[nameof(VoiceSpeed)];
-    public string TTSEnabled => Localizer[nameof(TTSEnabled)];
-    public string LoadVoicesError => Localizer[nameof(LoadVoicesError)];
-    public string Cancel => Localizer[nameof(Cancel)];
-    public string Save => Localizer[nameof(Save)];
-
     protected override async Task OnInitializedAsync()
     {
         _state = RequestVoiceState.RequestingVoices;
@@ -67,4 +57,4 @@ internal enum RequestVoiceState
     RequestingVoices,
     FoundVoices,
     Error
-}
+};

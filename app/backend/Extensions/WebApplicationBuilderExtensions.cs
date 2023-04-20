@@ -34,7 +34,7 @@ internal static class WebApplicationBuilderExtensions
 
             return searchClient;
         });
-       
+
         builder.Services.AddSingleton<OpenAIClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
@@ -44,7 +44,7 @@ internal static class WebApplicationBuilderExtensions
 
             return openAIClient;
         });
-        
+
         builder.Services.AddSingleton<IKernel>(sp =>
         {
             // Semantic Kernel doesn't support Azure AAD credential for now
@@ -53,8 +53,7 @@ internal static class WebApplicationBuilderExtensions
             var azureOpenAiGptDeployment = config["AZURE_OPENAI_GPT_DEPLOYMENT"];
             var openAIService = sp.GetRequiredService<AzureOpenAITextCompletionService>();
             var kernel = Kernel.Builder.Build();
-            kernel.Config.AddTextCompletionService(
-                azureOpenAiGptDeployment!, _ => openAIService, true);
+            kernel.Config.AddTextCompletionService(azureOpenAiGptDeployment!, _ => openAIService);
 
             return kernel;
         });
@@ -70,7 +69,7 @@ internal static class WebApplicationBuilderExtensions
 
         return builder;
     }
-    
+
     internal static WebApplicationBuilder AddCrossOriginResourceSharing(this WebApplicationBuilder builder)
     {
         builder.Services.AddCors(

@@ -7,7 +7,6 @@ public sealed partial class SettingsPanel : IDisposable
     private bool _open;
     private SupportedSettings _supportedSettings;
 
-    [Inject] public required IStringLocalizer<SettingsPanel> Localizer { get; set; }
     [Inject] public required NavigationManager Nav { get; set; }
 
     public RequestSettingsOverrides Settings { get; } = new();
@@ -31,19 +30,6 @@ public sealed partial class SettingsPanel : IDisposable
     }
 
     [Parameter] public EventCallback<bool> OpenChanged { get; set; }
-
-    private string Title => Localizer[nameof(Title)];
-    private string ApproachLabel => Localizer[nameof(ApproachLabel)];
-    private string RetrieveThenRead => Localizer[nameof(RetrieveThenRead)];
-    private string ReadRetrieveRead => Localizer[nameof(ReadRetrieveRead)];
-    private string ReadDecomposeAsk => Localizer[nameof(ReadDecomposeAsk)];
-    private string OverridePromptTemplate => Localizer[nameof(OverridePromptTemplate)];
-    private string RetrieveNumberOfDocs => Localizer[nameof(RetrieveNumberOfDocs)];
-    private string ExcludeCategory => Localizer[nameof(ExcludeCategory)];
-    private string UseSemanticRanker => Localizer[nameof(UseSemanticRanker)];
-    private string UseQueryContext => Localizer[nameof(UseQueryContext)];
-    private string SuggestFollowups => Localizer[nameof(SuggestFollowups)];
-    private string Close => Localizer[nameof(Close)];
 
     protected override void OnInitialized() => Nav.LocationChanged += HandleLocationChanged;
 
