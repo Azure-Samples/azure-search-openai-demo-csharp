@@ -19,8 +19,7 @@ builder.Services.Configure<AppSettings>(
 builder.Services.AddHttpClient<ApiClient>((sp, client) =>
 {
     var backendUri = builder.Configuration["BACKEND_URI"] ??
-                Environment.GetEnvironmentVariable("BACKEND_URI") ??
-                "https://localhost:7181";
+        Environment.GetEnvironmentVariable("BACKEND_URI");
     ArgumentNullException.ThrowIfNullOrEmpty(backendUri);
 
     client.BaseAddress = new Uri(backendUri);
