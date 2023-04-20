@@ -32,7 +32,7 @@
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
-  <Target Name="WriteBackendURIToEmbedding" BeforeTargets="PrepareForBuild">
+  <Target Name="WriteBackendUriToEmbedding" BeforeTargets="PrepareForBuild">
     <Message Importance="high" Text="Write: $(BACKEND_URI) to embedding" />
     <WriteLinesToFile File="BackendURI" Lines="$(BACKEND_URI)" Overwrite="true" Encoding="Unicode" />
     <ItemGroup>
