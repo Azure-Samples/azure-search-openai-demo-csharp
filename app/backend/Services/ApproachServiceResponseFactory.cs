@@ -10,14 +10,17 @@ internal sealed class ApproachServiceResponseFactory
         _approachBasedServices = services;
 
     internal async Task<ApproachResponse> GetApproachResponseAsync(
-        Approach approach, string question, RequestOverrides? overrides = null)
+        Approach approach,
+        string question,
+        RequestOverrides? overrides = null,
+        CancellationToken cancellationToken = default)
     {
         var service =
             _approachBasedServices.SingleOrDefault(service => service.Approach == approach)
             ?? throw new ArgumentOutOfRangeException(
                 nameof(approach), $"Approach: {approach} value isn't supported.");
 
-        var approachResponse = await service.ReplyAsync(question, overrides);
+        var approachResponse = await service.ReplyAsync(question, overrides, cancellationToken);
 
         return approachResponse ?? throw new AIException(
             AIException.ErrorCodes.ServiceError,

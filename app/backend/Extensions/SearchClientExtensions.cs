@@ -7,7 +7,8 @@ internal static class SearchClientExtensions
     internal static async Task<string> QueryDocumentsAsync(
         this SearchClient searchClient,
         string query,
-        RequestOverrides? overrides = null)
+        RequestOverrides? overrides = null,
+        CancellationToken cancellationToken = default)
     {
         SearchResults<SearchDocument> searchResult;
         var documentContents = string.Empty;
@@ -38,7 +39,7 @@ internal static class SearchClientExtensions
                 Size = top,
             };
         }
-        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption);
+        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption, cancellationToken);
             
         if (searchResultResponse.Value is null)
         {

@@ -17,9 +17,12 @@ internal static class WebApplicationExtensions
     }
 
     private static async Task<IResult> OnGetCitationAsync(
-        HttpContext http, string citation, BlobContainerClient client)
+        HttpContext http,
+        string citation,
+        BlobContainerClient client,
+        CancellationToken cancellationToken)
     {
-        if (await client.ExistsAsync() is { Value: false })
+        if (await client.ExistsAsync(cancellationToken) is { Value: false })
         {
             return Results.NotFound("blob container not found");
         }
@@ -33,11 +36,16 @@ internal static class WebApplicationExtensions
         http.Response.Headers.ContentDisposition = contentDispositionHeader.ToString();
         var contentType = citation.EndsWith(".pdf") ? "application/pdf" : "application/octet-stream";
 
-        return Results.Stream(await client.GetBlobClient(citation).OpenReadAsync(), contentType: contentType);
+        return Results.Stream(
+            await client.GetBlobClient(citation).OpenReadAsync(cancellationToken: cancellationToken),
+            contentType: contentType);
     }
 
     private static async IAsyncEnumerable<string> OnPostChatPromptAsync(
-        ChatPromptRequest prompt, OpenAIClient client, IConfiguration config)
+        ChatPromptRequest prompt,
+        OpenAIClient client,
+        IConfiguration config,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
         var response = await client.GetChatCompletionsStreamingAsync(
@@ -47,36 +55,40 @@ internal static class WebApplicationExtensions
                 {
                     new ChatMessage(ChatRole.System, """
                         You're an AI assistant for developers, helping them write code more efficiently.
-                        You're name is **Blazor 📎 Clippy**.
-                        You're an expert in ASP.NET Core and C#.
+                        You're name is **Blazor 📎 Clippy** and you're an expert Blazor developer.
+                        You're also an expert in ASP.NET Core, C#, TypeScript, and even JavaScript.
                         You will always reply with a Markdown formatted response.
                         """),
+
                     new ChatMessage(ChatRole.User, "What's your name?"),
+
                     new ChatMessage(ChatRole.Assistant,
                         "Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
 
                     new ChatMessage(ChatRole.User, prompt.Prompt)
                 }
-            });
+            }, cancellationToken);
 
         using var completions = response.Value;
-        await foreach (var choice in completions.GetChoicesStreaming())
+        await foreach (var choice in completions.GetChoicesStreaming(cancellationToken))
         {
-            await foreach (var message in choice.GetMessageStreaming())
+            await foreach (var message in choice.GetMessageStreaming(cancellationToken))
             {
                 yield return message.Content;
             }
         }
     }
-    
+
     private static async Task<IResult> OnPostChatAsync(
-        ChatRequest request, ReadRetrieveReadChatService chatService)
+        ChatRequest request,
+        ReadRetrieveReadChatService chatService,
+        CancellationToken cancellationToken)
     {
         if (request is { History.Length: > 0 })
         {
             var response = await chatService.ReplyAsync(
-                request.History, request.Overrides);
-            
+                request.History, request.Overrides, cancellationToken);
+
             return TypedResults.Ok(response);
         }
 
@@ -84,12 +96,14 @@ internal static class WebApplicationExtensions
     }
 
     private static async Task<IResult> OnPostAskAsync(
-        AskRequest request, ApproachServiceResponseFactory factory)
+        AskRequest request,
+        ApproachServiceResponseFactory factory,
+        CancellationToken cancellationToken)
     {
         if (request is { Question.Length: > 0 })
         {
             var approachResponse = await factory.GetApproachResponseAsync(
-                request.Approach, request.Question, request.Overrides);
+                request.Approach, request.Question, request.Overrides, cancellationToken);
 
             return TypedResults.Ok(approachResponse);
         }

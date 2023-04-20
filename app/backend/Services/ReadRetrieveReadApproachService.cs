@@ -4,12 +4,12 @@ namespace MinimalApi.Services;
 
 internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
 {
-    private IKernel? _kernel;
     private readonly SearchClient _searchClient;
     private readonly AzureOpenAITextCompletionService _completionService;
+    private readonly ILogger<ReadRetrieveReadApproachService> _logger;
 
     private const string PlanPrompt = """
-        Retrieve infomation of question and append to $knowledge,
+        Retrieve information of question and append to $knowledge,
         Answer question and set to $Answer.
         """;
 
@@ -45,35 +45,43 @@ Answer:
 
     public Approach Approach => Approach.ReadRetrieveRead;
 
-    public ReadRetrieveReadApproachService(SearchClient searchClient, AzureOpenAITextCompletionService service)
+    public ReadRetrieveReadApproachService(
+        SearchClient searchClient,
+        AzureOpenAITextCompletionService service,
+        ILogger<ReadRetrieveReadApproachService> logger)
     {
         _searchClient = searchClient;
         _completionService = service;
+        _logger = logger;
     }
 
-    public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(
+        string question,
+        RequestOverrides? overrides,
+        CancellationToken cancellationToken = default)
     {
-        _kernel = Kernel.Builder.Build();
-        _kernel.Config.AddTextCompletionService("openai", _ => _completionService);
-        _kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
-        _kernel.ImportSkill(new UpdateContextVariableSkill());
-        _kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, functionName: "Answer", description: "answer question",
+        var kernel = Kernel.Builder.Build();
+        kernel.Config.AddTextCompletionService("openai", _ => _completionService);
+        kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
+        kernel.ImportSkill(new UpdateContextVariableSkill());
+        kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, functionName: "Answer", description: "answer question",
             maxTokens: 1_024, temperature: overrides?.Temperature ?? 0.7);
-        var planner = _kernel.ImportSkill(new PlannerSkill(_kernel));
+        var planner = kernel.ImportSkill(new PlannerSkill(kernel));
         var sb = new StringBuilder();
 
-        var executingResult = await _kernel.RunAsync(ReadRetrieveReadApproachService.PlanPrompt, planner["CreatePlan"]);
+        var executingResult = await kernel.RunAsync(ReadRetrieveReadApproachService.PlanPrompt, cancellationToken, planner["CreatePlan"]);
         var step = 1;
         executingResult.Variables["question"] = question;
-        Console.WriteLine(executingResult.Variables.ToPlan().PlanString);
+        _logger.LogInformation("{Plan}", executingResult.Variables.ToPlan().PlanString);
 
         do
         {
-            var result = await _kernel.RunAsync(executingResult.Variables, planner["ExecutePlan"]);
+            var result = await kernel.RunAsync(executingResult.Variables, cancellationToken, planner["ExecutePlan"]);
             var plan = result.Variables.ToPlan();
 
             if (!plan.IsSuccessful)
             {
+                _logger.LogError("Plan was unsuccessful: {Plan}", plan.PlanString);
                 throw new InvalidOperationException(result.Variables.ToPlan().Result);
             }
 
