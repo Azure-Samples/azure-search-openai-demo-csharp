@@ -20,14 +20,10 @@ builder.Services.AddSessionStorageServices();
 builder.Services.AddSpeechSynthesisServices();
 builder.Services.AddSpeechRecognitionServices();
 builder.Services.AddMudServices();
-builder.Services.AddLocalization();
-builder.Services.AddScoped<CultureService>();
 
 await JSHost.ImportAsync(
     moduleName: nameof(JavaScriptModule),
     moduleUrl: $"../js/iframe.js?{Guid.NewGuid()}" /* cache bust */);
 
-var host = builder.Build()
-    .DetectClientCulture();
-
+var host = builder.Build();
 await host.RunAsync();

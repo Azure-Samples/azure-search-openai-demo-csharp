@@ -18,7 +18,7 @@ public sealed class LookupSkill
     [SKFunctionInput(Description = "lookup query")]
     public async Task<string> ExecAsync(string lookupQuery, SKContext context)
     {
-        if (lookupQuery is string query)
+        if (lookupQuery is string)
         {
             var response = await _searchClient.SearchAsync<SearchDocument>(lookupQuery, new SearchOptions
             {
@@ -29,10 +29,10 @@ public sealed class LookupSkill
 
             var doc = response.Value.GetResults().FirstOrDefault()?.Document;
             if (doc is not null &&
-                doc.TryGetValue("content", out var content ) &&
+                doc.TryGetValue("content", out var content) &&
                 content is string str &&
                 doc.TryGetValue("sourcepage", out var sourcePage) &&
-                sourcePage is string sourcePageString)
+                sourcePage is string)
             {
                 str = str.Replace('\r', ' ').Replace('\n', ' ');
                 return $"{sourcePage}:{str}";
@@ -40,7 +40,7 @@ public sealed class LookupSkill
 
             return string.Empty;
         }
-        
+
         throw new AIException(
             AIException.ErrorCodes.ServiceError,
             "Query skill failed to get query from context");

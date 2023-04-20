@@ -28,7 +28,7 @@ internal static class SearchClientExtensions
             };
             var searchResultResponse =
                 await searchClient.SearchAsync<SearchDocument>(query, searchOption);
-            
+
             if (searchResultResponse.Value is null)
             {
                 throw new InvalidOperationException("fail to get search result");
@@ -64,6 +64,7 @@ internal static class SearchClientExtensions
                     sb.Append($"{sourcePage}:{content[..250]}\r");
                 }
             }
+
             documentContents = sb.ToString();
         }
 
