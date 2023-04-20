@@ -8,7 +8,7 @@ using (StreamReader reader = new StreamReader(stream))
 {
     // and set environment variables
     var backendUri = await reader.ReadToEndAsync();
-    Environment.SetEnvironmentVariable("BACKEND_URI", backendURI);
+    Environment.SetEnvironmentVariable("BACKEND_URI", backendUri ?? "https://localhost:7181");
 }
 
 builder.RootComponents.Add<App>("#app");
