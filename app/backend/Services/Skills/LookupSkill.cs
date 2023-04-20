@@ -20,25 +20,7 @@ public sealed class LookupSkill
     {
         if (lookupQuery is string)
         {
-            var response = await _searchClient.SearchAsync<SearchDocument>(lookupQuery, new SearchOptions
-            {
-                Size = 1,
-                QueryType = SearchQueryType.Full,
-                IncludeTotalCount = true,
-            });
-
-            var doc = response.Value.GetResults().FirstOrDefault()?.Document;
-            if (doc is not null &&
-                doc.TryGetValue("content", out var content) &&
-                content is string str &&
-                doc.TryGetValue("sourcepage", out var sourcePage) &&
-                sourcePage is string)
-            {
-                str = str.Replace('\r', ' ').Replace('\n', ' ');
-                return $"{sourcePage}:{str}";
-            }
-
-            return string.Empty;
+            return await _searchClient.LookupAsync(lookupQuery, _requestOverrides);
         }
 
         throw new AIException(

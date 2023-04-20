@@ -6,15 +6,11 @@ public sealed class RetrieveRelatedDocumentSkill
 {
     private readonly SearchClient _searchClient;
     private readonly RequestOverrides? _requestOverrides;
-    private readonly string? _filter;
 
     public RetrieveRelatedDocumentSkill(SearchClient searchClient, RequestOverrides? requestOverrides)
     {
         _searchClient = searchClient;
         _requestOverrides = requestOverrides;
-        _filter = _requestOverrides?.ExcludeCategory is null
-            ? null
-            : $"category ne '{_requestOverrides.ExcludeCategory}'";
     }
 
     [SKFunction("Search more information")]
@@ -24,11 +20,7 @@ public sealed class RetrieveRelatedDocumentSkill
     {
         if (searchQuery is string query)
         {
-            var result = await _searchClient.QueryDocumentsAsync(query,
-                _requestOverrides?.Top ?? 3,
-                useSemanticCaptions: _requestOverrides?.SemanticCaptions ?? false,
-                useSemanticRanker: _requestOverrides?.SemanticRanker ?? false,
-                filter: _filter);
+            var result = await _searchClient.QueryDocumentsAsync(query, _requestOverrides);
 
             return result;
         }

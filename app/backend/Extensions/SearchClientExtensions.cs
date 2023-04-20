@@ -7,69 +7,140 @@ internal static class SearchClientExtensions
     internal static async Task<string> QueryDocumentsAsync(
         this SearchClient searchClient,
         string query,
-        int top = 3,
-        string? filter = null,
-        bool useSemanticRanker = false,
-        bool useSemanticCaptions = false,
+        RequestOverrides? overrides = null,
         CancellationToken cancellationToken = default)
     {
         SearchResults<SearchDocument> searchResult;
         var documentContents = string.Empty;
-
+        var top = overrides?.Top ?? 3;
+        var exclude_category = overrides?.ExcludeCategory;
+        var filter = exclude_category == null ? string.Empty : $"category ne '{exclude_category}'";
+        var useSemanticRanker = overrides?.SemanticRanker ?? false;
+        var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
+        SearchOptions searchOption;
         if (useSemanticRanker)
         {
-            throw new NotImplementedException();
+            searchOption = new SearchOptions
+            {
+                Filter = filter,
+                QueryType = SearchQueryType.Semantic,
+                QueryLanguage = "en-us",
+                QuerySpeller = "lexicon",
+                SemanticConfigurationName = "default",
+                Size = top,
+                QueryCaption = useSemanticCaptions ? QueryCaptionType.Extractive : QueryCaptionType.None,
+            };
         }
         else
         {
-            var searchOption = new SearchOptions
+            searchOption = new SearchOptions
             {
                 Filter = filter,
                 Size = top,
             };
-            var searchResultResponse =
-                await searchClient.SearchAsync<SearchDocument>(
-                    query, searchOption, cancellationToken);
+        }
+        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption, cancellationToken);
+            
+        if (searchResultResponse.Value is null)
+        {
+            throw new InvalidOperationException("fail to get search result");
+        }
 
-            if (searchResultResponse.Value is null)
+        searchResult = searchResultResponse.Value;
+
+        // Assemble sources here.
+        // Example output for each SearchDocument:
+        // {
+        //   "@search.score": 11.65396,
+        //   "id": "Northwind_Standard_Benefits_Details_pdf-60",
+        //   "content": "x-ray, lab, or imaging service, you will likely be responsible for paying a copayment or coinsurance. The exact amount you will be required to pay will depend on the type of service you receive. You can use the Northwind app or website to look up the cost of a particular service before you receive it.\nIn some cases, the Northwind Standard plan may exclude certain diagnostic x-ray, lab, and imaging services. For example, the plan does not cover any services related to cosmetic treatments or procedures. Additionally, the plan does not cover any services for which no diagnosis is provided.\nIt’s important to note that the Northwind Standard plan does not cover any services related to emergency care. This includes diagnostic x-ray, lab, and imaging services that are needed to diagnose an emergency condition. If you have an emergency condition, you will need to seek care at an emergency room or urgent care facility.\nFinally, if you receive diagnostic x-ray, lab, or imaging services from an out-of-network provider, you may be required to pay the full cost of the service. To ensure that you are receiving services from an in-network provider, you can use the Northwind provider search ",
+        //   "category": null,
+        //   "sourcepage": "Northwind_Standard_Benefits_Details-24.pdf",
+        //   "sourcefile": "Northwind_Standard_Benefits_Details.pdf"
+        // }
+        var sb = new StringBuilder();
+        foreach (var doc in searchResult.GetResults())
+        {
+            doc.Document.TryGetValue("sourcepage", out var sourcePageValue);
+            string? contentValue;
+            try
             {
-                throw new InvalidOperationException("fail to get search result");
+                if (useSemanticCaptions)
+                {
+                    IEnumerable<string> docs = (IEnumerable<string>)doc.Captions.Select(c => c.Text);
+                    contentValue = string.Join(" . ", docs);
+                }
+                else
+                {
+                    doc.Document.TryGetValue("content", out var _contentValue);
+                    contentValue = (string)_contentValue;
+                }
+            }
+            catch (Exception)
+            {
+                contentValue = null;
             }
 
-            searchResult = searchResultResponse.Value;
+            if (sourcePageValue is string sourcePage && contentValue is string content)
+            {
+                content = content.Replace('\r', ' ').Replace('\n', ' ');
+                if (content.Length > 500)
+                {
+                    content = content[..500];
+                }
+
+                sb.Append($"{sourcePage}:{content}\r");
+            }
+        }
+        documentContents = sb.ToString();
+
+        return documentContents;
+    }
+
+    internal static async Task<string> LookupAsync(
+        this SearchClient searchClient,
+        string query,
+        RequestOverrides? overrides = null)
+    {
+        var option = new SearchOptions
+        {
+            Size = 1,
+            IncludeTotalCount = true,
+            QueryType = SearchQueryType.Semantic,
+            QueryLanguage = "en-us",
+            QuerySpeller = "lexicon",
+            SemanticConfigurationName = "default",
+            QueryAnswer = "extractive|count-1",
+            QueryCaption = "extractive|highlight-false",
+        };
+
+        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, option);
+        if (searchResultResponse.Value is null)
+        {
+            throw new InvalidOperationException("fail to get search result");
         }
 
-        if (useSemanticCaptions)
+        var searchResult = searchResultResponse.Value;
+        if(searchResult.Answers is var answers && answers.Count > 0)
         {
-            throw new NotImplementedException();
+            return answers[0].Text;
         }
-        else
+
+        if(searchResult.TotalCount > 0)
         {
-            // Assemble sources here.
-            // Example output for each SearchDocument:
-            // {
-            //   "@search.score": 11.65396,
-            //   "id": "Northwind_Standard_Benefits_Details_pdf-60",
-            //   "content": "x-ray, lab, or imaging service, you will likely be responsible for paying a copayment or coinsurance. The exact amount you will be required to pay will depend on the type of service you receive. You can use the Northwind app or website to look up the cost of a particular service before you receive it.\nIn some cases, the Northwind Standard plan may exclude certain diagnostic x-ray, lab, and imaging services. For example, the plan does not cover any services related to cosmetic treatments or procedures. Additionally, the plan does not cover any services for which no diagnosis is provided.\nIt’s important to note that the Northwind Standard plan does not cover any services related to emergency care. This includes diagnostic x-ray, lab, and imaging services that are needed to diagnose an emergency condition. If you have an emergency condition, you will need to seek care at an emergency room or urgent care facility.\nFinally, if you receive diagnostic x-ray, lab, or imaging services from an out-of-network provider, you may be required to pay the full cost of the service. To ensure that you are receiving services from an in-network provider, you can use the Northwind provider search ",
-            //   "category": null,
-            //   "sourcepage": "Northwind_Standard_Benefits_Details-24.pdf",
-            //   "sourcefile": "Northwind_Standard_Benefits_Details.pdf"
-            // }
-            var sb = new StringBuilder();
-            await foreach (var doc in searchResult.GetResultsAsync())
+            var contents = new List<string>();
+            foreach(var doc in searchResult.GetResults())
             {
-                doc.Document.TryGetValue("sourcepage", out var sourcePageValue);
                 doc.Document.TryGetValue("content", out var contentValue);
-                if (sourcePageValue is string sourcePage && contentValue is string content)
+                if (contentValue is string content)
                 {
-                    content = content.Replace('\r', ' ').Replace('\n', ' ');
-                    sb.Append($"{sourcePage}:{content[..250]}\r");
+                    contents.Add(content);
                 }
             }
 
-            documentContents = sb.ToString();
+            return string.Join("\n", contents);
         }
 
-        return documentContents;
+        return string.Empty;
     }
 }
