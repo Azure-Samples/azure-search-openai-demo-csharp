@@ -15,18 +15,18 @@ public class ReadRetrieveReadChatService
         """;
 
     private const string AnswerPromptTemplate = """
-            <|im_start|>
-            system Assistant helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers.
-            Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
-            For tabular information return it as an html table. Do not return markdown format.
-            Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brakets to reference the source, e.g. [info1.txt]. Don't combine sources, list each source separately, e.g. [info1.txt][info2.pdf].
-            {{$follow_up_questions_prompt}}
-            {{$injected_prompt}}
-            Sources:
-            {{$sources}}
-            <|im_end|>
-            {{$chat_history}}
-            """;
+        <|im_start|>
+        system Assistant helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers.
+        Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
+        For tabular information return it as an html table. Do not return markdown format.
+        Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brakets to reference the source, e.g. [info1.txt]. Don't combine sources, list each source separately, e.g. [info1.txt][info2.pdf].
+        {{$follow_up_questions_prompt}}
+        {{$injected_prompt}}
+        Sources:
+        {{$sources}}
+        <|im_end|>
+        {{$chat_history}}
+        """;
 
     public ReadRetrieveReadChatService(SearchClient searchClient, IKernel kernel)
     {
@@ -34,7 +34,10 @@ public class ReadRetrieveReadChatService
         _kernel = kernel;
     }
 
-    public async Task<ApproachResponse> ReplyAsync(ChatTurn[] history, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(
+        ChatTurn[] history,
+        RequestOverrides? overrides,
+        CancellationToken cancellationToken = default)
     {
         var top = overrides?.Top ?? 3;
         var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
@@ -58,11 +61,12 @@ public class ReadRetrieveReadChatService
             context["question"] = userQuestion;
         }
 
-        var query = await _kernel.RunAsync(context, queryFunction);
+        var query = await _kernel.RunAsync(context, cancellationToken, queryFunction);
 
         // step 2
         // use query to search related docs
-        var  documentContents = await _searchClient.QueryDocumentsAsync(query.Result, top, filter, useSemanticRanker, useSemanticCaptions);
+        var  documentContents = await _searchClient.QueryDocumentsAsync(
+            query.Result, top, filter, useSemanticRanker, useSemanticCaptions, cancellationToken: cancellationToken);
 
         // step 3
         // use llm to get answer
@@ -102,7 +106,7 @@ public class ReadRetrieveReadChatService
             throw new InvalidOperationException("fail to get search result");
         }
 
-        var ans = await _kernel.RunAsync(answerContext, answerFunction);
+        var ans = await _kernel.RunAsync(answerContext, cancellationToken, answerFunction);
         prompt = await _kernel.PromptTemplateEngine.RenderAsync(prompt, ans);
 
         return new ApproachResponse(

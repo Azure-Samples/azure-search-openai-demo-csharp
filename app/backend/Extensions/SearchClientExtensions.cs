@@ -10,7 +10,8 @@ internal static class SearchClientExtensions
         int top = 3,
         string? filter = null,
         bool useSemanticRanker = false,
-        bool useSemanticCaptions = false)
+        bool useSemanticCaptions = false,
+        CancellationToken cancellationToken = default)
     {
         SearchResults<SearchDocument> searchResult;
         var documentContents = string.Empty;
@@ -27,7 +28,8 @@ internal static class SearchClientExtensions
                 Size = top,
             };
             var searchResultResponse =
-                await searchClient.SearchAsync<SearchDocument>(query, searchOption);
+                await searchClient.SearchAsync<SearchDocument>(
+                    query, searchOption, cancellationToken);
 
             if (searchResultResponse.Value is null)
             {
@@ -54,7 +56,7 @@ internal static class SearchClientExtensions
             //   "sourcefile": "Northwind_Standard_Benefits_Details.pdf"
             // }
             var sb = new StringBuilder();
-            foreach (var doc in searchResult.GetResults())
+            await foreach (var doc in searchResult.GetResultsAsync())
             {
                 doc.Document.TryGetValue("sourcepage", out var sourcePageValue);
                 doc.Document.TryGetValue("content", out var contentValue);

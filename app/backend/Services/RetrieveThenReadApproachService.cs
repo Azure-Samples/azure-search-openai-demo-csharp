@@ -48,14 +48,17 @@ internal sealed class RetrieveThenReadApproachService : IApproachBasedService
             SemanticFunction, maxTokens: 200, temperature: 0.7, topP: 0.5);
     }
 
-    public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides = null)
+    public async Task<ApproachResponse> ReplyAsync(
+        string question,
+        RequestOverrides? overrides = null,
+        CancellationToken cancellationToken = default)
     {
-        var text = await _searchClient.QueryDocumentsAsync(question);
+        var text = await _searchClient.QueryDocumentsAsync(question, cancellationToken: cancellationToken);
         var context = _kernel.CreateNewContext();
         context["retrieve"] = text;
         context["question"] = question;
 
-        var answer = await _kernel.RunAsync(context.Variables, _function);
+        var answer = await _kernel.RunAsync(context.Variables, cancellationToken, _function);
         return new ApproachResponse(
             DataPoints: text.Split('\r'),
             Answer: answer.ToString(),

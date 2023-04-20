@@ -5,7 +5,7 @@ namespace MinimalApi.Services;
 internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
 {
     private readonly SearchClient _searchClient;
-    private readonly ILogger? _logger;
+    private readonly ILogger<ReadDecomposeAskApproachService> _logger;
     private readonly AzureOpenAITextCompletionService _completionService;
 
     private const string AnswerPromptPrefix = """
@@ -170,14 +170,20 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
 
     public Approach Approach => Approach.ReadDecomposeAsk;
 
-    public ReadDecomposeAskApproachService(SearchClient searchClient, AzureOpenAITextCompletionService completionService, ILogger? logger = null)
+    public ReadDecomposeAskApproachService(
+        SearchClient searchClient,
+        AzureOpenAITextCompletionService completionService,
+        ILogger<ReadDecomposeAskApproachService> logger)
     {
         _searchClient = searchClient;
         _completionService = completionService;
         _logger = logger;
     }
 
-    public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(
+        string question,
+        RequestOverrides? overrides,
+        CancellationToken cancellationToken = default)
     {
         var kernel = Kernel.Builder.Build();
         kernel.Config.AddTextCompletionService("openai", (kernel) => _completionService);
@@ -199,8 +205,8 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
 
         var planInstruction = $"{ReadDecomposeAskApproachService.PlannerPrefix}";
 
-        var executingResult = await kernel.RunAsync(planInstruction, planner["CreatePlan"]);
-        Console.WriteLine(executingResult.Variables.ToPlan().PlanString);
+        var executingResult = await kernel.RunAsync(planInstruction, cancellationToken, planner["CreatePlan"]);
+        _logger.LogInformation("{Plan}", executingResult.Variables.ToPlan().PlanString);
         executingResult.Variables["question"] = question;
         executingResult.Variables["answer"] = "I don't know";
         executingResult.Variables["summary"] = "";
@@ -210,12 +216,12 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
 
         do
         {
-            var result = await kernel.RunAsync(executingResult.Variables, planner["ExecutePlan"]);
+            var result = await kernel.RunAsync(executingResult.Variables, cancellationToken, planner["ExecutePlan"]);
             var plan = result.Variables.ToPlan();
 
             if (!plan.IsSuccessful)
             {
-                Console.WriteLine(plan.PlanString);
+                _logger.LogError("Plan was unsuccessful: {Plan}", plan.PlanString);
                 throw new InvalidOperationException(plan.Result);
             }
 
