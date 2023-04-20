@@ -86,7 +86,7 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
         """;
 
     private const string GenerateLookupPrompt = """
-        Generate lookup terms from explanation, seperate multiple terms with comma.
+        Generate lookup terms from explanation, separate multiple terms with comma.
 
         ### EXAMPLE:
         Explanation: I need to know the information of employee plan and Overlake in Bellevue
@@ -127,7 +127,7 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
         answer:
         {{$answer}}
 
-        your summaize:
+        your summarization:
         """;
 
     private const string PlannerPrefix = """
@@ -148,7 +148,10 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
         _logger = logger;
     }
 
-    public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(
+        string question,
+        RequestOverrides? overrides,
+        CancellationToken cancellationToken = default)
     {
         var kernel = Kernel.Builder.Build();
         kernel.Config.AddTextCompletionService("openai", (kernel) => _completionService);
@@ -171,14 +174,14 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
 
         var planInstruction = $"{ReadDecomposeAskApproachService.PlannerPrefix}";
 
-        var executingResult = await kernel.RunAsync(planInstruction, planner["CreatePlan"]);
+        var executingResult = await kernel.RunAsync(planInstruction, cancellationToken, planner["CreatePlan"]);
         Console.WriteLine(executingResult.Variables.ToPlan().PlanString);
         executingResult.Variables["question"] = question;
         var step = 1;
 
         do
         {
-            var result = await kernel.RunAsync(executingResult.Variables, planner["ExecutePlan"]);
+            var result = await kernel.RunAsync(executingResult.Variables, cancellationToken, planner["ExecutePlan"]);
             var plan = result.Variables.ToPlan();
 
             if (!plan.IsSuccessful)

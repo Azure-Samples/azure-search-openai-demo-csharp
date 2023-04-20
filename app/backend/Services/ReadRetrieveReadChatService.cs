@@ -34,7 +34,10 @@ public class ReadRetrieveReadChatService
         _kernel = kernel;
     }
 
-    public async Task<ApproachResponse> ReplyAsync(ChatTurn[] history, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(
+        ChatTurn[] history,
+        RequestOverrides? overrides,
+        CancellationToken cancellationToken = default)
     {
         var top = overrides?.Top ?? 3;
         var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
@@ -58,11 +61,12 @@ public class ReadRetrieveReadChatService
             context["question"] = userQuestion;
         }
 
-        var query = await _kernel.RunAsync(context, queryFunction);
+        var query = await _kernel.RunAsync(context, cancellationToken, queryFunction);
 
         // step 2
         // use query to search related docs
-        var  documentContents = await _searchClient.QueryDocumentsAsync(query.Result, top, filter, useSemanticRanker, useSemanticCaptions);
+        var  documentContents = await _searchClient.QueryDocumentsAsync(
+            query.Result, top, filter, useSemanticRanker, useSemanticCaptions, cancellationToken: cancellationToken);
 
         // step 3
         // use llm to get answer
@@ -102,7 +106,7 @@ public class ReadRetrieveReadChatService
             throw new InvalidOperationException("fail to get search result");
         }
 
-        var ans = await _kernel.RunAsync(answerContext, answerFunction);
+        var ans = await _kernel.RunAsync(answerContext, cancellationToken, answerFunction);
         prompt = await _kernel.PromptTemplateEngine.RenderAsync(prompt, ans);
 
         return new ApproachResponse(

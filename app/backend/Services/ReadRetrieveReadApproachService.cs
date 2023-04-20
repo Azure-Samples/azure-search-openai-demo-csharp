@@ -51,7 +51,10 @@ Answer:
         _completionService = service;
     }
 
-    public async Task<ApproachResponse> ReplyAsync(string question, RequestOverrides? overrides)
+    public async Task<ApproachResponse> ReplyAsync(
+        string question,
+        RequestOverrides? overrides,
+        CancellationToken cancellationToken = default)
     {
         _kernel = Kernel.Builder.Build();
         _kernel.Config.AddTextCompletionService("openai", _ => _completionService);
@@ -62,14 +65,14 @@ Answer:
         var planner = _kernel.ImportSkill(new PlannerSkill(_kernel));
         var sb = new StringBuilder();
 
-        var executingResult = await _kernel.RunAsync(ReadRetrieveReadApproachService.PlanPrompt, planner["CreatePlan"]);
+        var executingResult = await _kernel.RunAsync(ReadRetrieveReadApproachService.PlanPrompt, cancellationToken, planner["CreatePlan"]);
         var step = 1;
         executingResult.Variables["question"] = question;
         Console.WriteLine(executingResult.Variables.ToPlan().PlanString);
 
         do
         {
-            var result = await _kernel.RunAsync(executingResult.Variables, planner["ExecutePlan"]);
+            var result = await _kernel.RunAsync(executingResult.Variables, cancellationToken, planner["ExecutePlan"]);
             var plan = result.Variables.ToPlan();
 
             if (!plan.IsSuccessful)

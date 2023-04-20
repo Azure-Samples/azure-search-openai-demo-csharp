@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+global using System.Runtime.CompilerServices;
 global using System.Text;
 global using Azure.AI.OpenAI;
 global using Azure.Identity;

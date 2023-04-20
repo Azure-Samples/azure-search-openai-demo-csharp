@@ -8,5 +8,6 @@ public interface IApproachBasedService
 
     Task<ApproachResponse> ReplyAsync(
         string question,
-        RequestOverrides? overrides = null);
+        RequestOverrides? overrides = null,
+        CancellationToken cancellationToken = default);
 }
