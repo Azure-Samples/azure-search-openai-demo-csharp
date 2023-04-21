@@ -70,12 +70,4 @@ public sealed partial class Chat
         _currentQuestion = default;
         _questionAndAnswerMap.Clear();
     }
-
-    private async Task OnKeyUpAsync(KeyboardEventArgs args)
-    {
-        if (args is { Key: "Enter", ShiftKey: false })
-        {
-            await OnAskClickedAsync();
-        }
-    }
 }
