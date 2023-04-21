@@ -12,12 +12,12 @@ services:
       prepackage:
         windows:
           shell: pwsh
-          run: dotnet publish -p:BACKEND_URI=$env:BACKEND_URI -o build 
+          run: dotnet publish -p:BACKEND_URI=$env:BACKEND_URI -o build -c Release
           continueOnError: false
           interactive: true
         posix:
           shell: sh
-          run: dotnet publish -p:BACKEND_URI=$BACKEND_URI -o build 
+          run: dotnet publish -p:BACKEND_URI=$BACKEND_URI -o build -c Release
           continueOnError: false
           interactive: true
       postdeploy:
