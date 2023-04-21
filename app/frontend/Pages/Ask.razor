@@ -28,15 +28,11 @@
     <MudItem xs="12" Class="rounded">
         <MudGrid>
             <MudItem xs="10">
-                <MudTextField @bind-Value="_userQuestion" Label="Question"
-                              Variant="Variant.Outlined" Adornment="Adornment.End"
-                              AdornmentIcon="@Icons.Material.Filled.QuestionMark"
-                              AdornmentColor="Color.Secondary" AutoFocus="true"
-                              Placeholder="Example: Does my plan cover annual eye exams?" Lines="3"
-                              Disabled=@_isReceivingResponse IconSize="Size.Large"
-                              HelperText="Use Shift + Enter for new lines." Immediate="true"
-                              OnKeyUp="@OnKeyUpAsync" Clearable="true" Counter="1000" MaxLength="1000"
-                              autocomplete="off" title="Example: Does my plan cover annual eye exams?" />
+                <VoiceTextInput @bind-Value="_userQuestion" Label="Question"
+                                Icon="@Icons.Material.Filled.QuestionMark"
+                                Placeholder="Example: Does my plan cover annual eye exams?"
+                                Disabled=@_isReceivingResponse
+                                HelperText="Use Shift + Enter for new lines." />
             </MudItem>
             <MudItem xs="2" Class="d-flex align-self-center">
                 <MudGrid Justify="Justify.Center">

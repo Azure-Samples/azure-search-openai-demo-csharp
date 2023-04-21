@@ -176,10 +176,10 @@ iframe {
     filter: brightness(90%);
 }
 
-.dim:hover {
-    transition: all 0.3s ease-out;
-    filter: brightness(80%);
-}
+    .dim:hover {
+        transition: all 0.3s ease-out;
+        filter: brightness(80%);
+    }
 
 .text-align-center {
     text-align: center;
@@ -207,4 +207,35 @@ button {
     width: -moz-fit-content;
     width: -webkit-fit-content;
     width: fit-content;
+}
+
+#toggle-mic > span.mud-badge-wrapper > span.mud-badge-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 2rem;
+    inset: auto auto calc(100% - 1.2rem) calc(100% - 1rem);
+}
+
+    #toggle-mic > span.mud-badge-wrapper > span.mud-badge-icon > svg {
+        font-size: 1.2rem;
+        margin-inline-start: 0;
+        margin-top: .1rem;
+    }
+
+#toggle-mic[mic="on"] > span.mud-badge-wrapper > span.mud-badge-icon {
+    animation: active 1.5s infinite;
+}
+
+@keyframes active {
+    0% {
+        -webkit-box-shadow: 0 0 0 0 rgba(118,106,231,0.4);
+    }
+
+    70% {
+        -webkit-box-shadow: 0 0 0 1.2rem rgba(118,106,231,0);
+    }
+
+    100% {
+        -webkit-box-shadow: 0 0 0 0 rgba(118,106,231,0);
+    }
 }
