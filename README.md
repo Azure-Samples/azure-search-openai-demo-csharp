@@ -115,7 +115,9 @@ Run the following if you want to give someone else access to the deployed and ex
 
 Once in the web app:
 
-* Try different topics in chat or Q&A context. For chat, try follow up questions, clarifications, ask to simplify or elaborate on answer, etc.
+* On the **Voice Chat** page, select the voice settings dialog and configure text-to-speech preferences.
+  * You can either type messages to interact with Blazor Clippy, or select the Speak toggle button to use speech-to-text as your input.
+* Try different topics in **Chat** or **Ask Questions** context. For chat, try follow up questions, clarifications, ask to simplify or elaborate on answer, etc.
 * Explore citations and sources
 * Click on the "settings" icon to try different options, tweak prompts, etc.
 
