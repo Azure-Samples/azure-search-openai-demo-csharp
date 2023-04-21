@@ -10,27 +10,39 @@ services:
     dist: ./build/wwwroot
     hooks:
       prepackage:
-        shell: pwsh
-        run: cd ../;./map-env.ps1 && cd frontend && dotnet publish -p:BACKEND_URI=$env:BACKEND_URI -o build 
-        continueOnError: false
-        interactive: true
+        windows:
+          shell: pwsh
+          run: dotnet publish -p:BACKEND_URI=$env:BACKEND_URI -o build 
+          continueOnError: false
+          interactive: true
+        posix:
+          shell: sh
+          run: dotnet publish -p:BACKEND_URI=$BACKEND_URI -o build 
+          continueOnError: false
+          interactive: true
       postdeploy:
-        shell: pwsh
-        run: rm -Force -r ./build
-        continueOnError: false
-        interactive: true
+        windows:
+          shell: pwsh
+          run: rm -Force -r ./build
+          continueOnError: false
+          interactive: true
+        posix:
+          shell: pwsh
+          run: rm -rf ./build
+          continueOnError: false
+          interactive: true
   backend:
     project: ./app/backend
     host: appservice
 hooks:
-    postprovision:
-      windows:
-        shell: pwsh
-        run: ./scripts/prepdocs.ps1
-        interactive: true
-        continueOnError: false
-      posix:
-        shell: sh
-        run: ./scripts/prepdocs.sh
-        interactive: true
-        continueOnError: false
+  postprovision:
+    windows:
+      shell: pwsh
+      run: ./scripts/prepdocs.ps1
+      interactive: true
+      continueOnError: false
+    posix:
+      shell: sh
+      run: ./scripts/prepdocs.sh
+      interactive: true
+      continueOnError: false
