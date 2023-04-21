@@ -17,14 +17,17 @@
         }
     },
     "portsAttributes": {
-		"5000": {
-			"label": "Hello .NET friends",
-			"onAutoForward": "notify"
-		},
-		"5001": {
-			"protocol": "https"
-		}
-	},
+        "5000": {
+            "label": "Hello .NET friends",
+            "onAutoForward": "notify"
+        },
+        "5001": {
+            "protocol": "https"
+        },
+        "7181": {
+            "protocol": "https"
+        }
+    },
     "remoteUser": "vscode",
     "hostRequirements": {
         "memory": "8gb"
