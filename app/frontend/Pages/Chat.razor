@@ -67,7 +67,8 @@
                                 Icon="@Icons.Material.Filled.QuestionAnswer"
                                 Placeholder="Enter OpenAI + Azure Search prompt"
                                 HelperText="Use Shift + Enter for new lines."
-                                Disabled=@_isReceivingResponse />
+                                Disabled=@_isReceivingResponse
+                                OnEnterKeyPressed="OnAskClickedAsync" />
             </MudItem>
             <MudItem xs="0" lg="2" Class="d-flex align-self-center">
                 <MudGrid Justify="Justify.Center">

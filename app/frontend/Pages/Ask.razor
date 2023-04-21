@@ -32,7 +32,8 @@
                                 Icon="@Icons.Material.Filled.QuestionMark"
                                 Placeholder="Example: Does my plan cover annual eye exams?"
                                 Disabled=@_isReceivingResponse
-                                HelperText="Use Shift + Enter for new lines." />
+                                HelperText="Use Shift + Enter for new lines."
+                                OnEnterKeyPressed="OnAskClickedAsync" />
             </MudItem>
             <MudItem xs="2" Class="d-flex align-self-center">
                 <MudGrid Justify="Justify.Center">
