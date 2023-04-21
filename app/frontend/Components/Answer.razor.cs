@@ -9,7 +9,7 @@ public sealed partial class Answer
 
     [Inject] public required IDialogService Dialog { get; set; }
 
-    private HtmlParsedAnswer? _parsedAnswer; 
+    private HtmlParsedAnswer? _parsedAnswer;
 
     protected override void OnParametersSet()
     {
@@ -40,4 +40,10 @@ public sealed partial class Answer
                 CloseButton = true,
                 CloseOnEscapeKey = true
             });
+
+    private MarkupString RemoveLeadingAndTrailingLineBreaks(string input) =>
+        (MarkupString)HtmlLineBreakRegex().Replace(input, "");
+
+    [GeneratedRegex("^(\\s*<br\\s*/?>\\s*)+|(\\s*<br\\s*/?>\\s*)+$", RegexOptions.Multiline)]
+    private static partial Regex HtmlLineBreakRegex();
 }
