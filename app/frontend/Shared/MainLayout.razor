@@ -5,7 +5,7 @@
                    CloseButton="true"
                    DisableBackdropClick="true"
                    Position="DialogPosition.Center"
-                   CloseOnEscapeKey="false" />
+                   CloseOnEscapeKey="true" />
 <MudSnackbarProvider />
 
 <HeadContent>
@@ -29,8 +29,7 @@
             @if (SortDisabled is false)
             {
                 <MudTooltip Text="@(_isReversed ? "Sort conversations with latest answers on bottom" : "Sort conversations with latest answers on top")"
-                            Placement="Placement.Right" Arrow="true" Color="Color.Primary"
-                            ShowOnHover="true" ShowOnClick="false">
+                            Placement="Placement.Right" Arrow="true" Color="Color.Primary">
                     <MudToggleIconButton Toggled="@_isReversed" ToggledChanged=@OnIsReversedChanged Size="Size.Large"
                                          ToggledSize="Size.Large" Color="Color.Inherit"
                                          Icon=@Icons.Material.Filled.ArrowCircleDown ToggledColor="Color.Inherit"

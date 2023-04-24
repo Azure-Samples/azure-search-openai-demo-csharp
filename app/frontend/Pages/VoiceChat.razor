@@ -44,7 +44,7 @@
                                 </MudText>
                             </MudPaper>
                         </MudBadge>
-                        <div style="max-width: 80%; min-width: 80%;">
+                        <div class="ten-twelves">
                             @if (answer is null)
                             {
                                 <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
@@ -73,7 +73,7 @@
     </MudItem>
     <MudItem xs="12" Class="rounded">
         <MudGrid>
-            <MudItem xs="10">
+            <MudItem xs="12" lg="10">
                 <MudTextField @bind-Value="_userQuestion" Label="Prompt"
                               Variant="Variant.Outlined" Adornment="Adornment.End"
                               AdornmentIcon="@Icons.Material.Filled.VoiceChat"
@@ -84,7 +84,7 @@
                               Disabled=@(_isRecognizingSpeech || _isReceivingResponse) IconSize="Size.Large"
                               autocomplete="off" title="Enter an Azure.AI.OpenAI chat prompt." />
             </MudItem>
-            <MudItem xs="2">
+            <MudItem xs="0" lg="2" Class="d-flex align-self-center">
                 <MudGrid Justify="Justify.Center">
                     <MudItem xs="9" Class="pa-2">
                         <MudFab Color="Color.Primary" Label=@(_isRecognizingSpeech ? "Stop" : "Speak") Size="Size.Large"

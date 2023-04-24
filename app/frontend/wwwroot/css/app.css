@@ -209,6 +209,11 @@ button {
     width: fit-content;
 }
 
+.ten-twelves {
+    min-width: calc(100% / 12 * 10) !important;
+    width: calc(100% / 12 * 10) !important;
+}
+
 #toggle-mic > span.mud-badge-wrapper > span.mud-badge-icon {
     width: 2rem;
     height: 2rem;
