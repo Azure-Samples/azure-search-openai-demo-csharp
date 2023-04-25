@@ -454,7 +454,7 @@ static async ValueTask IndexSectionsAsync(
         if (options.Verbose)
         {
             options.Console.WriteLine($"""
-                \tIndexed {batch.Actions.Count} sections, {succeeded} succeeded
+                    Indexed {batch.Actions.Count} sections, {succeeded} succeeded
                 """);
         }
     }
