@@ -81,8 +81,6 @@ static async ValueTask RemoveBlobsAsync(
             await container.DeleteBlobAsync(blob.Name);
         }
     }
-
-    await ValueTask.CompletedTask;
 }
 
 static async ValueTask RemoveFromIndexAsync(
