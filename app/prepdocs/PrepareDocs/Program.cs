@@ -7,18 +7,20 @@ const int SectionOverlap = 100;
 s_rootCommand.SetHandler(
     async (context) =>
     {
-        var options = GetAppOptions(context);
+        var options = GetParsedAppOptions(context);
         if (options.RemoveAll)
         {
             await RemoveBlobsAsync(options);
-            await RemoveFromIndexAsync(context, options);
+            await RemoveFromIndexAsync(options);
         }
         else
         {
+            await CreateSearchIndexAsync(options);
+
             context.Console.WriteLine("Processing files...");
 
             Matcher matcher = new();
-            matcher.AddInclude(context.ParseResult.GetValueForArgument(s_files));
+            matcher.AddInclude(options.Files);
 
             var results = matcher.Execute(
                 new DirectoryInfoWrapper(
@@ -26,31 +28,88 @@ s_rootCommand.SetHandler(
 
             foreach (var match in results.Files)
             {
+                var fileName = match.Path;
                 if (options.Verbose)
                 {
-                    options.Console.WriteLine($"Processing '{match.Path}'");
+                    options.Console.WriteLine($"Processing '{fileName}'");
                 }
 
                 if (options.Remove)
                 {
-                    await RemoveBlobsAsync(options, match.Path);
-                    await RemoveFromIndexAsync(context, options, match.Path);
+                    await RemoveBlobsAsync(options, fileName);
+                    await RemoveFromIndexAsync(options, fileName);
                     continue;
                 }
 
                 if (options.SkipBlobs is false)
                 {
-                    await UploadBlobsAsync(options, match.Path);
+                    await UploadBlobsAsync(options, fileName);
 
-                    var pageMap = await GetDocumentTextAsync(options, match.Path);
-                    var sections = CreateSections(match.Path, pageMap, options);
-                    await IndexSectionsAsync(match.Path, sections, null, options);
+                    var pageMap = await GetDocumentTextAsync(options, fileName);
+                    var sections = CreateSections(options, pageMap, fileName);
+
+                    var searchClient = new SearchClient(
+                        new Uri($"https://{options.SearchService}.search.windows.net"),
+                        options.Index,
+                        GetSearchCredential(options));
+
+                    await IndexSectionsAsync(fileName, sections, searchClient, options);
                 }
             }
         }
     });
 
 return await s_rootCommand.InvokeAsync(args);
+
+static async ValueTask CreateSearchIndexAsync(AppOptions options)
+{
+    SearchIndexClient indexClient = new(
+        new Uri($"https://{options.SearchService}.search.windows.net/"),
+        GetSearchCredential(options));
+
+    var indices = await indexClient.GetIndexAsync(options.Index);
+    if (indices is null or { HasValue: false } or { Value: null })
+    {
+        var index = new SearchIndex(options.Index)
+        {
+            Fields =
+            {
+                new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
+                new SearchableField("content") { AnalyzerName = "en.microsoft" },
+                new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
+                new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
+                new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true }
+            },
+            SemanticSettings = new SemanticSettings
+            {
+                Configurations =
+                {
+                    new SemanticConfiguration("default", new PrioritizedFields
+                    {
+                        ContentFields =
+                        {
+                            new SemanticField
+                            {
+                                FieldName = "content"
+                            }
+                        }
+                    })
+                }
+            }
+        };
+
+        if (options.Verbose)
+        {
+            options.Console.WriteLine($"Creating '{options.Index}' search index");
+        }
+
+        await indexClient.CreateIndexAsync(index);
+    }
+    else if (options.Verbose)
+    {
+        options.Console.WriteLine($"Search index {options.Index} already exists");
+    }
+}
 
 static async ValueTask IndexSectionsAsync(
     string fileName,
@@ -76,8 +135,8 @@ static async ValueTask IndexSectionsAsync(
                 ["id"] = section.Id,
                 ["content"] = section.Content,
                 ["category"] = section.Category,
-                ["source_page"] = section.SourcePage,
-                ["source_file"] = section.SourceFile
+                ["sourcepage"] = section.SourcePage,
+                ["sourcefile"] = section.SourceFile
             }));
 
         if (++i % 1_000 is 0)
@@ -115,7 +174,7 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
     AppOptions options, string filename)
 {
     int offset = 0;
-    List<(int, int, string)> pageMap = new();
+    List<PageDetail> pageMap = new();
     if (options.LocalPdfParser)
     {
         using PdfReader reader = new(filename);
@@ -124,7 +183,7 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
         for (var pageNumber = 0; pageNumber < pdf.GetNumberOfPages(); pageNumber++)
         {
             var pageText = PdfTextExtractor.GetTextFromPage(pdf.GetPage(pageNumber), new SimpleTextExtractionStrategy());
-            pageMap.Add((pageNumber, offset, pageText));
+            pageMap.Add(new PageDetail(pageNumber, offset, pageText));
             offset += pageText.Length;
         }
     }
@@ -196,39 +255,49 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
             }
 
             pageText.Append(' ');
-            pageMap.Add((i, offset, pageText.ToString()));
+            pageMap.Add(new PageDetail(i, offset, pageText.ToString()));
             offset += pageText.Length;
         }
     }
 
-    return pageMap.Select(pageDetails =>
-        {
-            var (index, offset, text) = pageDetails;
-            return new PageDetail(index, offset, text);
-        })
-        .ToList()
-        .AsReadOnly();
+    return pageMap.AsReadOnly();
 }
 
 static async ValueTask RemoveBlobsAsync(
-    AppOptions options, string? filename = null)
+    AppOptions options, string? fileName = null)
 {
     if (options.Verbose)
     {
-        options.Console.WriteLine($"Removing blobs for '{filename ?? "all"}'");
+        options.Console.WriteLine($"Removing blobs for '{fileName ?? "all"}'");
     }
 
     var blobService = new BlobServiceClient(
         new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
-        DefaultCredential);
+        GetStorageCredential(options));
+
+    var container =
+        blobService.GetBlobContainerClient(options.Container);
+
+    await container.CreateIfNotExistsAsync();
+
+    var prefix = string.IsNullOrWhiteSpace(fileName)
+        ? Path.GetFileName(fileName)
+        : null;
+
+    await foreach (var blob in container.GetBlobsAsync())
+    {
+        if (string.IsNullOrWhiteSpace(prefix) ||
+            blob.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            await container.DeleteBlobAsync(blob.Name);
+        }
+    }
 
     await ValueTask.CompletedTask;
 }
 
 static async ValueTask RemoveFromIndexAsync(
-    InvocationContext context,
-    AppOptions options,
-    string? fileName = null)
+    AppOptions options, string? fileName = null)
 {
     if (options.Verbose)
     {
@@ -238,7 +307,7 @@ static async ValueTask RemoveFromIndexAsync(
     var searchClient = new SearchClient(
         new Uri($"https://{options.SearchService}.search.windows.net/"),
         options.Index,
-        GetSearchCredential(context));
+        GetSearchCredential(options));
 
     while (true)
     {
@@ -263,7 +332,9 @@ static async ValueTask RemoveFromIndexAsync(
         Response<IndexDocumentsResult> deleteResponse = searchClient.DeleteDocuments(documentsToDelete);
         if (options.Verbose)
         {
-            Console.WriteLine($"\tRemoved {deleteResponse.Value.Results.Count} sections from index");
+            Console.WriteLine($"""
+                \tRemoved {deleteResponse.Value.Results.Count} sections from index
+                """);
         }
 
         // It can take a few seconds for search results to reflect changes, so wait a bit
@@ -281,7 +352,7 @@ static async ValueTask UploadBlobsAsync(
 {
     var blobService = new BlobServiceClient(
         new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
-        DefaultCredential);
+        GetStorageCredential(options));
 
     var container =
         blobService.GetBlobContainerClient(options.Container);
@@ -291,20 +362,22 @@ static async ValueTask UploadBlobsAsync(
     if (Path.GetExtension(fileName).ToLower() is ".pdf")
     {
         using var reader = new PdfReader(fileName);
-        var pdf = new PdfDocument(reader);
+        using var pdf = new PdfDocument(reader);
 
         for (int i = 1; i <= pdf.GetNumberOfPages(); i++)
         {
             var blobName = BlobNameFromFilePage(fileName, i - 1);
             if (options.Verbose)
             {
-                options.Console.WriteLine($"\tUploading blob for page {i} -> {blobName}");
+                options.Console.WriteLine($"""
+                    \tUploading blob for page {i} -> {blobName}
+                    """);
             }
 
             using MemoryStream memoryStream = new();
 
-            var writer = new PdfWriter(memoryStream);
-            var target = new PdfDocument(writer);
+            using var writer = new PdfWriter(memoryStream);
+            using var target = new PdfDocument(writer);
 
             pdf.CopyPagesTo(i, i, target);
 
@@ -357,10 +430,10 @@ static string TableToHtml(DocumentTable table)
 }
 
 static IEnumerable<Section> CreateSections(
-    string fileName, IReadOnlyList<PageDetail> pageMap, AppOptions options)
+    AppOptions options, IReadOnlyList<PageDetail> pageMap, string fileName)
 {
-    var sentenceEndings = new[] { '.', '!', '?' };
-    var wordBreaks = new[] { ',', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n' };
+    var sentenceEndings = new[] { '.', '!', '?' }.AsSpan();
+    var wordBreaks = new[] { ',', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n' }.AsSpan();
     var allText = string.Concat(pageMap.Select(p => p.Text));
     var length = allText.Length;
     var start = 0;
@@ -425,14 +498,13 @@ static IEnumerable<Section> CreateSections(
         }
 
         var sectionText = allText[start..end];
-        yield return new Section
-        {
-            Id = MatchInSetRegex().Replace($"{fileName}-{start}", "_"),
-            Content = sectionText,
-            Category = options.Category,
-            SourcePage = BlobNameFromFilePage(fileName, FindPage(pageMap, start)),
-            SourceFile = fileName
-        };
+
+        yield return new Section(
+            Id: MatchInSetRegex().Replace($"{fileName}-{start}", "_"),
+            Content: sectionText,
+            SourcePage: BlobNameFromFilePage(fileName, FindPage(pageMap, start)),
+            SourceFile: fileName,
+            Category: options.Category);
 
         var lastTableStart = sectionText.LastIndexOf("<table", StringComparison.Ordinal);
         if (lastTableStart > 2 * SentenceSearchLimit && lastTableStart > sectionText.LastIndexOf("</table", StringComparison.Ordinal))
@@ -458,15 +530,12 @@ static IEnumerable<Section> CreateSections(
 
     if (start + SectionOverlap < end)
     {
-        yield return new Section
-        {
-
-            Id = MatchInSetRegex().Replace($"{fileName}-{start}", "_"),
-            Content = allText[start..end],
-            Category = options.Category,
-            SourcePage = BlobNameFromFilePage(fileName, FindPage(pageMap, start)),
-            SourceFile = fileName
-        };
+        yield return new Section(
+            Id: MatchInSetRegex().Replace($"{fileName}-{start}", "_"),
+            Content: allText[start..end],
+            SourcePage: BlobNameFromFilePage(fileName, FindPage(pageMap, start)),
+            SourceFile: fileName,
+            Category: options.Category);
     }
 }
 

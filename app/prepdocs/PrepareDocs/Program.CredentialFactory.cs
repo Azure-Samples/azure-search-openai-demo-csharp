@@ -1,34 +1,22 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using PrepareDocs.Extensions;
+using Azure.Storage;
 
 internal static partial class Program
 {
-    internal static DefaultAzureCredential DefaultCredential { get; } = new();
-
-    internal static AzureCliCredential GetTenantIdCredential(InvocationContext context)
+    internal static AzureKeyCredential GetSearchCredential(AppOptions options)
     {
-        if (context.ParseResult.GetValueForOption(s_tenantId) is string tenantId)
-        {
-            return new AzureCliCredential(new AzureCliCredentialOptions
-            {
-                TenantId = tenantId
-            });
-        }
+        ArgumentNullException.ThrowIfNullOrEmpty(options.SearchKey);
 
-        return new AzureCliCredential();
+        return new AzureKeyCredential(options.SearchKey);
     }
 
-    internal static AzureKeyCredential? GetSearchCredential(InvocationContext context)
+    internal static StorageSharedKeyCredential GetStorageCredential(AppOptions options)
     {
-        if (context.ParseResult.GetValueForOption(s_searchKey) is string searchKey)
-        {
-            return new AzureKeyCredential(searchKey);
-        }
+        ArgumentNullException.ThrowIfNullOrEmpty(options.StorageAccount);
+        ArgumentNullException.ThrowIfNullOrEmpty(options.StorageKey);
 
-        return null;
+        return new StorageSharedKeyCredential(
+            options.StorageAccount, options.StorageKey);
     }
-
-    internal static AzureKeyCredential GetStorageCredential(InvocationContext context) =>
-        new(context.GetArgValue(s_storageKey));
 }

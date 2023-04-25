@@ -10,6 +10,7 @@ global using Azure;
 global using Azure.AI.FormRecognizer.DocumentAnalysis;
 global using Azure.Identity;
 global using Azure.Search.Documents;
+global using Azure.Search.Documents.Indexes;
 global using Azure.Search.Documents.Indexes.Models;
 global using Azure.Search.Documents.Models;
 global using Azure.Storage.Blobs;

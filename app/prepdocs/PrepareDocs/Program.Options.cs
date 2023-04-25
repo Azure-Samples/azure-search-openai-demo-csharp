@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using PrepareDocs;
-
 internal static partial class Program
 {
     private static readonly Argument<string> s_files =
@@ -63,24 +61,24 @@ internal static partial class Program
         s_localPdfParser, s_formRecognizerService, s_formRecognizerKey, s_verbose
     };
 
-    private static AppOptions GetAppOptions(InvocationContext context) =>
+    private static AppOptions GetParsedAppOptions(InvocationContext context) =>
         new(
             Files: context.ParseResult.GetValueForArgument(s_files),
             Category: context.ParseResult.GetValueForOption(s_category),
             SkipBlobs: context.ParseResult.GetValueForOption(s_skipBlobs),
-            context.ParseResult.GetValueForOption(s_storageAccount),
-            context.ParseResult.GetValueForOption(s_container),
-            context.ParseResult.GetValueForOption(s_storageKey),
-            context.ParseResult.GetValueForOption(s_tenantId),
-            context.ParseResult.GetValueForOption(s_searchService),
-            context.ParseResult.GetValueForOption(s_index),
-            context.ParseResult.GetValueForOption(s_searchKey),
-            context.ParseResult.GetValueForOption(s_remove),
-            context.ParseResult.GetValueForOption(s_removeAll),
-            context.ParseResult.GetValueForOption(s_localPdfParser),
-            context.ParseResult.GetValueForOption(s_formRecognizerService),
-            context.ParseResult.GetValueForOption(s_formRecognizerKey),
-            context.ParseResult.GetValueForOption(s_verbose),
+            StorageAccount: context.ParseResult.GetValueForOption(s_storageAccount),
+            Container: context.ParseResult.GetValueForOption(s_container),
+            StorageKey: context.ParseResult.GetValueForOption(s_storageKey),
+            TenantId: context.ParseResult.GetValueForOption(s_tenantId),
+            SearchService: context.ParseResult.GetValueForOption(s_searchService),
+            Index: context.ParseResult.GetValueForOption(s_index),
+            SearchKey: context.ParseResult.GetValueForOption(s_searchKey),
+            Remove: context.ParseResult.GetValueForOption(s_remove),
+            RemoveAll: context.ParseResult.GetValueForOption(s_removeAll),
+            LocalPdfParser: context.ParseResult.GetValueForOption(s_localPdfParser),
+            FormRecognizerService: context.ParseResult.GetValueForOption(s_formRecognizerService),
+            FormRecognizerKey: context.ParseResult.GetValueForOption(s_formRecognizerKey),
+            Verbose: context.ParseResult.GetValueForOption(s_verbose),
             Console: context.Console);
 
 }
