@@ -89,16 +89,16 @@ static List<(int, int, string)> GetDocumentText(
     AppOptions options, string filename)
 {
     int offset = 0;
-    List<(int, int, string)> page_map = new();
+    List<(int, int, string)> pageMap = new();
     if (options.LocalPdfParser)
     {
         PdfReader reader = new(filename);
-        IList<PdfPage> pages = reader.GetPages();
-        for (int page_num = 0; page_num < pages.Count; page_num++)
-        {
-            string page_text = PdfTextExtractor.GetTextFromPage(pages[page_num], new SimpleTextExtractionStrategy());
-            page_map.Add((page_num, offset, page_text));
-            offset += page_text.Length;
+        PdfDocument pdf = new(reader);
+        for (var pageNumber = 0; pageNumber < pdf.GetNumberOfPages(); pageNumber++)
+        {            
+            var pageText = PdfTextExtractor.GetTextFromPage(pdf.GetPage(pageNumber), new SimpleTextExtractionStrategy());
+            pageMap.Add((pageNumber, offset, pageText));
+            offset += pageText.Length;
         }
     }
     else
@@ -108,11 +108,21 @@ static List<(int, int, string)> GetDocumentText(
             options.Console.WriteLine($"Extracting text from '{filename}' using Azure Form Recognizer");
         }
 
-        DocumentAnalysisClient form_recognizer_client = new(
-            new Uri($"https://{options.FormRecognizerService}.cognitiveservices.azure.com/"), new AzureKeyCredential(formrecognizer_creds), new DocumentAnalysisClientOptions { Diagnostics = { IsLoggingContentEnabled = true } });
+        ArgumentNullException.ThrowIfNullOrEmpty(options.FormRecognizerKey);
+
+        var client = new DocumentAnalysisClient(
+            new Uri($"https://{options.FormRecognizerService}.cognitiveservices.azure.com/"),
+            new AzureKeyCredential(options.FormRecognizerKey),
+            new DocumentAnalysisClientOptions
+            {
+                Diagnostics =
+                {
+                    IsLoggingContentEnabled = true
+                }
+            });
         using FileStream stream = File.OpenRead(filename);
         {
-            AnalyzeDocumentOperation poller = form_recognizer_client.StartAnalyzeDocument("prebuilt-layout", stream);
+            AnalyzeDocumentOperation poller = client.StartAnalyzeDocument("prebuilt-layout", stream);
              form_recognizer_results = poller.WaitForCompletionAsync().Result;
             IReadOnlyList<DocumentPage> pages = form_recognizer_results.Value.Pages;
 
@@ -157,13 +167,13 @@ static List<(int, int, string)> GetDocumentText(
                 }
 
                 page_text.Append(' ');
-                page_map.Add((page_num, offset, page_text.ToString()));
+                pageMap.Add((page_num, offset, page_text.ToString()));
                 offset += page_text.Length;
             }
         }
     }
 
-    return page_map;
+    return pageMap;
 }
 
 static async ValueTask RemoveBlobsAsync(
