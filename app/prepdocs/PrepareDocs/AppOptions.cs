@@ -15,7 +15,6 @@ internal record class AppOptions(
     string? SearchKey,
     bool Remove,
     bool RemoveAll,
-    bool LocalPdfParser,
     string? FormRecognizerService,
     string? FormRecognizerKey,
     bool Verbose,

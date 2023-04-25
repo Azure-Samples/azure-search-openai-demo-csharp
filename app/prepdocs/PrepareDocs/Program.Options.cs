@@ -38,9 +38,6 @@ internal static partial class Program
     private static readonly Option<bool> s_removeAll =
         new(name: "--removeall", description: "Remove all blobs from blob storage and documents from the search index");
 
-    private static readonly Option<bool> s_localPdfParser =
-        new(name: "--localpdfparser", description: "Use PyPdf local PDF parser (supports only digital PDFs) instead of Azure Form Recognizer service to extract text, tables and layout from the documents");
-
     private static readonly Option<string> s_formRecognizerService =
         new(name: "--formrecognizerservice", description: "Optional. Name of the Azure Form Recognizer service which will be used to extract text, tables and layout from the documents (must exist already)");
 
@@ -58,7 +55,7 @@ internal static partial class Program
     {
         s_files, s_category, s_skipBlobs, s_storageAccount, s_container, s_storageKey,
         s_tenantId, s_searchService, s_index, s_searchKey, s_remove, s_removeAll,
-        s_localPdfParser, s_formRecognizerService, s_formRecognizerKey, s_verbose
+        s_formRecognizerService, s_formRecognizerKey, s_verbose
     };
 
     private static AppOptions GetParsedAppOptions(InvocationContext context) =>
@@ -75,7 +72,6 @@ internal static partial class Program
             SearchKey: context.ParseResult.GetValueForOption(s_searchKey),
             Remove: context.ParseResult.GetValueForOption(s_remove),
             RemoveAll: context.ParseResult.GetValueForOption(s_removeAll),
-            LocalPdfParser: context.ParseResult.GetValueForOption(s_localPdfParser),
             FormRecognizerService: context.ParseResult.GetValueForOption(s_formRecognizerService),
             FormRecognizerKey: context.ParseResult.GetValueForOption(s_formRecognizerKey),
             Verbose: context.ParseResult.GetValueForOption(s_verbose),

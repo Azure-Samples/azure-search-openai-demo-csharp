@@ -193,126 +193,85 @@ static async ValueTask UploadBlobsAsync(
 
     await container.CreateIfNotExistsAsync();
 
-    if (Path.GetExtension(fileName).ToLower() is ".pdf")
-    {
-        using var reader = new PdfReader(fileName);
-        using var pdf = new PdfDocument(reader);
-
-        for (int i = 1; i <= pdf.GetNumberOfPages(); i++)
-        {
-            var blobName = BlobNameFromFilePage(fileName, i - 1);
-            if (options.Verbose)
-            {
-                options.Console.WriteLine($"""
-                    \tUploading blob for page {i} -> {blobName}
-                    """);
-            }
-
-            using MemoryStream memoryStream = new();
-
-            using var writer = new PdfWriter(memoryStream);
-            using var target = new PdfDocument(writer);
-
-            pdf.CopyPagesTo(i, i, target);
-
-            await container.UploadBlobAsync(blobName, memoryStream);
-        }
-    }
-    else
-    {
-        var blobName = BlobNameFromFilePage(fileName);
-        await container.UploadBlobAsync(blobName, File.OpenRead(fileName));
-    }
+    var blobName = BlobNameFromFilePage(fileName);
+    await container.UploadBlobAsync(blobName, File.OpenRead(fileName));
 }
 
 static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
     AppOptions options, string filename)
 {
-    int offset = 0;
-    List<PageDetail> pageMap = new();
-    if (options.LocalPdfParser)
+    if (options.Verbose)
     {
-        using PdfReader reader = new(filename);
-        using PdfDocument pdf = new(reader);
-
-        for (var pageNumber = 0; pageNumber < pdf.GetNumberOfPages(); pageNumber++)
-        {
-            var pageText = PdfTextExtractor.GetTextFromPage(pdf.GetPage(pageNumber), new SimpleTextExtractionStrategy());
-            pageMap.Add(new PageDetail(pageNumber, offset, pageText));
-            offset += pageText.Length;
-        }
+        options.Console.WriteLine($"Extracting text from '{filename}' using Azure Form Recognizer");
     }
-    else
+
+    ArgumentNullException.ThrowIfNullOrEmpty(options.FormRecognizerKey);
+
+    var client = new DocumentAnalysisClient(
+        new Uri($"https://{options.FormRecognizerService}.cognitiveservices.azure.com/"),
+        new AzureKeyCredential(options.FormRecognizerKey),
+        new DocumentAnalysisClientOptions
+        {
+            Diagnostics =
+            {
+                IsLoggingContentEnabled = true
+            }
+        });
+
+    using FileStream stream = File.OpenRead(filename);
+
+    AnalyzeDocumentOperation operation = client.AnalyzeDocument(
+        WaitUntil.Started, "prebuilt-layout", stream);
+
+    var offset = 0;
+    List<PageDetail> pageMap = new();
+
+    var results = await operation.WaitForCompletionAsync();
+    var pages = results.Value.Pages;
+    for (var i = 0; i < pages.Count; i++)
     {
-        if (options.Verbose)
+        IReadOnlyList<DocumentTable> tablesOnPage =
+            results.Value.Tables.Where(t => t.BoundingRegions[0].PageNumber == i + 1).ToList();
+
+        // mark all positions of the table spans in the page
+        int pageIndex = pages[i].Spans[0].Index;
+        int pageLength = pages[i].Spans[0].Length;
+        int[] tableChars = Enumerable.Repeat(-1, pageLength).ToArray();
+        for (var tableId = 0; tableId < tablesOnPage.Count; tableId++)
         {
-            options.Console.WriteLine($"Extracting text from '{filename}' using Azure Form Recognizer");
-        }
-
-        ArgumentNullException.ThrowIfNullOrEmpty(options.FormRecognizerKey);
-
-        var client = new DocumentAnalysisClient(
-            new Uri($"https://{options.FormRecognizerService}.cognitiveservices.azure.com/"),
-            new AzureKeyCredential(options.FormRecognizerKey),
-            new DocumentAnalysisClientOptions
+            foreach (DocumentSpan span in tablesOnPage[tableId].Spans)
             {
-                Diagnostics =
+                // replace all table spans with "tableId" in table_chars array
+                for (var j = 0; j < span.Length; j++)
                 {
-                    IsLoggingContentEnabled = true
-                }
-            });
-        using FileStream stream = File.OpenRead(filename);
-
-        AnalyzeDocumentOperation operation = client.AnalyzeDocument(
-            WaitUntil.Started, "prebuilt-layout", stream);
-
-        var results = await operation.WaitForCompletionAsync();
-        var pages = results.Value.Pages;
-        for (var i = 0; i < pages.Count; i++)
-        {
-            IReadOnlyList<DocumentTable> tablesOnPage =
-                results.Value.Tables.Where(t => t.BoundingRegions[0].PageNumber == i + 1).ToList();
-
-            // mark all positions of the table spans in the page
-            int pageIndex = pages[i].Spans[0].Index;
-            int pageLength = pages[i].Spans[0].Length;
-            int[] tableChars = Enumerable.Repeat(-1, pageLength).ToArray();
-            for (var tableId = 0; tableId < tablesOnPage.Count; tableId++)
-            {
-                foreach (DocumentSpan span in tablesOnPage[tableId].Spans)
-                {
-                    // replace all table spans with "tableId" in table_chars array
-                    for (var j = 0; j < span.Length; j++)
+                    int index = span.Index - pageIndex + j;
+                    if (index >= 0 && index < pageLength)
                     {
-                        int index = span.Index - pageIndex + j;
-                        if (index >= 0 && index < pageLength)
-                        {
-                            tableChars[index] = tableId;
-                        }
+                        tableChars[index] = tableId;
                     }
                 }
             }
-
-            // build page text by replacing characters in table spans with table html
-            StringBuilder pageText = new();
-            HashSet<int> addedTables = new();
-            for (int j = 0; j < tableChars.Length; j++)
-            {
-                if (tableChars[j] == -1)
-                {
-                    pageText.Append(results.Value.Content[pageIndex + j]);
-                }
-                else if (!addedTables.Contains(tableChars[j]))
-                {
-                    pageText.Append(TableToHtml(tablesOnPage[tableChars[j]]));
-                    addedTables.Add(tableChars[j]);
-                }
-            }
-
-            pageText.Append(' ');
-            pageMap.Add(new PageDetail(i, offset, pageText.ToString()));
-            offset += pageText.Length;
         }
+
+        // build page text by replacing characters in table spans with table html
+        StringBuilder pageText = new();
+        HashSet<int> addedTables = new();
+        for (int j = 0; j < tableChars.Length; j++)
+        {
+            if (tableChars[j] == -1)
+            {
+                pageText.Append(results.Value.Content[pageIndex + j]);
+            }
+            else if (!addedTables.Contains(tableChars[j]))
+            {
+                pageText.Append(TableToHtml(tablesOnPage[tableChars[j]]));
+                addedTables.Add(tableChars[j]);
+            }
+        }
+
+        pageText.Append(' ');
+        pageMap.Add(new PageDetail(i, offset, pageText.ToString()));
+        offset += pageText.Length;
     }
 
     return pageMap.AsReadOnly();
