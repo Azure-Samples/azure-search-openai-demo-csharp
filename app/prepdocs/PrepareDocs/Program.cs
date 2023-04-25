@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-const int MaxSectionLength = 1_000;
-const int SentenceSearchLimit = 100;
-const int SectionOverlap = 100;
-
 s_rootCommand.SetHandler(
     async (context) =>
     {
@@ -48,12 +44,7 @@ s_rootCommand.SetHandler(
                     var pageMap = await GetDocumentTextAsync(options, fileName);
                     var sections = CreateSections(options, pageMap, fileName);
 
-                    var searchClient = new SearchClient(
-                        new Uri($"https://{options.SearchService}.search.windows.net"),
-                        options.Index,
-                        GetSearchCredential(options));
-
-                    await IndexSectionsAsync(fileName, sections, searchClient, options);
+                    await IndexSectionsAsync(options, sections, fileName);
                 }
             }
         }
@@ -61,11 +52,90 @@ s_rootCommand.SetHandler(
 
 return await s_rootCommand.InvokeAsync(args);
 
+static async ValueTask RemoveBlobsAsync(
+    AppOptions options, string? fileName = null)
+{
+    if (options.Verbose)
+    {
+        options.Console.WriteLine($"Removing blobs for '{fileName ?? "all"}'");
+    }
+
+    var blobService = new BlobServiceClient(
+        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
+        DefaultCredential);
+
+    var container =
+        blobService.GetBlobContainerClient(options.Container);
+
+    await container.CreateIfNotExistsAsync();
+
+    var prefix = string.IsNullOrWhiteSpace(fileName)
+        ? Path.GetFileName(fileName)
+        : null;
+
+    await foreach (var blob in container.GetBlobsAsync())
+    {
+        if (string.IsNullOrWhiteSpace(prefix) ||
+            blob.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            await container.DeleteBlobAsync(blob.Name);
+        }
+    }
+
+    await ValueTask.CompletedTask;
+}
+
+static async ValueTask RemoveFromIndexAsync(
+    AppOptions options, string? fileName = null)
+{
+    if (options.Verbose)
+    {
+        options.Console.WriteLine("");
+    }
+
+    var searchClient = new SearchClient(
+        new Uri($"https://{options.SearchService}.search.windows.net/"),
+        options.Index,
+        DefaultCredential);
+
+    while (true)
+    {
+        var filter = (fileName is null) ? null : $"sourcefile eq '{Path.GetFileName(fileName)}'";
+
+        var response = await searchClient.SearchAsync<SearchDocument>("",
+            new SearchOptions
+            {
+                Filter = filter,
+                Size = 1_000,
+                IncludeTotalCount = true
+            });
+
+        var documentsToDelete = new List<SearchDocument>();
+        await foreach (var result in response.Value.GetResultsAsync())
+        {
+            documentsToDelete.Add(new SearchDocument
+            {
+                ["id"] = result.Document["id"]
+            });
+        }
+        Response<IndexDocumentsResult> deleteResponse = searchClient.DeleteDocuments(documentsToDelete);
+        if (options.Verbose)
+        {
+            Console.WriteLine($"""
+                \tRemoved {deleteResponse.Value.Results.Count} sections from index
+                """);
+        }
+
+        // It can take a few seconds for search results to reflect changes, so wait a bit
+        await Task.Delay(TimeSpan.FromMilliseconds(2_000));
+    }
+}
+
 static async ValueTask CreateSearchIndexAsync(AppOptions options)
 {
     SearchIndexClient indexClient = new(
         new Uri($"https://{options.SearchService}.search.windows.net/"),
-        GetSearchCredential(options));
+        DefaultCredential);
 
     var indices = await indexClient.GetIndexAsync(options.Index);
     if (indices is null or { HasValue: false } or { Value: null })
@@ -111,62 +181,47 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
     }
 }
 
-static async ValueTask IndexSectionsAsync(
-    string fileName,
-    IEnumerable<Section> sections,
-    SearchClient searchClient,
-    AppOptions options)
+static async ValueTask UploadBlobsAsync(
+    AppOptions options, string fileName)
 {
-    if (options.Verbose)
-    {
-        options.Console.WriteLine($"""
-            Indexing sections from '{fileName}' into search index '{options.Index}'
-            """);
-    }
+    var blobService = new BlobServiceClient(
+        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
+        DefaultCredential);
 
-    var i = 0;
-    var batch = new IndexDocumentsBatch<SearchDocument>();
-    foreach (var section in sections)
-    {
-        batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
-            IndexActionType.MergeOrUpload,
-            new SearchDocument
-            {
-                ["id"] = section.Id,
-                ["content"] = section.Content,
-                ["category"] = section.Category,
-                ["sourcepage"] = section.SourcePage,
-                ["sourcefile"] = section.SourceFile
-            }));
+    var container =
+        blobService.GetBlobContainerClient(options.Container);
 
-        if (++i % 1_000 is 0)
+    await container.CreateIfNotExistsAsync();
+
+    if (Path.GetExtension(fileName).ToLower() is ".pdf")
+    {
+        using var reader = new PdfReader(fileName);
+        using var pdf = new PdfDocument(reader);
+
+        for (int i = 1; i <= pdf.GetNumberOfPages(); i++)
         {
-            // Every one thousand documents, batch create.
-            IndexDocumentsResult result = await searchClient.IndexDocumentsAsync(batch);
-            int succeeded = result.Results.Count(r => r.Succeeded);
+            var blobName = BlobNameFromFilePage(fileName, i - 1);
             if (options.Verbose)
             {
                 options.Console.WriteLine($"""
-                    \tIndexed {batch.Actions.Count} sections, {succeeded} succeeded
+                    \tUploading blob for page {i} -> {blobName}
                     """);
             }
 
-            batch = new();
+            using MemoryStream memoryStream = new();
+
+            using var writer = new PdfWriter(memoryStream);
+            using var target = new PdfDocument(writer);
+
+            pdf.CopyPagesTo(i, i, target);
+
+            await container.UploadBlobAsync(blobName, memoryStream);
         }
     }
-
-    if (batch is { Actions.Count: > 0 })
+    else
     {
-        // Any remaining documents, batch create.
-        var index = new SearchIndex($"index-{batch.Actions.Count}");
-        IndexDocumentsResult result = await searchClient.IndexDocumentsAsync(batch);
-        int succeeded = result.Results.Count(r => r.Succeeded);
-        if (options.Verbose)
-        {
-            options.Console.WriteLine($"""
-                \tIndexed {batch.Actions.Count} sections, {succeeded} succeeded
-                """);
-        }
+        var blobName = BlobNameFromFilePage(fileName);
+        await container.UploadBlobAsync(blobName, File.OpenRead(fileName));
     }
 }
 
@@ -263,177 +318,15 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
     return pageMap.AsReadOnly();
 }
 
-static async ValueTask RemoveBlobsAsync(
-    AppOptions options, string? fileName = null)
-{
-    if (options.Verbose)
-    {
-        options.Console.WriteLine($"Removing blobs for '{fileName ?? "all"}'");
-    }
-
-    var blobService = new BlobServiceClient(
-        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
-        GetStorageCredential(options));
-
-    var container =
-        blobService.GetBlobContainerClient(options.Container);
-
-    await container.CreateIfNotExistsAsync();
-
-    var prefix = string.IsNullOrWhiteSpace(fileName)
-        ? Path.GetFileName(fileName)
-        : null;
-
-    await foreach (var blob in container.GetBlobsAsync())
-    {
-        if (string.IsNullOrWhiteSpace(prefix) ||
-            blob.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        {
-            await container.DeleteBlobAsync(blob.Name);
-        }
-    }
-
-    await ValueTask.CompletedTask;
-}
-
-static async ValueTask RemoveFromIndexAsync(
-    AppOptions options, string? fileName = null)
-{
-    if (options.Verbose)
-    {
-        options.Console.WriteLine("");
-    }
-
-    var searchClient = new SearchClient(
-        new Uri($"https://{options.SearchService}.search.windows.net/"),
-        options.Index,
-        GetSearchCredential(options));
-
-    while (true)
-    {
-        var filter = (fileName is null) ? null : $"sourcefile eq '{Path.GetFileName(fileName)}'";
-
-        var response = await searchClient.SearchAsync<SearchDocument>("",
-            new SearchOptions
-            {
-                Filter = filter,
-                Size = 1_000,
-                IncludeTotalCount = true
-            });
-
-        var documentsToDelete = new List<SearchDocument>();
-        await foreach (var result in response.Value.GetResultsAsync())
-        {
-            documentsToDelete.Add(new SearchDocument
-            {
-                ["id"] = result.Document["id"]
-            });
-        }
-        Response<IndexDocumentsResult> deleteResponse = searchClient.DeleteDocuments(documentsToDelete);
-        if (options.Verbose)
-        {
-            Console.WriteLine($"""
-                \tRemoved {deleteResponse.Value.Results.Count} sections from index
-                """);
-        }
-
-        // It can take a few seconds for search results to reflect changes, so wait a bit
-        await Task.Delay(TimeSpan.FromMilliseconds(2_000));
-    }
-}
-
-static string BlobNameFromFilePage(string filename, int page = 0) =>
-    Path.GetExtension(filename).ToLower() is ".pdf"
-        ? $"{Path.GetFileNameWithoutExtension(filename)}-{page}.pdf"
-        : Path.GetFileName(filename);
-
-static async ValueTask UploadBlobsAsync(
-    AppOptions options, string fileName)
-{
-    var blobService = new BlobServiceClient(
-        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
-        GetStorageCredential(options));
-
-    var container =
-        blobService.GetBlobContainerClient(options.Container);
-
-    await container.CreateIfNotExistsAsync();
-
-    if (Path.GetExtension(fileName).ToLower() is ".pdf")
-    {
-        using var reader = new PdfReader(fileName);
-        using var pdf = new PdfDocument(reader);
-
-        for (int i = 1; i <= pdf.GetNumberOfPages(); i++)
-        {
-            var blobName = BlobNameFromFilePage(fileName, i - 1);
-            if (options.Verbose)
-            {
-                options.Console.WriteLine($"""
-                    \tUploading blob for page {i} -> {blobName}
-                    """);
-            }
-
-            using MemoryStream memoryStream = new();
-
-            using var writer = new PdfWriter(memoryStream);
-            using var target = new PdfDocument(writer);
-
-            pdf.CopyPagesTo(i, i, target);
-
-            await container.UploadBlobAsync(blobName, memoryStream);
-        }
-    }
-    else
-    {
-        var blobName = BlobNameFromFilePage(fileName);
-        await container.UploadBlobAsync(blobName, File.OpenRead(fileName));
-    }
-}
-
-static string TableToHtml(DocumentTable table)
-{
-    var tableHtml = new StringBuilder("<table>");
-    var rows = new List<DocumentTableCell>[table.RowCount];
-    for (int i = 0; i < table.RowCount; i++)
-    {
-        rows[i] = table.Cells.Where(c => c.RowIndex == i).OrderBy(c => c.ColumnIndex).ToList();
-    }
-
-    foreach (var rowCells in rows)
-    {
-        tableHtml.Append("<tr>");
-        foreach (DocumentTableCell cell in rowCells)
-        {
-            var tag = (cell.Kind == "columnHeader" || cell.Kind == "rowHeader") ? "th" : "td";
-            var cellSpans = string.Empty;
-            if (cell.ColumnSpan > 1)
-            {
-                cellSpans += $" colSpan='{cell.ColumnSpan}'";
-            }
-
-            if (cell.RowSpan > 1)
-            {
-                cellSpans += $" rowSpan='{cell.RowSpan}'";
-            }
-
-            tableHtml.AppendFormat(
-                "<{0}{1}>{2}</{0}>", tag, cellSpans, WebUtility.HtmlEncode(cell.Content));
-        }
-
-        tableHtml.Append("</tr>");
-    }
-
-    tableHtml.Append("</table>");
-
-    return tableHtml.ToString();
-}
-
 static IEnumerable<Section> CreateSections(
     AppOptions options, IReadOnlyList<PageDetail> pageMap, string fileName)
 {
-    var sentenceEndings = new[] { '.', '!', '?' }.AsSpan();
-    var wordBreaks = new[] { ',', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n' }.AsSpan();
+    const int MaxSectionLength = 1_000;
+    const int SentenceSearchLimit = 100;
+    const int SectionOverlap = 100;
+
+    var sentenceEndings = new[] { '.', '!', '?' };
+    var wordBreaks = new[] { ',', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n' };
     var allText = string.Concat(pageMap.Select(p => p.Text));
     var length = allText.Length;
     var start = 0;
@@ -539,6 +432,115 @@ static IEnumerable<Section> CreateSections(
     }
 }
 
+static async ValueTask IndexSectionsAsync(
+    AppOptions options,
+    IEnumerable<Section> sections,
+    string fileName)
+{
+    if (options.Verbose)
+    {
+        options.Console.WriteLine($"""
+            Indexing sections from '{fileName}' into search index '{options.Index}'
+            """);
+    }
+
+    var searchClient = new SearchClient(
+        new Uri($"https://{options.SearchService}.search.windows.net"),
+        options.Index,
+        DefaultCredential);
+
+    var iteration = 0;
+    var batch = new IndexDocumentsBatch<SearchDocument>();
+    foreach (var section in sections)
+    {
+        batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
+            IndexActionType.MergeOrUpload,
+            new SearchDocument
+            {
+                ["id"] = section.Id,
+                ["content"] = section.Content,
+                ["category"] = section.Category,
+                ["sourcepage"] = section.SourcePage,
+                ["sourcefile"] = section.SourceFile
+            }));
+
+        iteration++;
+        if (iteration % 1_000 is 0)
+        {
+            // Every one thousand documents, batch create.
+            IndexDocumentsResult result = await searchClient.IndexDocumentsAsync(batch);
+            int succeeded = result.Results.Count(r => r.Succeeded);
+            if (options.Verbose)
+            {
+                options.Console.WriteLine($"""
+                    \tIndexed {batch.Actions.Count} sections, {succeeded} succeeded
+                    """);
+            }
+
+            batch = new();
+        }
+    }
+
+    if (batch is { Actions.Count: > 0 })
+    {
+        // Any remaining documents, batch create.
+        var index = new SearchIndex($"index-{batch.Actions.Count}");
+        IndexDocumentsResult result = await searchClient.IndexDocumentsAsync(batch);
+        int succeeded = result.Results.Count(r => r.Succeeded);
+        if (options.Verbose)
+        {
+            options.Console.WriteLine($"""
+                \tIndexed {batch.Actions.Count} sections, {succeeded} succeeded
+                """);
+        }
+    }
+}
+
+static string BlobNameFromFilePage(string filename, int page = 0) =>
+    Path.GetExtension(filename).ToLower() is ".pdf"
+        ? $"{Path.GetFileNameWithoutExtension(filename)}-{page}.pdf"
+        : Path.GetFileName(filename);
+
+static string TableToHtml(DocumentTable table)
+{
+    var tableHtml = new StringBuilder("<table>");
+    var rows = new List<DocumentTableCell>[table.RowCount];
+    for (int i = 0; i < table.RowCount; i++)
+    {
+        rows[i] = table.Cells.Where(c => c.RowIndex == i)
+            .OrderBy(c => c.ColumnIndex)
+            .ToList();
+    }
+
+    foreach (var rowCells in rows)
+    {
+        tableHtml.Append("<tr>");
+        foreach (DocumentTableCell cell in rowCells)
+        {
+            var tag = (cell.Kind == "columnHeader" || cell.Kind == "rowHeader") ? "th" : "td";
+            var cellSpans = string.Empty;
+            if (cell.ColumnSpan > 1)
+            {
+                cellSpans += $" colSpan='{cell.ColumnSpan}'";
+            }
+
+            if (cell.RowSpan > 1)
+            {
+                cellSpans += $" rowSpan='{cell.RowSpan}'";
+            }
+
+            tableHtml.AppendFormat(
+                "<{0}{1}>{2}</{0}>", tag, cellSpans, WebUtility.HtmlEncode(cell.Content));
+        }
+
+        tableHtml.Append("</tr>");
+    }
+
+    tableHtml.Append("</table>");
+
+    return tableHtml.ToString();
+}
+
 static int FindPage(IReadOnlyList<PageDetail> pageMap, int offset)
 {
     var length = pageMap.Count;
@@ -557,4 +559,6 @@ internal static partial class Program
 {
     [GeneratedRegex("[^0-9a-zA-Z_-]")]
     private static partial Regex MatchInSetRegex();
+
+    internal static DefaultAzureCredential DefaultCredential { get; } = new();
 }
