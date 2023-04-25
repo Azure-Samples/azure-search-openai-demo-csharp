@@ -27,7 +27,7 @@
     </MudItem>
     <MudItem xs="12" Class="rounded">
         <MudGrid>
-            <MudItem xs="10">
+            <MudItem xs="12" lg="10">
                 <VoiceTextInput @bind-Value="_userQuestion" Label="Question"
                                 Icon="@Icons.Material.Filled.QuestionMark"
                                 Placeholder="Example: Does my plan cover annual eye exams?"
@@ -35,7 +35,7 @@
                                 HelperText="Use Shift + Enter for new lines."
                                 OnEnterKeyPressed="OnAskClickedAsync" />
             </MudItem>
-            <MudItem xs="2" Class="d-flex align-self-center">
+            <MudItem xs="0" lg="2" Class="d-flex align-self-center">
                 <MudGrid Justify="Justify.Center">
                     <MudItem xs="9" Class="pa-2">
                         <MudFab Color="Color.Secondary" Size="Size.Large"
