@@ -1,14 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-//const int MaxSectionLength = 1_000;
-//const int SentenceSearchLimit = 100;
-//const int SectionOverlap = 100;
-
-using Azure.AI.FormRecognizer.DocumentAnalysis;
-using iText.Kernel.Pdf.Canvas.Parser.Listener;
-using iText.Kernel.Pdf.Canvas.Parser;
-using System.Text;
-using PrepareDocs;
+const int MaxSectionLength = 1_000;
+const int SentenceSearchLimit = 100;
+const int SectionOverlap = 100;
 
 s_rootCommand.SetHandler(
     async (context) =>
@@ -17,41 +11,12 @@ s_rootCommand.SetHandler(
         if (options.RemoveAll)
         {
             await RemoveBlobsAsync(options);
-            await RemoveFromIndexAsync(options);
+            await RemoveFromIndexAsync(context, options);
         }
         else
         {
-            /*
-             
-             if not args.remove:
-        create_search_index()
-    
-    print(f"Processing files...")
-    for filename in glob.glob(args.files):
-        if args.verbose: print(f"Processing '{filename}'")
-        if args.remove:
-            remove_blobs(filename)
-            remove_from_index(filename)
-        elif args.removeall:
-            remove_blobs(None)
-            remove_from_index(None)
-        else:
-            if not args.skipblobs:
-                upload_blobs(filename)
-            page_map = get_document_text(filename)
-            sections = create_sections(os.path.basename(filename), page_map)
-            index_sections(os.path.basename(filename), sections)
-             
-             */
-
-
-
-
-            // if not remove
-            // create_search_index
-
             context.Console.WriteLine("Processing files...");
-            
+
             Matcher matcher = new();
             matcher.AddInclude(context.ParseResult.GetValueForArgument(s_files));
 
@@ -69,7 +34,7 @@ s_rootCommand.SetHandler(
                 if (options.Remove)
                 {
                     await RemoveBlobsAsync(options, match.Path);
-                    await RemoveFromIndexAsync(options, match.Path);
+                    await RemoveFromIndexAsync(context, options, match.Path);
                     continue;
                 }
 
@@ -77,7 +42,9 @@ s_rootCommand.SetHandler(
                 {
                     await UploadBlobsAsync(options, match.Path);
 
-                    var pageMap = await Get
+                    var pageMap = await GetDocumentTextAsync(options, match.Path);
+                    var sections = CreateSections(match.Path, pageMap, options);
+                    await IndexSectionsAsync(match.Path, sections, null, options);
                 }
             }
         }
@@ -85,17 +52,77 @@ s_rootCommand.SetHandler(
 
 return await s_rootCommand.InvokeAsync(args);
 
-static List<(int, int, string)> GetDocumentText(
+static async ValueTask IndexSectionsAsync(
+    string fileName,
+    IEnumerable<Section> sections,
+    SearchClient searchClient,
+    AppOptions options)
+{
+    if (options.Verbose)
+    {
+        options.Console.WriteLine($"""
+            Indexing sections from '{fileName}' into search index '{options.Index}'
+            """);
+    }
+
+    var i = 0;
+    var batch = new IndexDocumentsBatch<SearchDocument>();
+    foreach (var section in sections)
+    {
+        batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
+            IndexActionType.MergeOrUpload,
+            new SearchDocument
+            {
+                ["id"] = section.Id,
+                ["content"] = section.Content,
+                ["category"] = section.Category,
+                ["source_page"] = section.SourcePage,
+                ["source_file"] = section.SourceFile
+            }));
+
+        if (++i % 1_000 is 0)
+        {
+            // Every one thousand documents, batch create.
+            IndexDocumentsResult result = await searchClient.IndexDocumentsAsync(batch);
+            int succeeded = result.Results.Count(r => r.Succeeded);
+            if (options.Verbose)
+            {
+                options.Console.WriteLine($"""
+                    \tIndexed {batch.Actions.Count} sections, {succeeded} succeeded
+                    """);
+            }
+
+            batch = new();
+        }
+    }
+
+    if (batch is { Actions.Count: > 0 })
+    {
+        // Any remaining documents, batch create.
+        var index = new SearchIndex($"index-{batch.Actions.Count}");
+        IndexDocumentsResult result = await searchClient.IndexDocumentsAsync(batch);
+        int succeeded = result.Results.Count(r => r.Succeeded);
+        if (options.Verbose)
+        {
+            options.Console.WriteLine($"""
+                \tIndexed {batch.Actions.Count} sections, {succeeded} succeeded
+                """);
+        }
+    }
+}
+
+static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
     AppOptions options, string filename)
 {
     int offset = 0;
     List<(int, int, string)> pageMap = new();
     if (options.LocalPdfParser)
     {
-        PdfReader reader = new(filename);
-        PdfDocument pdf = new(reader);
+        using PdfReader reader = new(filename);
+        using PdfDocument pdf = new(reader);
+
         for (var pageNumber = 0; pageNumber < pdf.GetNumberOfPages(); pageNumber++)
-        {            
+        {
             var pageText = PdfTextExtractor.GetTextFromPage(pdf.GetPage(pageNumber), new SimpleTextExtractionStrategy());
             pageMap.Add((pageNumber, offset, pageText));
             offset += pageText.Length;
@@ -121,59 +148,66 @@ static List<(int, int, string)> GetDocumentText(
                 }
             });
         using FileStream stream = File.OpenRead(filename);
+
+        AnalyzeDocumentOperation operation = client.AnalyzeDocument(
+            WaitUntil.Started, "prebuilt-layout", stream);
+
+        var results = await operation.WaitForCompletionAsync();
+        var pages = results.Value.Pages;
+        for (var i = 0; i < pages.Count; i++)
         {
-            AnalyzeDocumentOperation poller = client.StartAnalyzeDocument("prebuilt-layout", stream);
-             form_recognizer_results = poller.WaitForCompletionAsync().Result;
-            IReadOnlyList<DocumentPage> pages = form_recognizer_results.Value.Pages;
+            IReadOnlyList<DocumentTable> tablesOnPage =
+                results.Value.Tables.Where(t => t.BoundingRegions[0].PageNumber == i + 1).ToList();
 
-            for (int page_num = 0; page_num < pages.Count; page_num++)
+            // mark all positions of the table spans in the page
+            int pageIndex = pages[i].Spans[0].Index;
+            int pageLength = pages[i].Spans[0].Length;
+            int[] tableChars = Enumerable.Repeat(-1, pageLength).ToArray();
+            for (var tableId = 0; tableId < tablesOnPage.Count; tableId++)
             {
-                IReadOnlyList<DocumentTable> tables_on_page = form_recognizer_results.Value.Tables.Where(t => t.BoundingRegions[0].PageNumber == page_num + 1).ToList();
-
-                // mark all positions of the table spans in the page
-                int page_offset = pages[page_num].Spans[0].Offset;
-                int page_length = pages[page_num].Spans[0].Length;
-                int[] table_chars = Enumerable.Repeat(-1, page_length).ToArray();
-                for (int table_id = 0; table_id < tables_on_page.Count; table_id++)
+                foreach (DocumentSpan span in tablesOnPage[tableId].Spans)
                 {
-                    foreach (DocumentSpan span in tables_on_page[table_id].Spans)
+                    // replace all table spans with "tableId" in table_chars array
+                    for (var j = 0; j < span.Length; j++)
                     {
-                        // replace all table spans with "table_id" in table_chars array
-                        for (int i = 0; i < span.Length; i++)
+                        int index = span.Index - pageIndex + j;
+                        if (index >= 0 && index < pageLength)
                         {
-                            int idx = span.Offset - page_offset + i;
-                            if (idx >= 0 && idx < page_length)
-                            {
-                                table_chars[idx] = table_id;
-                            }
+                            tableChars[index] = tableId;
                         }
                     }
                 }
-
-                // build page text by replacing characters in table spans with table html
-                StringBuilder page_text = new();
-                HashSet<int> added_tables = new();
-                for (int idx = 0; idx < table_chars.Length; idx++)
-                {
-                    if (table_chars[idx] == -1)
-                    {
-                        page_text.Append(form_recognizer_results.Value.Content[page_offset + idx]);
-                    }
-                    else if (!added_tables.Contains(table_chars[idx]))
-                    {
-                        page_text.Append(TableToHtml(tables_on_page[table_chars[idx]]));
-                        added_tables.Add(table_chars[idx]);
-                    }
-                }
-
-                page_text.Append(' ');
-                pageMap.Add((page_num, offset, page_text.ToString()));
-                offset += page_text.Length;
             }
+
+            // build page text by replacing characters in table spans with table html
+            StringBuilder pageText = new();
+            HashSet<int> addedTables = new();
+            for (int j = 0; j < tableChars.Length; j++)
+            {
+                if (tableChars[j] == -1)
+                {
+                    pageText.Append(results.Value.Content[pageIndex + j]);
+                }
+                else if (!addedTables.Contains(tableChars[j]))
+                {
+                    pageText.Append(TableToHtml(tablesOnPage[tableChars[j]]));
+                    addedTables.Add(tableChars[j]);
+                }
+            }
+
+            pageText.Append(' ');
+            pageMap.Add((i, offset, pageText.ToString()));
+            offset += pageText.Length;
         }
     }
 
-    return pageMap;
+    return pageMap.Select(pageDetails =>
+        {
+            var (index, offset, text) = pageDetails;
+            return new PageDetail(index, offset, text);
+        })
+        .ToList()
+        .AsReadOnly();
 }
 
 static async ValueTask RemoveBlobsAsync(
@@ -192,14 +226,49 @@ static async ValueTask RemoveBlobsAsync(
 }
 
 static async ValueTask RemoveFromIndexAsync(
-    AppOptions options, string? fileName = null)
+    InvocationContext context,
+    AppOptions options,
+    string? fileName = null)
 {
     if (options.Verbose)
     {
         options.Console.WriteLine("");
     }
 
-    await ValueTask.CompletedTask;
+    var searchClient = new SearchClient(
+        new Uri($"https://{options.SearchService}.search.windows.net/"),
+        options.Index,
+        GetSearchCredential(context));
+
+    while (true)
+    {
+        var filter = (fileName is null) ? null : $"sourcefile eq '{Path.GetFileName(fileName)}'";
+
+        var response = await searchClient.SearchAsync<SearchDocument>("",
+            new SearchOptions
+            {
+                Filter = filter,
+                Size = 1_000,
+                IncludeTotalCount = true
+            });
+
+        var documentsToDelete = new List<SearchDocument>();
+        await foreach (var result in response.Value.GetResultsAsync())
+        {
+            documentsToDelete.Add(new SearchDocument
+            {
+                ["id"] = result.Document["id"]
+            });
+        }
+        Response<IndexDocumentsResult> deleteResponse = searchClient.DeleteDocuments(documentsToDelete);
+        if (options.Verbose)
+        {
+            Console.WriteLine($"\tRemoved {deleteResponse.Value.Results.Count} sections from index");
+        }
+
+        // It can take a few seconds for search results to reflect changes, so wait a bit
+        await Task.Delay(TimeSpan.FromMilliseconds(2_000));
+    }
 }
 
 static string BlobNameFromFilePage(string filename, int page = 0) =>
@@ -249,27 +318,174 @@ static async ValueTask UploadBlobsAsync(
     }
 }
 
-//static string TableToHtml(Table table)
-//{
-//    string table_html = "<table>";
-//    List<Cell>[] rows = new List<Cell>[table.RowCount];
-//    for (int i = 0; i < table.RowCount; i++)
-//    {
-//        rows[i] = table.Cells.Where(c => c.RowIndex == i).OrderBy(c => c.ColumnIndex).ToList();
-//    }
-//    foreach (List<Cell> row_cells in rows)
-//    {
-//        table_html += "<tr>";
-//        foreach (Cell cell in row_cells)
-//        {
-//            string tag = (cell.Kind == "columnHeader" || cell.Kind == "rowHeader") ? "th" : "td";
-//            string cell_spans = "";
-//            if (cell.ColumnSpan > 1) cell_spans += $" colSpan={cell.ColumnSpan}";
-//            if (cell.RowSpan > 1) cell_spans += $" rowSpan={cell.RowSpan}";
-//            table_html += $"<{tag}{cell_spans}>{HttpUtility.HtmlEncode(cell.Content)}</{tag}>";
-//        }
-//        table_html += "</tr>";
-//    }
-//    table_html += "</table>";
-//    return table_html;
-//}
+static string TableToHtml(DocumentTable table)
+{
+    var tableHtml = new StringBuilder("<table>");
+    var rows = new List<DocumentTableCell>[table.RowCount];
+    for (int i = 0; i < table.RowCount; i++)
+    {
+        rows[i] = table.Cells.Where(c => c.RowIndex == i).OrderBy(c => c.ColumnIndex).ToList();
+    }
+
+    foreach (var rowCells in rows)
+    {
+        tableHtml.Append("<tr>");
+        foreach (DocumentTableCell cell in rowCells)
+        {
+            var tag = (cell.Kind == "columnHeader" || cell.Kind == "rowHeader") ? "th" : "td";
+            var cellSpans = string.Empty;
+            if (cell.ColumnSpan > 1)
+            {
+                cellSpans += $" colSpan='{cell.ColumnSpan}'";
+            }
+
+            if (cell.RowSpan > 1)
+            {
+                cellSpans += $" rowSpan='{cell.RowSpan}'";
+            }
+
+            tableHtml.AppendFormat(
+                "<{0}{1}>{2}</{0}>", tag, cellSpans, WebUtility.HtmlEncode(cell.Content));
+        }
+
+        tableHtml.Append("</tr>");
+    }
+
+    tableHtml.Append("</table>");
+
+    return tableHtml.ToString();
+}
+
+static IEnumerable<Section> CreateSections(
+    string fileName, IReadOnlyList<PageDetail> pageMap, AppOptions options)
+{
+    var sentenceEndings = new[] { '.', '!', '?' };
+    var wordBreaks = new[] { ',', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n' };
+    var allText = string.Concat(pageMap.Select(p => p.Text));
+    var length = allText.Length;
+    var start = 0;
+    var end = length;
+
+    if (options.Verbose)
+    {
+        options.Console.WriteLine($"Splitting '{fileName}' into sections");
+    }
+
+    while (start + SectionOverlap < length)
+    {
+        var lastWord = -1;
+        end = start + MaxSectionLength;
+
+        if (end > length)
+        {
+            end = length;
+        }
+        else
+        {
+            // Try to find the end of the sentence
+            while (end < length && (end - start - MaxSectionLength) < SentenceSearchLimit && !sentenceEndings.Contains(allText[end]))
+            {
+                if (wordBreaks.Contains(allText[end]))
+                {
+                    lastWord = end;
+                }
+                end++;
+            }
+
+            if (end < length && !sentenceEndings.Contains(allText[end]) && lastWord > 0)
+            {
+                end = lastWord; // Fall back to at least keeping a whole word
+            }
+        }
+
+        if (end < length)
+        {
+            end++;
+        }
+
+        // Try to find the start of the sentence or at least a whole word boundary
+        lastWord = -1;
+        while (start > 0 && start > end - MaxSectionLength -
+            (2 * SentenceSearchLimit) && !sentenceEndings.Contains(allText[start]))
+        {
+            if (wordBreaks.Contains(allText[start]))
+            {
+                lastWord = start;
+            }
+            start--;
+        }
+
+        if (!sentenceEndings.Contains(allText[start]) && lastWord > 0)
+        {
+            start = lastWord;
+        }
+        if (start > 0)
+        {
+            start++;
+        }
+
+        var sectionText = allText[start..end];
+        yield return new Section
+        {
+            Id = MatchInSetRegex().Replace($"{fileName}-{start}", "_"),
+            Content = sectionText,
+            Category = options.Category,
+            SourcePage = BlobNameFromFilePage(fileName, FindPage(pageMap, start)),
+            SourceFile = fileName
+        };
+
+        var lastTableStart = sectionText.LastIndexOf("<table", StringComparison.Ordinal);
+        if (lastTableStart > 2 * SentenceSearchLimit && lastTableStart > sectionText.LastIndexOf("</table", StringComparison.Ordinal))
+        {
+            // If the section ends with an unclosed table, we need to start the next section with the table.
+            // If table starts inside SentenceSearchLimit, we ignore it, as that will cause an infinite loop for tables longer than MaxSectionLength
+            // If last table starts inside SectionOverlap, keep overlapping
+            if (options.Verbose)
+            {
+                options.Console.WriteLine($"""
+                    Section ends with unclosed table, starting next section with the
+                    table at page {FindPage(pageMap, start)} offset {start} table start {lastTableStart}
+                    """);
+            }
+
+            start = Math.Min(end - SectionOverlap, start + lastTableStart);
+        }
+        else
+        {
+            start = end - SectionOverlap;
+        }
+    }
+
+    if (start + SectionOverlap < end)
+    {
+        yield return new Section
+        {
+
+            Id = MatchInSetRegex().Replace($"{fileName}-{start}", "_"),
+            Content = allText[start..end],
+            Category = options.Category,
+            SourcePage = BlobNameFromFilePage(fileName, FindPage(pageMap, start)),
+            SourceFile = fileName
+        };
+    }
+}
+
+static int FindPage(IReadOnlyList<PageDetail> pageMap, int offset)
+{
+    var length = pageMap.Count;
+    for (var i = 0; i < length - 1; i++)
+    {
+        if (offset >= pageMap[i].Index && offset < pageMap[i + 1].Index)
+        {
+            return i;
+        }
+    }
+
+    return length - 1;
+}
+
+internal static partial class Program
+{
+    [GeneratedRegex("[^0-9a-zA-Z_-]")]
+    private static partial Regex MatchInSetRegex();
+}
