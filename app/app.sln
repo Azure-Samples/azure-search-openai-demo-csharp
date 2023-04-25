@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		..\.gitignore = ..\.gitignore
+		Directory.Build.props = Directory.Build.props
 		..\.github\workflows\dotnet-build.yml = ..\.github\workflows\dotnet-build.yml
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
@@ -19,6 +20,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "shared\Shared\Shared.csproj", "{B54798B7-C176-4373-86D4-9D7376AD2E17}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientApp.Tests", "tests\ClientApp.Tests\ClientApp.Tests.csproj", "{E74A1913-C9C9-4B58-8E0D-D42F8176D7A7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrepareDocs", "prepdocs\PrepareDocs\PrepareDocs.csproj", "{9C39AF95-2BB1-48CF-BD12-D214C0BD6076}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +45,10 @@ Global
 		{E74A1913-C9C9-4B58-8E0D-D42F8176D7A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E74A1913-C9C9-4B58-8E0D-D42F8176D7A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E74A1913-C9C9-4B58-8E0D-D42F8176D7A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C39AF95-2BB1-48CF-BD12-D214C0BD6076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C39AF95-2BB1-48CF-BD12-D214C0BD6076}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C39AF95-2BB1-48CF-BD12-D214C0BD6076}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C39AF95-2BB1-48CF-BD12-D214C0BD6076}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
