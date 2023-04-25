@@ -13,7 +13,7 @@ EOF
 
 echo 'Running "PrepareDocs.dll"'
 dotnet run --project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- \
-  './data/*' \
+  './data/*.pdf' \
   --storageaccount "$AZURE_STORAGE_ACCOUNT" \
   --container "$AZURE_STORAGE_CONTAINER" \
   --searchservice "$AZURE_SEARCH_SERVICE" \

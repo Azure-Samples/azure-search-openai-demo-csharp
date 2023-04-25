@@ -16,7 +16,7 @@ Write-Host 'Running "PrepareDocs.dll"'
 $cwd = (Get-Location)
 
 dotnet run --project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- `
-  $cwd/data/* `
+  $cwd/data/*.pdf `
   --storageaccount $env:AZURE_STORAGE_ACCOUNT `
   --container $env:AZURE_STORAGE_CONTAINER `
   --searchservice $env:AZURE_SEARCH_SERVICE `

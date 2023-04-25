@@ -13,8 +13,6 @@ s_rootCommand.SetHandler(
         {
             await CreateSearchIndexAsync(options);
 
-            context.Console.WriteLine("Processing files...");
-
             Matcher matcher = new();
             matcher.AddInclude(options.Files);
 
@@ -22,9 +20,15 @@ s_rootCommand.SetHandler(
                 new DirectoryInfoWrapper(
                     new DirectoryInfo(Directory.GetCurrentDirectory())));
 
-            foreach (var match in results.Files)
+            var files = results.HasMatches
+                ? results.Files.Select(f => f.Path).ToArray()
+                : Array.Empty<string>();
+
+            context.Console.WriteLine($"Processing {files.Length} files...");
+
+            for (var i = 0; i < files.Length; ++ i)
             {
-                var fileName = match.Path;
+                var fileName = files[i];
                 if (options.Verbose)
                 {
                     options.Console.WriteLine($"Processing '{fileName}'");
@@ -88,7 +92,9 @@ static async ValueTask RemoveFromIndexAsync(
 {
     if (options.Verbose)
     {
-        options.Console.WriteLine("");
+        options.Console.WriteLine($"""
+            Removing sections from '{fileName ?? "all"}' from search index '{options.Index}.'
+            """);
     }
 
     var searchClient = new SearchClient(
@@ -116,11 +122,14 @@ static async ValueTask RemoveFromIndexAsync(
                 ["id"] = result.Document["id"]
             });
         }
-        Response<IndexDocumentsResult> deleteResponse = searchClient.DeleteDocuments(documentsToDelete);
+
+        Response<IndexDocumentsResult> deleteResponse =
+            await searchClient.DeleteDocumentsAsync(documentsToDelete);
+
         if (options.Verbose)
         {
             Console.WriteLine($"""
-                \tRemoved {deleteResponse.Value.Results.Count} sections from index
+                    Removed {deleteResponse.Value.Results.Count} sections from index
                 """);
         }
 
@@ -131,7 +140,7 @@ static async ValueTask RemoveFromIndexAsync(
 
 static async ValueTask CreateSearchIndexAsync(AppOptions options)
 {
-    SearchIndexClient indexClient = new(
+    var indexClient = new SearchIndexClient(
         new Uri($"https://{options.SearchService}.search.windows.net/"),
         DefaultCredential);
 
@@ -175,7 +184,7 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
     }
     else if (options.Verbose)
     {
-        options.Console.WriteLine($"Search index {options.Index} already exists");
+        options.Console.WriteLine($"Search index '{options.Index}' already exists");
     }
 }
 
@@ -203,11 +212,9 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
         options.Console.WriteLine($"Extracting text from '{filename}' using Azure Form Recognizer");
     }
 
-    ArgumentNullException.ThrowIfNullOrEmpty(options.FormRecognizerKey);
-
     var client = new DocumentAnalysisClient(
         new Uri($"https://{options.FormRecognizerService}.cognitiveservices.azure.com/"),
-        new AzureKeyCredential(options.FormRecognizerKey),
+        DefaultCredential,
         new DocumentAnalysisClientOptions
         {
             Diagnostics =
@@ -231,7 +238,7 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
         IReadOnlyList<DocumentTable> tablesOnPage =
             results.Value.Tables.Where(t => t.BoundingRegions[0].PageNumber == i + 1).ToList();
 
-        // mark all positions of the table spans in the page
+        // Mark all positions of the table spans in the page
         int pageIndex = pages[i].Spans[0].Index;
         int pageLength = pages[i].Spans[0].Length;
         int[] tableChars = Enumerable.Repeat(-1, pageLength).ToArray();
@@ -239,7 +246,7 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
         {
             foreach (DocumentSpan span in tablesOnPage[tableId].Spans)
             {
-                // replace all table spans with "tableId" in table_chars array
+                // Replace all table spans with "tableId" in tableChars array
                 for (var j = 0; j < span.Length; j++)
                 {
                     int index = span.Index - pageIndex + j;
@@ -251,7 +258,7 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
             }
         }
 
-        // build page text by replacing characters in table spans with table html
+        // Build page text by replacing characters in table spans with table HTML
         StringBuilder pageText = new();
         HashSet<int> addedTables = new();
         for (int j = 0; j < tableChars.Length; j++)
@@ -350,7 +357,7 @@ static IEnumerable<Section> CreateSections(
         var sectionText = allText[start..end];
 
         yield return new Section(
-            Id: MatchInSetRegex().Replace($"{fileName}-{start}", "_"),
+            Id: MatchInSetRegex().Replace($"{fileName}-{start}", "_").TrimStart('_'),
             Content: sectionText,
             SourcePage: BlobNameFromFilePage(fileName, FindPage(pageMap, start)),
             SourceFile: fileName,
@@ -381,7 +388,7 @@ static IEnumerable<Section> CreateSections(
     if (start + SectionOverlap < end)
     {
         yield return new Section(
-            Id: MatchInSetRegex().Replace($"{fileName}-{start}", "_"),
+            Id: MatchInSetRegex().Replace($"{fileName}-{start}", "_").TrimStart('_'),
             Content: allText[start..end],
             SourcePage: BlobNameFromFilePage(fileName, FindPage(pageMap, start)),
             SourceFile: fileName,
@@ -430,7 +437,7 @@ static async ValueTask IndexSectionsAsync(
             if (options.Verbose)
             {
                 options.Console.WriteLine($"""
-                    \tIndexed {batch.Actions.Count} sections, {succeeded} succeeded
+                        Indexed {batch.Actions.Count} sections, {succeeded} succeeded
                     """);
             }
 

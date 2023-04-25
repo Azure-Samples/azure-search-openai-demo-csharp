@@ -13,7 +13,6 @@ global using Azure.Search.Documents;
 global using Azure.Search.Documents.Indexes;
 global using Azure.Search.Documents.Indexes.Models;
 global using Azure.Search.Documents.Models;
-global using Azure.Storage;
 global using Azure.Storage.Blobs;
 global using Microsoft.Extensions.FileSystemGlobbing;
 global using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
