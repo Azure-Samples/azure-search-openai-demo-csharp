@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		..\.gitignore = ..\.gitignore
+		Directory.Build.props = Directory.Build.props
 		..\.github\workflows\dotnet-build.yml = ..\.github\workflows\dotnet-build.yml
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
@@ -20,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "shared\Shared\Sha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientApp.Tests", "tests\ClientApp.Tests\ClientApp.Tests.csproj", "{E74A1913-C9C9-4B58-8E0D-D42F8176D7A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrepareDocs", "prepdocs\PrepareDocs\PrepareDocs.csproj", "{9C39AF95-2BB1-48CF-BD12-D214C0BD6076}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrepareDocs", "prepdocs\PrepareDocs\PrepareDocs.csproj", "{9C39AF95-2BB1-48CF-BD12-D214C0BD6076}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
