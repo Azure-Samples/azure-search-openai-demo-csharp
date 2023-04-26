@@ -23,9 +23,9 @@ public sealed class OpenAIPromptQueue
         {
             try
             {
+                var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
                 var json = JsonSerializer.Serialize(
-                    new ChatPromptRequest { Prompt = prompt },
-                    new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                    new ChatPromptRequest { Prompt = prompt }, options);
 
                 using var body = new StringContent(json, Encoding.UTF8, "application/json");
                 using var scope = _provider.CreateScope();
@@ -37,115 +37,24 @@ public sealed class OpenAIPromptQueue
                 if (response.IsSuccessStatusCode)
                 {
                     using var stream = await response.Content.ReadAsStreamAsync();
-                    using var reader = new StreamReader(stream, Encoding.UTF8);
 
-                    // TODO:
-                    // There be dragons! 🐉 Look away to avoid hurting your eyes...
-
-                    #region // Ugly code
-                    // I'm not familiar with a way to receive each complete token from the server.
-                    // Instead, we read each character individually, and that gets messy!
-                    // An example response will return the following character sequences.
-                    // Being that the ASP.NET Core Minimal API endpoint is returning an IAsyncEnumerable<string>
-                    // I'm not certain how to get the variable length of each chunk as it's buffered from the response.
-                    // Is there a way to stream this back as an IAsyncEnumerable<string> from the HttpClient?
-                    // An example response is as follows:
-                    // "[null,"My"," name"," is"," ","Bl","azor"," Cl","ippy"," 📎","","."," I","'m"," a"," friendly"," AI"," assistant"," here"," to"," assist"," you"," with"," your"," coding"," needs","."," How"," can"," I"," help"," you"," today","?",null]"
-                    List<char> raw = new();
-                    List<char> buffer = new();
-                    BufferSegment segment = new();
-                    var isEscapeSequence = false;
-                    var (sawStart, sawNullStart, sawNullEnd, sawEnd) = (false, false, false, false);
-                    while (reader is { EndOfStream: false })
+                    await foreach (var chunk in
+                        JsonSerializer.DeserializeAsyncEnumerable<ChatChunkResponse>(stream, options))
                     {
-                        var partialResponse = (char)reader.Read();
-                        raw.Add(partialResponse);
-
-                        if (partialResponse is '[' && sawStart is false)
+                        if (chunk is null)
                         {
-                            sawStart = true;
-                            continue;
-                        }
-                        if (partialResponse is (char)0x0)
-                        {
-                            if (sawNullStart)
-                            {
-                                sawNullEnd = true;
-                            }
-                            else if (sawStart)
-                            {
-                                sawNullStart = true;
-                            }
-
-                            continue;
-                        }
-                        if (partialResponse is ']' && sawNullEnd && sawEnd is false)
-                        {
-                            sawEnd = true;
                             continue;
                         }
 
-                        if (partialResponse is '\\')
-                        {
-                            isEscapeSequence = true;
-                            continue;
-                        }
-
-                        if (partialResponse is '"')
-                        {
-                            if (isEscapeSequence)
-                            {
-                                isEscapeSequence = false;
-                            }
-                            else
-                            {
-                                segment = segment is { SawStartingQuote: true }
-                                    ? segment with { SawEndingQuote = true }
-                                    : segment with { SawStartingQuote = true };
-
-                                continue;
-                            }
-                        }
-
-                        if (isEscapeSequence)
-                        {
-                            isEscapeSequence = false;
-
-                            buffer.Add('\\');
-                            buffer.Add(partialResponse);
-
-                            continue;
-                        }
-
-                        if (partialResponse is ',' &&
-                            segment is
-                            {
-                                SawStartingQuote: true,
-                                SawEndingQuote: true
-                            })
-                        {
-                            var bufferedResponse = new string(buffer.ToArray());
-                            _responseBuffer.Append(bufferedResponse);
-                            buffer.Clear();
-
-                            continue;
-                        }
-
-                        buffer.Add(partialResponse);
-
-                        // Required for the Blazor UI to update...
-                        // I also tried Task.Delay(0) and Task.Yield(), but neither works.
-                        await Task.Delay(1);
+                        _responseBuffer.Append(chunk.Text);
 
                         var responseText = NormalizeResponseText(_responseBuffer, _logger);
                         await handler(
                             new PromptResponse(
                                 prompt, responseText));
+
+                        await Task.Delay(1);
                     }
-
-                    #endregion // End of ugly code.
-
-                    Console.WriteLine(new string(raw.ToArray()));
                 }
             }
             catch (Exception ex)

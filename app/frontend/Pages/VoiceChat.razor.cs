@@ -10,7 +10,6 @@ public sealed partial class VoiceChat : IDisposable
     private bool _isReceivingResponse = false;
     private bool _isReadingResponse = false;
     private IDisposable? _recognitionSubscription;
-    private SpeechRecognitionErrorEvent? _errorEvent;
     private VoicePreferences? _voicePreferences;
     private readonly Dictionary<UserQuestion, string?> _questionAndAnswerMap = new();
     private readonly MarkdownPipeline _pipeline = new MarkdownPipelineBuilder()
@@ -26,6 +25,7 @@ public sealed partial class VoiceChat : IDisposable
     [Inject] public required ISpeechSynthesisService SpeechSynthesis { get; set; }
     [Inject] public required ILocalStorageService LocalStorage { get; set; }
     [Inject] public required IJSInProcessRuntime JavaScript { get; set; }
+    [Inject] public required ILogger<VoiceChat> Logger { get; set; }
 
     [CascadingParameter(Name = nameof(IsReversed))]
     public required bool IsReversed { get; set; }
@@ -53,18 +53,18 @@ public sealed partial class VoiceChat : IDisposable
             _userQuestion,
             async (PromptResponse response) => await InvokeAsync(() =>
             {
-                var (_, responseText, isComplete) = response;                
+                var (_, responseText, isComplete) = response;
                 var html = Markdown.ToHtml(responseText, _pipeline);
 
                 _questionAndAnswerMap[_currentQuestion] = html;
 
                 if (isComplete)
                 {
-                    _isReadingResponse = true;
                     _voicePreferences = new VoicePreferences(LocalStorage);
                     var (voice, rate, isEnabled) = _voicePreferences;
                     if (isEnabled)
                     {
+                        _isReadingResponse = true;
                         var utterance = new SpeechSynthesisUtterance
                         {
                             Rate = rate,
@@ -157,7 +157,9 @@ public sealed partial class VoiceChat : IDisposable
 
     private void OnError(SpeechRecognitionErrorEvent errorEvent)
     {
-        _errorEvent = errorEvent;
+        Logger.LogWarning(
+            "{Error}: {Message}", errorEvent.Error, errorEvent.Message);
+
         StateHasChanged();
     }
 

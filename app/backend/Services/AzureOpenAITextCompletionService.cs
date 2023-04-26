@@ -33,6 +33,7 @@ public sealed class AzureOpenAITextCompletionService : ITextCompletion
             option.StopSequences.Add(stopSequence);
         }
 
+        // TODO: use the turn-based API, per Pablo 🤓
         var response =
             await _openAIClient.GetCompletionsAsync(
                 _deployedModelName, option, cancellationToken);

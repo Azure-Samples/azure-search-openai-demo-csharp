@@ -7,6 +7,7 @@ global using Azure.Identity;
 global using Azure.Search.Documents;
 global using Azure.Search.Documents.Models;
 global using Azure.Storage.Blobs;
+global using Microsoft.Extensions.Caching.Memory;
 global using Microsoft.Net.Http.Headers;
 global using Microsoft.SemanticKernel;
 global using Microsoft.SemanticKernel.AI;
