@@ -11,7 +11,7 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
     private const string AnswerPromptPrefix = """
         Answer questions using the given knowledge ONLY. For tabular information return it as an HTML table. Do not return markdown format.
         Each knowledge has a source name followed by a colon and the actual information, always include the source name for each knowledge you use in the answer.
-        Don't cite knowledge that is not avaible in the knowledge list.
+        Don't cite knowledge that is not available in the knowledge list.
         If you cannot answer using the knowledge list only, say you don't know.
 
         ### EXAMPLE
@@ -26,7 +26,7 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
         Answer:
         In-network deductibles are $500 for employees and $1000 for families [info1.txt] and Overlake is in-network for the employee plan [info2.pdf][info4.pdf].
 
-        Quesiton: 'What happens in a performance review'
+        Question: 'What happens in a performance review'
 
         Knowledge:
 
@@ -96,7 +96,7 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
         """;
 
     private const string GenerateKeywordsPrompt = """
-        Generate keywords from explanation, seperate multiple keywords with comma.
+        Generate keywords from explanation, separate multiple keywords with comma.
 
         ### EXAMPLE:
         Explanation: I need to know the information of employee plan and Overlake in Bellevue

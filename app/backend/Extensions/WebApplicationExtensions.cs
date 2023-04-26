@@ -52,7 +52,7 @@ internal static class WebApplicationExtensions
         return Results.Stream(stream, contentType);
     }
 
-    private static async IAsyncEnumerable<string> OnPostChatPromptAsync(
+    private static async IAsyncEnumerable<ChatChunkResponse> OnPostChatPromptAsync(
         ChatPromptRequest prompt,
         OpenAIClient client,
         IConfiguration config,
@@ -85,7 +85,11 @@ internal static class WebApplicationExtensions
         {
             await foreach (var message in choice.GetMessageStreaming(cancellationToken))
             {
-                yield return message.Content;
+                if (message is { Content.Length: > 0 })
+                {
+                    var (length, content) = (message.Content.Length, message.Content);
+                    yield return new ChatChunkResponse(length, content);
+                }
             }
         }
     }
