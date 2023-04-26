@@ -1,7 +1,7 @@
 ﻿@if (IsDarkTheme)
 {
     <style>
-        p > code {
+        code:not([class="hljs"]) {
             color: #adbac7;
             background: #22272e;
             padding: 0 .2rem;
@@ -14,7 +14,7 @@
 else
 {
     <style>
-        p > code {
+        code:not([class="hljs"]) {
             color: #444;
             background: #f3f3f3;
             padding: 0 .2rem;
