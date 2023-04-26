@@ -9,16 +9,7 @@
 <MudSnackbarProvider />
 
 <HeadContent>
-    @if (_isDarkTheme)
-    {
-        <link rel="stylesheet"
-              href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/github-dark-dimmed.min.css">
-    }
-    else
-    {
-        <link rel="stylesheet"
-              href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/default.min.css">
-    }
+    <ConditionalStyles IsDarkTheme=@_isDarkTheme />
 </HeadContent>
 <MudRTLProvider RightToLeft="_isRightToLeft">
     <MudLayout class="@(_isRightToLeft ? "rtl-lang" : "")">

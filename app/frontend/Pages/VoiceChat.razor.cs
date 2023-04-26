@@ -53,18 +53,18 @@ public sealed partial class VoiceChat : IDisposable
             _userQuestion,
             async (PromptResponse response) => await InvokeAsync(() =>
             {
-                var (_, responseText, isComplete) = response;                
+                var (_, responseText, isComplete) = response;
                 var html = Markdown.ToHtml(responseText, _pipeline);
 
                 _questionAndAnswerMap[_currentQuestion] = html;
 
                 if (isComplete)
                 {
-                    _isReadingResponse = true;
                     _voicePreferences = new VoicePreferences(LocalStorage);
                     var (voice, rate, isEnabled) = _voicePreferences;
                     if (isEnabled)
                     {
+                        _isReadingResponse = true;
                         var utterance = new SpeechSynthesisUtterance
                         {
                             Rate = rate,
