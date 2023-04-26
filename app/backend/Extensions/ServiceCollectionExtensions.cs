@@ -2,13 +2,13 @@
 
 namespace MinimalApi.Extensions;
 
-internal static class WebApplicationBuilderExtensions
+internal static class ServiceCollectionExtensions
 {
     private static readonly DefaultAzureCredential s_azureCredential = new();
 
-    internal static WebApplicationBuilder AddAzureServices(this WebApplicationBuilder builder)
+    internal static IServiceCollection AddAzureServices(this IServiceCollection services)
     {
-        builder.Services.AddSingleton<BlobServiceClient>(sp =>
+        services.AddSingleton<BlobServiceClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
             var azureStorageAccount = config["AZURE_STORAGE_ACCOUNT"];
@@ -18,24 +18,25 @@ internal static class WebApplicationBuilderExtensions
             return blobServiceClient;
         });
 
-        builder.Services.AddSingleton<BlobContainerClient>(sp =>
+        services.AddSingleton<BlobContainerClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
             var azureStorageContainer = config["AZURE_STORAGE_CONTAINER"];
             return sp.GetRequiredService<BlobServiceClient>().GetBlobContainerClient(azureStorageContainer);
         });
 
-        builder.Services.AddSingleton<SearchClient>(sp =>
+        services.AddSingleton<SearchClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var (azureSearchService, azureSearchIndex) = (config["AZURE_SEARCH_SERVICE"], config["AZURE_SEARCH_INDEX"]);
+            var (azureSearchService, azureSearchIndex) =
+                (config["AZURE_SEARCH_SERVICE"], config["AZURE_SEARCH_INDEX"]);
             var searchClient = new SearchClient(
                 new Uri($"https://{azureSearchService}.search.windows.net"), azureSearchIndex, s_azureCredential);
 
             return searchClient;
         });
 
-        builder.Services.AddSingleton<OpenAIClient>(sp =>
+        services.AddSingleton<OpenAIClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
             var azureOpenAiService = config["AZURE_OPENAI_SERVICE"];
@@ -45,7 +46,7 @@ internal static class WebApplicationBuilderExtensions
             return openAIClient;
         });
 
-        builder.Services.AddSingleton<IKernel>(sp =>
+        services.AddSingleton<IKernel>(sp =>
         {
             // Semantic Kernel doesn't support Azure AAD credential for now
             // so we implement our own text completion backend
@@ -58,21 +59,21 @@ internal static class WebApplicationBuilderExtensions
             return kernel;
         });
 
-        builder.Services.AddSingleton<AzureOpenAITextCompletionService>();
-        builder.Services.AddSingleton<ReadRetrieveReadChatService>();
+        services.AddSingleton<AzureOpenAITextCompletionService>();
+        services.AddSingleton<ReadRetrieveReadChatService>();
 
-        builder.Services.AddSingleton<IApproachBasedService, RetrieveThenReadApproachService>();
-        builder.Services.AddSingleton<IApproachBasedService, ReadRetrieveReadApproachService>();
-        builder.Services.AddSingleton<IApproachBasedService, ReadDecomposeAskApproachService>();
+        services.AddSingleton<IApproachBasedService, RetrieveThenReadApproachService>();
+        services.AddSingleton<IApproachBasedService, ReadRetrieveReadApproachService>();
+        services.AddSingleton<IApproachBasedService, ReadDecomposeAskApproachService>();
 
-        builder.Services.AddSingleton<ApproachServiceResponseFactory>();
+        services.AddSingleton<ApproachServiceResponseFactory>();
 
-        return builder;
+        return services;
     }
 
-    internal static WebApplicationBuilder AddCrossOriginResourceSharing(this WebApplicationBuilder builder)
+    internal static IServiceCollection AddCrossOriginResourceSharing(this IServiceCollection services)
     {
-        builder.Services.AddCors(
+        services.AddCors(
             options =>
                 options.AddDefaultPolicy(
                     policy =>
@@ -80,6 +81,6 @@ internal static class WebApplicationBuilderExtensions
                             .AllowAnyHeader()
                             .AllowAnyMethod()));
 
-        return builder;
+        return services;
     }
 }

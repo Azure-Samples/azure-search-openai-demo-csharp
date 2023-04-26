@@ -6,10 +6,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddMemoryCache();
 builder.Services.AddOutputCache();
 
-builder.AddCrossOriginResourceSharing();
-builder.AddAzureServices();
+builder.Services.AddCrossOriginResourceSharing();
+builder.Services.AddAzureServices();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
