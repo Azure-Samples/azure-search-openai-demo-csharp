@@ -87,16 +87,6 @@ public sealed class OpenAIPromptQueue
 
         var text = builder.ToString();
 
-        return NormalizeResponseText(text, logger);
-    }
-
-    private static string NormalizeResponseText(string text, ILogger logger)
-    {
-        if (text is null or { Length: 0 })
-        {
-            return "";
-        }
-
         logger.LogDebug("Before normalize\n\t{Text}", text);
 
         text = text.StartsWith("null,") ? text[5..] : text;
