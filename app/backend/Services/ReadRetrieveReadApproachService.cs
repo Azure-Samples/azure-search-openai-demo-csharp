@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Microsoft.SemanticKernel.Planning.Planners;
+
 namespace MinimalApi.Services;
 
 internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
@@ -9,8 +11,9 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
     private readonly ILogger<ReadRetrieveReadApproachService> _logger;
 
     private const string PlanPrompt = """
-        Retrieve information of question and append to $knowledge,
-        Answer question and set to $Answer.
+        Do the following steps:
+         - Search information for $question and save result to $knowledge
+         - Answer the $question based on the knowledge you have and save result to $answer.
         """;
 
     private const string Prefix = """
@@ -24,7 +27,7 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
         ###
         Question: 'What is the deductible for the employee plan for a visit to Overlake in Bellevue?'
 
-        Sources:
+        Knowledge:
         info1.txt: deductibles depend on whether you are in-network or out-of-network. In-network deductibles are $500 for employees and $1000 for families. Out-of-network deductibles are $1000 for employees and $2000 for families.
         info2.pdf: Overlake is in-network for the employee plan.
         info3.pdf: Overlake is the name of the area that includes a park and ride near Bellevue.
@@ -37,7 +40,7 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
         Question:
         {{$question}}
 
-        Sources:
+        Knowledge:
         {{$knowledge}}
 
         Answer:
@@ -63,37 +66,37 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
         var kernel = Kernel.Builder.Build();
         kernel.Config.AddTextCompletionService("openai", _ => _completionService);
         kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
-        kernel.ImportSkill(new UpdateContextVariableSkill());
         kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, functionName: "Answer", description: "answer question",
             maxTokens: 1_024, temperature: overrides?.Temperature ?? 0.7);
-        var planner = kernel.ImportSkill(new PlannerSkill(kernel));
+        var planner = new SequentialPlanner(kernel, new PlannerConfig
+        {
+            RelevancyThreshold = 0.7,
+        });
         var sb = new StringBuilder();
-
-        var executingResult = await kernel.RunAsync(ReadRetrieveReadApproachService.PlanPrompt, cancellationToken, planner["CreatePlan"]);
+        var plan = await planner.CreatePlanAsync(ReadRetrieveReadApproachService.PlanPrompt);
         var step = 1;
-        executingResult.Variables["question"] = question;
-        _logger.LogInformation("{Plan}", executingResult.Variables.ToPlan().PlanString);
+        plan.State["question"] = question;
+        plan.State["knowledge"] = string.Empty;
+        _logger.LogInformation("{Plan}", PlanToString(plan));
 
         do
         {
-            var result = await kernel.RunAsync(executingResult.Variables, cancellationToken, planner["ExecutePlan"]);
-            var plan = result.Variables.ToPlan();
-
-            if (!plan.IsSuccessful)
-            {
-                _logger.LogError("Plan was unsuccessful: {Plan}", plan.PlanString);
-                throw new InvalidOperationException(result.Variables.ToPlan().Result);
-            }
-
+            plan = await kernel.StepAsync(plan);
             sb.AppendLine($"Step {step++} - Execution results:\n");
-            sb.AppendLine(plan.PlanString + "\n");
-            sb.AppendLine(plan.Result + "\n");
-            executingResult = result;
-        } while (!executingResult.Variables.ToPlan().IsComplete);
+            sb.AppendLine(plan.State + "\n");
+        } while (plan.HasNextStep);
 
         return new ApproachResponse(
-            DataPoints: executingResult["knowledge"].ToString().Split('\r'),
-            Answer: executingResult["Answer"],
+            DataPoints: plan.State["knowledge"].ToString().Split('\r'),
+            Answer: plan.State["Answer"],
             Thoughts: sb.ToString().Replace("\n", "<br>"));
+    }
+
+    private static string PlanToString(Plan originalPlan)
+    {
+        return $"Goal: {originalPlan.Description}\n\nSteps:\n" + string.Join("\n", originalPlan.Steps.Select(
+            s =>
+                $"- {s.SkillName}.{s.Name} {string.Join(" ", s.NamedParameters.Select(p => $"{p.Key}='{p.Value}'"))}{" => " + string.Join(" ", s.NamedOutputs.Where(s => s.Key.ToUpper(System.Globalization.CultureInfo.CurrentCulture) != "INPUT").Select(p => $"{p.Key}"))}"
+        ));
     }
 }

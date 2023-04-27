@@ -104,8 +104,8 @@ internal static class SearchClientExtensions
             QueryLanguage = "en-us",
             QuerySpeller = "lexicon",
             SemanticConfigurationName = "default",
-            QueryAnswer = "extractive|count-1",
-            QueryCaption = "extractive|highlight-false",
+            QueryAnswer = "extractive",
+            QueryCaption = "extractive",
         };
 
         var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, option);

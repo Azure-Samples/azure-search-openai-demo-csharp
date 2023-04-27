@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Microsoft.SemanticKernel.Planning.Planners;
+
 namespace MinimalApi.Services;
 
 internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
@@ -159,12 +161,12 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
         """;
 
     private const string PlannerPrefix = """
-        When you know the answer, return the answer. Otherwise, do the following steps until you know the answer:
-         - explain what you need to know to answer the question.
-         - generating keywords from explanation.
-         - use keywords to lookup or search information.
-         - append information to knowledge.
-         - summarize the entire process and update summary.
+        do the following steps:
+         - explain what you need to know to answer the $question.
+         - generating $keywords from explanation.
+         - use $keywords to lookup or search information.
+         - update information to $knowledge.
+         - summarize the entire process and update $summary.
          - answer the question based on the knowledge you have.
         """;
 
@@ -189,51 +191,40 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
         kernel.Config.AddTextCompletionService("openai", (kernel) => _completionService);
         kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
         kernel.ImportSkill(new LookupSkill(_searchClient, overrides));
-        kernel.ImportSkill(new UpdateContextVariableSkill());
         kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.AnswerPromptPrefix, functionName: "Answer", description: "answer question with given knowledge",
             maxTokens: 1024, temperature: overrides?.Temperature ?? 0.7);
         kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.ExplainPrefix, functionName: "Explain", description: "explain", temperature: 0.5,
             presencePenalty: 0.5, frequencyPenalty: 0.5);
         kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.GenerateKeywordsPrompt, functionName: "GenerateKeywords", description: "Generate keywords for lookup or search from given explanation", temperature: 0,
             presencePenalty: 0.5, frequencyPenalty: 0.5);
-        kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.CheckAnswerAvailablePrefix, functionName: "CheckAnswerAvailablity", description: "Check if answer is available, return 1 if yes, return 0 if not available", temperature: 0);
         kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.ThoughtProcessPrompt, functionName: "Summarize", description: "Summarize the entire process of getting answer.", temperature: overrides?.Temperature ?? 0.7,
             presencePenalty: 0.5, frequencyPenalty: 0.5, maxTokens: 2048);
 
-        var planner = kernel.ImportSkill(new PlannerSkill(kernel));
-        var sb = new StringBuilder();
-
+        var planner = new SequentialPlanner(kernel, new PlannerConfig
+        {
+            RelevancyThreshold = 0.7,
+        });
         var planInstruction = $"{ReadDecomposeAskApproachService.PlannerPrefix}";
-
-        var executingResult = await kernel.RunAsync(planInstruction, cancellationToken, planner["CreatePlan"]);
-        _logger.LogInformation("{Plan}", executingResult.Variables.ToPlan().PlanString);
-        executingResult.Variables["question"] = question;
-        executingResult.Variables["answer"] = "I don't know";
-        executingResult.Variables["summary"] = "";
-        executingResult.Variables["knowledge"] = "";
-
-        var step = 1;
+        var plan = await planner.CreatePlanAsync(planInstruction);
+        plan.State["question"] = question;
+        _logger.LogInformation("{Plan}", PlanToString(plan));
 
         do
         {
-            var result = await kernel.RunAsync(executingResult.Variables, cancellationToken, planner["ExecutePlan"]);
-            var plan = result.Variables.ToPlan();
-
-            if (!plan.IsSuccessful)
-            {
-                _logger.LogError("Plan was unsuccessful: {Plan}", plan.PlanString);
-                throw new InvalidOperationException(plan.Result);
-            }
-
-            sb.AppendLine($"Step {step++} - Execution results:\n");
-            sb.AppendLine(plan.Result + "\n");
-
-            executingResult = result;
-        } while (!executingResult.Variables.ToPlan().IsComplete);
+            plan = await kernel.StepAsync(question, plan);
+        } while (plan.HasNextStep);
 
         return new ApproachResponse(
-            DataPoints: executingResult["knowledge"].ToString().Split('\r'),
-            Answer: executingResult.Variables["Answer"],
-            Thoughts: executingResult.Variables["SUMMARY"].Replace("\n", "<br>"));
+            DataPoints: plan.State["knowledge"].ToString().Split('\r'),
+            Answer: plan.State["Answer"],
+            Thoughts: plan.State["SUMMARY"].Replace("\n", "<br>"));
+    }
+
+    private static string PlanToString(Plan originalPlan)
+    {
+        return $"Goal: {originalPlan.Description}\n\nSteps:\n" + string.Join("\n", originalPlan.Steps.Select(
+            s =>
+                $"- {s.SkillName}.{s.Name} {string.Join(" ", s.NamedParameters.Select(p => $"{p.Key}='{p.Value}'"))}{" => " + string.Join(" ", s.NamedOutputs.Where(s => s.Key.ToUpper(System.Globalization.CultureInfo.CurrentCulture) != "INPUT").Select(p => $"{p.Key}"))}"
+        ));
     }
 }
