@@ -6,6 +6,7 @@
     <AzureStorageBlobsVersion>12.16.0</AzureStorageBlobsVersion>
     <SemanticKernelVersion>0.13.277.1-preview</SemanticKernelVersion>
     <AzureOpenAIVersion>1.0.0-beta.5</AzureOpenAIVersion>
+    <WebAssemblyDevServerVersion>7.0.5</WebAssemblyDevServerVersion>
   </PropertyGroup>
 
 </Project>
