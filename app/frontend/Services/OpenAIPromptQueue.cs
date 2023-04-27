@@ -101,8 +101,3 @@ public sealed class OpenAIPromptQueue
         return text;
     }
 }
-
-readonly file record struct BufferSegment(
-    bool SawStartingQuote,
-    bool SawEndingQuote,
-    bool SawEndingComma);
