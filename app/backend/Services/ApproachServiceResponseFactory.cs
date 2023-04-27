@@ -24,8 +24,8 @@ internal sealed class ApproachServiceResponseFactory
             ?? throw new ArgumentOutOfRangeException(
                 nameof(approach), $"Approach: {approach} value isn't supported.");
 
-        var key = GetCacheKeyString(
-            new CacheKey(approach, question, overrides));
+        var key = new CacheKey(approach, question, overrides)
+            .ToCacheKeyString();
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
@@ -62,14 +62,20 @@ internal sealed class ApproachServiceResponseFactory
 
         return approachResponse;
     }
+}
 
+internal readonly record struct CacheKey(
+    Approach Approach,
+    string Question,
+    RequestOverrides? Overrides)
+{
     /// <summary>
     /// Converts the given <paramref name="cacheKey"/> instance into a <see cref="string"/>
     /// that will uniquely identify the approach, question and optional override pairing.
     /// </summary>
-    private string GetCacheKeyString(CacheKey cacheKey)
+    internal string ToCacheKeyString()
     {
-        var (approach, question, overrides) = cacheKey;
+        var (approach, question, overrides) = this;
 
         string? overridesString = null;
         if (overrides is { } o)
@@ -89,8 +95,3 @@ internal sealed class ApproachServiceResponseFactory
             """;
     }
 }
-
-internal readonly record struct CacheKey(
-    Approach Approach,
-    string Question,
-    RequestOverrides? Overrides);
