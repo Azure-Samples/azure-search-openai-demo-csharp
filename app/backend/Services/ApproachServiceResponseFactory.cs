@@ -63,6 +63,10 @@ internal sealed class ApproachServiceResponseFactory
         return approachResponse;
     }
 
+    /// <summary>
+    /// Converts the given <paramref name="cacheKey"/> instance into a <see cref="string"/>
+    /// that will uniquely identify the approach, question and optional override pairing.
+    /// </summary>
     private string GetCacheKeyString(CacheKey cacheKey)
     {
         var (approach, question, overrides) = cacheKey;
