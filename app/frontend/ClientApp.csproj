@@ -29,11 +29,4 @@
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
-  <Target Name="WriteBackendUriToEmbedding" BeforeTargets="PrepareForBuild" Condition="$(Configuration) == 'Release'">
-    <Message Importance="high" Text="Writing $(BACKEND_URI) as an embedded resource." />
-    <WriteLinesToFile File="BackendUri" Lines="$(BACKEND_URI)" Overwrite="true" Encoding="Unicode" />
-    <ItemGroup>
-      <EmbeddedResource Include="BackendUri" />
-    </ItemGroup>
-  </Target>
 </Project>

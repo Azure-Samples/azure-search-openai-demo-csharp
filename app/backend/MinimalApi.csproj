@@ -14,10 +14,12 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="$(AzureStorageBlobsVersion)" />
     <PackageReference Include="Azure.AI.OpenAI" Version="$(AzureOpenAIVersion)" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.4" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\frontend\ClientApp.csproj" />
     <ProjectReference Include="..\shared\Shared\Shared.csproj" />
   </ItemGroup>
 
