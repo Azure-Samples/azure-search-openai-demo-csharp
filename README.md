@@ -87,17 +87,13 @@ It will look like the following:
 #### Running locally
 
 1. Run `azd auth login`
-1. Run the following .NET CLI command to start the ASP.NET Core Minimal API server:
+1. Run the following .NET CLI command to start the ASP.NET Core Minimal API server (client host):
 
     ```dotnetcli
     dotnet run --project ./app/backend/MinimalApi.csproj --urls=https://localhost:7181/
     ```
 
-1. Run the following .NET CLI command in a separate terminal to start the ASP.NET Core Blazor WebAssembly client:
-
-    ```dotnetcli
-    dotnet run --project ./app/frontend/ClientApp.csproj --urls=https://localhost:5001/
-    ```
+Navigate to <https://localhost:7181>, and test out the app.
 
 #### Sharing Environments
 
@@ -111,7 +107,7 @@ Run the following if you want to give someone else access to the deployed and ex
 ### Quickstart
 
 * In Azure: navigate to the Azure Static Web App deployed by `azd`. The URL is printed out when `azd` completes (as "Endpoint"), or you can find it in the Azure portal.
-* When running locally, navigate to <https://localhost:5001> for the client or <https://localhost:7181/swagger> for the Open API server page.
+* When running locally, navigate to <https://localhost:7181> for the client app and <https://localhost:7181/swagger> for the Open API server page.
 
 Once in the web app:
 
