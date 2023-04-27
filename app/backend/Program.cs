@@ -5,12 +5,24 @@ var builder = WebApplication.CreateBuilder(args);
 // See: https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddMemoryCache();
 builder.Services.AddOutputCache();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddCrossOriginResourceSharing();
 builder.Services.AddAzureServices();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+else
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = builder.Configuration.GetConnectionString("RedisCacheConnectionString");
+        options.InstanceName = builder.Configuration["RedisCacheInstanceName"];
+    });
+}
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

@@ -13,8 +13,9 @@
     <PackageReference Include="Azure.Search.Documents" Version="$(AzureSearchDocumentsVersion)" />
     <PackageReference Include="Azure.Storage.Blobs" Version="$(AzureStorageBlobsVersion)" />
     <PackageReference Include="Azure.AI.OpenAI" Version="$(AzureOpenAIVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="7.0.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="$(WebAssemblyDevServerVersion)" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
   </ItemGroup>
 
