@@ -1,7 +1,7 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
-param keyVaultName string
+param keyVaultName string = ''
 
 @description('The pricing tier of the new Azure Redis Cache.')
 @allowed([ 'Basic', 'Standard' ])
@@ -33,8 +33,8 @@ resource redis 'Microsoft.Cache/Redis@2021-06-01' = {
   }
 }
 
-module redisKeyVaultName '../security/keyvault-secrets.bicep' = {
-  name: 'redis-cahce-name'
+module redisNameSecret '../security/keyvault-secrets.bicep' = if (keyVaultName != '') {
+  name: 'redis-cache-name'
   params: {
     keyVaultName: keyVaultName
     name: 'RedisCache__Name'
@@ -42,8 +42,8 @@ module redisKeyVaultName '../security/keyvault-secrets.bicep' = {
   }
 }
 
-module redisKeyVaultPrimaryKey '../security/keyvault-secrets.bicep' = {
-  name: 'redis-cahce-primary-key'
+module redisPrimaryKeySecret '../security/keyvault-secrets.bicep' = if (keyVaultName != '') {
+  name: 'redis-cache-primary-key'
   params: {
     keyVaultName: keyVaultName
     name: 'RedisCache__PrimaryKey'
