@@ -114,14 +114,23 @@ internal static class ServiceCollectionExtensions
                 var content = new StreamReader(readStream).ReadToEnd();
 
                 // split contents into short sentences
-                var sentences = content.Split(new[] { '.', '?', '!', ',', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                var corpusRecords = sentences.Select((s, i) =>
+                var sentences = content.Split(new[] { '.', '?', '!' }, StringSplitOptions.RemoveEmptyEntries);
+                var corpusIndex = 0;
+                var sb = new StringBuilder();
+                // create corpus records based on sentences
+                foreach(var sentence in sentences)
                 {
-                    var id = $"{source}+{i}";
-                    return new CorpusRecord(id, s, source);
-                });
-                corpus.AddRange(corpusRecords);
+                    sb.Append(sentence);
+                    if(sb.Length > 256)
+                    {
+                        var id = $"{source}+{corpusIndex++}";
+                        corpus.Add(new CorpusRecord(id, source, sb.ToString()));
+                        sb.Clear();
+                    }
+                }
             }
+
+            logger.LogInformation($"load {corpus.Count} records into corpus");
 
             return corpus;
         });
@@ -140,7 +149,7 @@ internal static class ServiceCollectionExtensions
             var embeddingService = sp.GetRequiredService<IEmbeddingGeneration<string, float>>();
             var collectionName = "knowledge";
             var memoryStore = new VolatileMemoryStore();
-            memoryStore.CreateCollectionAsync(collectionName);
+            memoryStore.CreateCollectionAsync(collectionName).Wait();
             var embeddings = embeddingService.GenerateEmbeddingsAsync(corpus.Select(c => c.text).ToList()).Result;
             var memoryRecords = Enumerable.Zip(corpus, embeddings)
                                     .Select((tuple) =>
@@ -150,7 +159,8 @@ internal static class ServiceCollectionExtensions
                                         var memoryRecord = new MemoryRecord(metaData, embedding, key: corpusRecord.id);
                                         return memoryRecord;
                                     });
-            memoryStore.UpsertBatchAsync(collectionName, memoryRecords);
+
+            var _ = memoryStore.UpsertBatchAsync(collectionName, memoryRecords).ToListAsync().Result;
 
             return memoryStore;
         });

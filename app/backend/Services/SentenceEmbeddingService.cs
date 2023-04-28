@@ -3,6 +3,7 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Transforms.Text;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 using Microsoft.SemanticKernel.Memory;
 
 namespace MinimalApi.Services;
@@ -25,14 +26,7 @@ public class SentenceEmbeddingService : IEmbeddingGeneration<string, float>
             StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options
             {
                 Language = TextFeaturizingEstimator.Language.English,
-            },
-            KeepDiacritics = true,
-            WordFeatureExtractor = new WordBagEstimator.Options
-            {
-                NgramLength = 1,
-                UseAllLengths = true,
-                Weighting = NgramExtractingEstimator.WeightingCriteria.TfIdf,
-            },
+            }
         };
         var textFeaturizer = _mlContext.Transforms.Text.FeaturizeText(outputColumnName: "Embedding", featurizeTextOption, "Text");
         var model = textFeaturizer.Fit(_mlContext.Data.LoadFromEnumerable(inputs.Select(i => new { Text = i })));
@@ -43,7 +37,6 @@ public class SentenceEmbeddingService : IEmbeddingGeneration<string, float>
     {
         var outputs = data.Select(i => _predictionEngine!.Predict(new Input { Text = i })).ToList();
         var embeddings = outputs.Select(o => new Embedding<float>(o.Embedding!)).ToList();
-
         return Task.FromResult<IList<Embedding<float>>>(embeddings);
     }
 
