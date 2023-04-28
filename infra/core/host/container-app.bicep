@@ -1,66 +1,78 @@
 param name string
 param location string = resourceGroup().location
-param containerAppEnvironmentId string
 param tags object = {}
-param envVars array = []
-param minReplicas int = 1
-param maxReplicas int = 1
 
-resource acr 'Microsoft.ContainerRegistry/registries@2022-12-01' = {
-  name: toLower('${resourceGroup().name}acr')
-  location: location
-  tags: tags
-  sku: {
-    name: 'Basic'
-  }
-  properties: {
-    adminUserEnabled: true
-  }
-}
+param containerAppsEnvironmentName string
+param containerName string = 'main'
+param containerRegistryName string
+param env array = []
+param external bool = true
+param imageName string
+param keyVaultName string = ''
+param managedIdentity bool = !empty(keyVaultName)
+param targetPort int = 80
 
-resource containerApp 'Microsoft.app/containerApps@2022-10-01' = {
+@description('CPU cores allocated to a single container instance, e.g. 0.5')
+param containerCpuCoreCount string = '0.5'
+
+@description('Memory allocated to a single container instance, e.g. 1Gi')
+param containerMemory string = '1.0Gi'
+
+resource app 'Microsoft.App/containerApps@2022-10-01' = {
   name: name
   location: location
   tags: tags
+  identity: { type: managedIdentity ? 'SystemAssigned' : 'None' }
   properties: {
-    managedEnvironmentId: containerAppEnvironmentId
+    managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
-      activeRevisionsMode: 'multiple'
+      activeRevisionsMode: 'single'
+      ingress: {
+        external: external
+        targetPort: targetPort
+        transport: 'auto'
+      }
       secrets: [
         {
-          name: 'container-registry-password'
-          value: acr.listCredentials().passwords[0].value
+          name: 'registry-password'
+          value: containerRegistry.listCredentials().passwords[0].value
         }
       ]
       registries: [
         {
-          server: acr.name
-          username: acr.listCredentials().username
-          passwordSecretRef: 'container-registry-password'
+          server: '${containerRegistry.name}.azurecr.io'
+          username: containerRegistry.name
+          passwordSecretRef: 'registry-password'
         }
       ]
-      ingress: {
-        external: true
-        targetPort: 80
-        transport: 'http'
-        allowInsecure: true
-      }
     }
     template: {
       containers: [
         {
-          name: 'app'
-          image: 'nginx' // TODO: determine if this needs to be repaced.
-          env: envVars
+          image: imageName
+          name: containerName
+          env: env
+          resources: {
+            cpu: json(containerCpuCoreCount)
+            memory: containerMemory
+          }
         }
       ]
-      scale: {
-        minReplicas: minReplicas
-        maxReplicas: maxReplicas
-      }
     }
   }
 }
 
-output appUrl string = containerApp.properties.configuration.ingress.fqdn
-output identityPrincipalId string = containerApp.identity.principalId
+resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' existing = {
+  name: containerAppsEnvironmentName
+}
+
+// 2022-02-01-preview needed for anonymousPullEnabled
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existing = {
+  name: containerRegistryName
+}
+
+output defaultDomain string = containerAppsEnvironment.properties.defaultDomain
+output identityPrincipalId string = managedIdentity ? app.identity.principalId : ''
+output imageName string = imageName
+output name string = app.name
+output uri string = 'https://${app.properties.configuration.ingress.fqdn}'

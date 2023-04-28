@@ -19,8 +19,14 @@ else
 {
     builder.Services.AddStackExchangeRedisCache(options =>
     {
-        options.Configuration = builder.Configuration.GetConnectionString("RedisCacheConnectionString");
-        options.InstanceName = builder.Configuration["RedisCacheInstanceName"];
+        var name = builder.Configuration["AZURE_REDIS_CACHE_NAME"];
+        var key = builder.Configuration["AZURE_REDIS_CACHE_PRIMARY_KEY"];
+
+        options.Configuration = $"""
+            {name}.redis.cache.windows.net,abortConnect=false,ssl=true,allowAdmin=true,password={key}
+            """;
+
+        options.InstanceName = "content";
     });
 }
 

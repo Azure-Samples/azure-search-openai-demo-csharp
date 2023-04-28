@@ -4,10 +4,14 @@ name: azure-search-openai-demo-csharp
 metadata:
   template: azure-search-openai-demo-csharp@0.0.3-beta
 services:
-  backend:
-    project: ./app/backend
+  app:
+    project: ./app/backend/
     host: containerapp
     language: dotnet
+    module: ./app/web
+    docker:
+      path: ./Dockerfile
+      context: ../
 hooks:
   postprovision:
     windows:

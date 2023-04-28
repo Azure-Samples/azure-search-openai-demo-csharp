@@ -10,6 +10,10 @@ param environmentName string
 param location string
 
 param resourceGroupName string = ''
+param keyVaultName string = ''
+param containerAppsEnvironmentName string = ''
+param containerRegistryName string = ''
+param webContainerAppName string = ''
 
 param searchServiceName string = ''
 param searchServiceResourceGroupName string = ''
@@ -40,12 +44,17 @@ param gptModelName string = 'text-davinci-003'
 param chatGptDeploymentName string = 'chat'
 param chatGptModelName string = 'gpt-35-turbo'
 
+@description('The image name for the web service')
+param webImageName string = ''
+
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
 var abbrs = loadJsonContent('abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
+var apiContainerAppNameOrDefault = '${abbrs.appContainerApps}web-${resourceToken}'
+var corsAcaUrl = 'https://${apiContainerAppNameOrDefault}.${containerApps.outputs.defaultDomain}'
 
 // Organize resources in a resource group
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -70,66 +79,67 @@ resource storageResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' ex
   name: !empty(storageResourceGroupName) ? storageResourceGroupName : resourceGroup.name
 }
 
-module insights 'core/workspace/insights.bicep' = {
-  name: 'insights'
+// Container apps host (including container registry)
+module containerApps './core/host/container-apps.bicep' = {
+  name: 'container-apps'
   scope: resourceGroup
   params: {
-    baseName: 'gptkb'
+    name: 'app'
+    containerAppsEnvironmentName: !empty(containerAppsEnvironmentName) ? containerAppsEnvironmentName : '${abbrs.appManagedEnvironments}${resourceToken}'
+    containerRegistryName: !empty(containerRegistryName) ? containerRegistryName : '${abbrs.containerRegistryRegistries}${resourceToken}'
     location: location
+    logAnalyticsWorkspaceName: monitoring.outputs.logAnalyticsWorkspaceName
   }
 }
 
-var envVars = [
-  {
-    name: 'AZURE_STORAGE_ACCOUNT'
-    value: storageAccountName
-  }
-  {
-    name: 'AZURE_STORAGE_CONTAINER'
-    value: storageContainerName
-  }
-  {
-    name: 'AZURE_SEARCH_SERVICE_NAME'
-    value: searchServiceName
-  }
-  {
-    name: 'AZURE_SEARCH_INDEX_NAME'
-    value: searchIndexName
-  }
-  {
-    name: 'AZURE_OPENAI_SERVICE'
-    value: openAiServiceName
-  }
-  {
-    name: 'AZURE_OPENAI_GPT_DEPLOYMENT'
-    value: gptDeploymentName
-  }
-]
-
-module app 'core/host/container-app.bicep' = {
-  name: 'app'
+// Web frontend
+module web './app/web.bicep' = {
+  name: 'web'
   scope: resourceGroup
   params: {
-    name: 'blazorapp'
+    name: !empty(webContainerAppName) ? webContainerAppName : '${abbrs.appContainerApps}web-${resourceToken}'
     location: location
-    tags: tags
-    containerAppEnvironmentId: insights.outputs.environmentId
-    envVars: envVars
+    imageName: webImageName
+    applicationInsightsName: monitoring.outputs.applicationInsightsName
+    containerAppsEnvironmentName: containerApps.outputs.environmentName
+    containerRegistryName: containerApps.outputs.registryName
+    keyVaultName: keyVault.outputs.name
   }
 }
 
-module redis 'core/storage/redis-cache.bicep' = {
+module redis 'core/cache/redis.bicep' = {
   name: 'redis'
   scope: resourceGroup
   params: {
     name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     location: location
     tags: tags
-    sku: {
-      name: 'Basic'
-      family: 'C'
-      capacity: 1
-    }
+    storageName: containerApps.outputs.environmentStorage
+  }
+}
+
+// Store secrets in a keyvault
+module keyVault './core/security/keyvault.bicep' = {
+  name: 'keyvault'
+  scope: resourceGroup
+  params: {
+    name: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
+    location: location
+    tags: tags
+    principalId: principalId
+  }
+}
+
+// Monitor application with Azure Monitor
+module monitoring './core/monitor/monitoring.bicep' = {
+  name: 'monitoring'
+  scope: resourceGroup
+  params: {
+    location: location
+    tags: tags
+    logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
+    applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'
+    applicationInsightsDashboardName: !empty(applicationInsightsDashboardName) ? applicationInsightsDashboardName : '${abbrs.portalDashboards}${resourceToken}'
   }
 }
 
@@ -339,4 +349,11 @@ output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_CONTAINER string = storageContainerName
 output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
 
-output BACKEND_URI string = app.outputs.appUrl
+output API_CORS_ACA_URL string = corsAcaUrl
+output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
+output APPLICATIONINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName
+output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerApps.outputs.environmentName
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerApps.outputs.registryLoginServer
+output AZURE_CONTAINER_REGISTRY_NAME string = containerApps.outputs.registryName
+output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
+output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name

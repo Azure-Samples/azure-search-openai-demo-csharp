@@ -8,9 +8,9 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["Directory.Build.props", "."]
-COPY ["backend/MinimalApi.csproj", "backend/"]
-COPY ["frontend/ClientApp.csproj", "frontend/"]
-COPY ["shared/Shared/Shared.csproj", "shared/Shared/"]
+COPY ["backend/", "backend/"]
+COPY ["frontend/", "frontend/"]
+COPY ["shared/", "shared/"]
 RUN dotnet restore "backend/MinimalApi.csproj"
 COPY . .
 WORKDIR "/src/backend"
