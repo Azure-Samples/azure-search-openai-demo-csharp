@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.AI.FormRecognizer.DocumentAnalysis;
+using Microsoft.SemanticKernel.Memory;
+
 namespace MinimalApi.Extensions;
 
 internal static class ServiceCollectionExtensions
@@ -34,6 +37,15 @@ internal static class ServiceCollectionExtensions
                 new Uri($"https://{azureSearchService}.search.windows.net"), azureSearchIndex, s_azureCredential);
 
             return searchClient;
+        });
+
+        services.AddSingleton<DocumentAnalysisClient>(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var azureFormRecognizerService = config["AZURE_FORM_RECOGNIZER_SERVICE"];
+            var documentAnalysisClient = new DocumentAnalysisClient(
+                new Uri($"https://{azureFormRecognizerService}.cognitiveservices.azure.com"), s_azureCredential);
+            return documentAnalysisClient;
         });
 
         services.AddSingleton<OpenAIClient>(sp =>
@@ -80,6 +92,68 @@ internal static class ServiceCollectionExtensions
                         policy.AllowAnyOrigin()
                             .AllowAnyHeader()
                             .AllowAnyMethod()));
+
+        return services;
+    }
+
+    internal static IServiceCollection AddMemoryStore(this IServiceCollection services)
+    {
+        services.AddSingleton<IEnumerable<CorpusRecord>>((sp) =>
+        {
+            var logger = sp.GetRequiredService<ILogger<IEnumerable<CorpusRecord>>>();
+            logger.LogInformation("Loading corpus ...");
+            var blobServiceClient = sp.GetRequiredService<BlobServiceClient>();
+            var blobContainerClient = blobServiceClient.GetBlobContainerClient("corpus");
+            var blobs = blobContainerClient.GetBlobs();
+            var corpus = new List<CorpusRecord>();
+            foreach (var blob in blobs)
+            {
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(blob.Name);
+                var source = $"{fileNameWithoutExtension}.pdf";
+                var readStream = blobContainerClient.GetBlobClient(blob.Name).OpenRead();
+                var content = new StreamReader(readStream).ReadToEnd();
+
+                // split contents into short sentences
+                var sentences = content.Split(new[] { '.', '?', '!', ',', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                var corpusRecords = sentences.Select((s, i) =>
+                {
+                    var id = $"{source}+{i}";
+                    return new CorpusRecord(id, s, source);
+                });
+                corpus.AddRange(corpusRecords);
+            }
+
+            return corpus;
+        });
+
+        services.AddSingleton<IEmbeddingGeneration<string, float>>((sp) =>
+        {
+            var corpus = sp.GetRequiredService<IEnumerable<CorpusRecord>>();
+            return new SentenceEmbeddingService(corpus);
+        });
+
+        services.AddSingleton<IMemoryStore>((sp) =>
+        {
+            var logger = sp.GetRequiredService<ILogger<IMemoryStore>>();
+            logger.LogInformation("Loading corpus into memory...");
+            var corpus = sp.GetRequiredService<IEnumerable<CorpusRecord>>();
+            var embeddingService = sp.GetRequiredService<IEmbeddingGeneration<string, float>>();
+            var collectionName = "knowledge";
+            var memoryStore = new VolatileMemoryStore();
+            memoryStore.CreateCollectionAsync(collectionName);
+            var embeddings = embeddingService.GenerateEmbeddingsAsync(corpus.Select(c => c.text).ToList()).Result;
+            var memoryRecords = Enumerable.Zip(corpus, embeddings)
+                                    .Select((tuple) =>
+                                    {
+                                        var (corpusRecord, embedding) = tuple;
+                                        var metaData = new MemoryRecordMetadata(true, corpusRecord.id, corpusRecord.text, corpusRecord.source, string.Empty, string.Empty);
+                                        var memoryRecord = new MemoryRecord(metaData, embedding, key: corpusRecord.id);
+                                        return memoryRecord;
+                                    });
+            memoryStore.UpsertBatchAsync(collectionName, memoryRecords);
+
+            return memoryStore;
+        });
 
         return services;
     }

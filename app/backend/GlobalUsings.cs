@@ -18,6 +18,7 @@ global using Microsoft.SemanticKernel.AI;
 global using Microsoft.SemanticKernel.AI.TextCompletion;
 global using Microsoft.SemanticKernel.Orchestration;
 global using Microsoft.SemanticKernel.SkillDefinition;
+global using Microsoft.SemanticKernel.AI.Embeddings;
 global using MinimalApi.Extensions;
 global using MinimalApi.Services;
 global using MinimalApi.Services.Skills;

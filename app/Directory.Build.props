@@ -7,6 +7,7 @@
     <SemanticKernelVersion>0.13.277.1-preview</SemanticKernelVersion>
     <AzureOpenAIVersion>1.0.0-beta.5</AzureOpenAIVersion>
     <WebAssemblyDevServerVersion>7.0.5</WebAssemblyDevServerVersion>
+    <MicrosoftMLVersion>2.0.1</MicrosoftMLVersion>
   </PropertyGroup>
 
 </Project>
