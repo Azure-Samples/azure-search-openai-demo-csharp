@@ -9,9 +9,6 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
-param appServicePlanName string = ''
-param backendServiceName string = ''
-param frontendResourceLocation string = 'eastus2'
 param resourceGroupName string = ''
 
 param searchServiceName string = ''
@@ -73,56 +70,65 @@ resource storageResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' ex
   name: !empty(storageResourceGroupName) ? storageResourceGroupName : resourceGroup.name
 }
 
-// Create an App Service Plan to group applications under the same payment plan and SKU
-module appServicePlan 'core/host/appserviceplan.bicep' = {
-  name: 'appserviceplan'
+module insights 'core/workspace/insights.bicep' = {
+  name: 'insights'
   scope: resourceGroup
   params: {
-    name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
+    baseName: 'gptkb'
+    location: location
+  }
+}
+
+var envVars = [
+  {
+    name: 'AZURE_STORAGE_ACCOUNT'
+    value: storageAccountName
+  }
+  {
+    name: 'AZURE_STORAGE_CONTAINER'
+    value: storageContainerName
+  }
+  {
+    name: 'AZURE_SEARCH_SERVICE_NAME'
+    value: searchServiceName
+  }
+  {
+    name: 'AZURE_SEARCH_INDEX_NAME'
+    value: searchIndexName
+  }
+  {
+    name: 'AZURE_OPENAI_SERVICE'
+    value: openAiServiceName
+  }
+  {
+    name: 'AZURE_OPENAI_GPT_DEPLOYMENT'
+    value: gptDeploymentName
+  }
+]
+
+module app 'core/host/container-app.bicep' = {
+  name: 'app'
+  scope: resourceGroup
+  params: {
+    name: 'blazorapp'
+    location: location
+    tags: tags
+    containerAppEnvironmentId: insights.outputs.environmentId
+    envVars: envVars
+  }
+}
+
+module redis 'core/storage/redis-cache.bicep' = {
+  name: 'redis'
+  scope: resourceGroup
+  params: {
+    name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     location: location
     tags: tags
     sku: {
-      name: 'B1'
+      name: 'Basic'
+      family: 'C'
       capacity: 1
-    }
-    kind: 'linux'
-  }
-}
-
-// The application frontend
-module frontend 'core/host/staticwebapp.bicep' = {
-  name: 'frontend'
-  scope: resourceGroup
-  params: {
-    name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesAppService}frontend-${resourceToken}'
-    location: frontendResourceLocation
-    tags: union(tags, { 'azd-service-name': 'frontend' })
-  }
-}
-
-// The application backend
-module backend 'core/host/appservice.bicep' = {
-  name: 'backend'
-  scope: resourceGroup
-  params: {
-    name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesAppService}backend-${resourceToken}'
-    location: location
-    tags: union(tags, { 'azd-service-name': 'backend' })
-    appServicePlanId: appServicePlan.outputs.id
-    runtimeName: 'dotnetcore'
-    runtimeVersion: '7.0'
-    scmDoBuildDuringDeployment: false
-    enableOryxBuild: false
-    managedIdentity: true
-    allowedOrigins: [ frontend.outputs.uri ]
-    appSettings: {
-      AZURE_STORAGE_ACCOUNT: storage.outputs.name
-      AZURE_STORAGE_CONTAINER: storageContainerName
-      AZURE_OPENAI_SERVICE: openAi.outputs.name
-      AZURE_SEARCH_INDEX: searchIndexName
-      AZURE_SEARCH_SERVICE: searchService.outputs.name
-      AZURE_OPENAI_GPT_DEPLOYMENT: gptDeploymentName
-      AZURE_OPENAI_CHATGPT_DEPLOYMENT: chatGptDeploymentName
     }
   }
 }
@@ -287,7 +293,7 @@ module openAiRoleBackend 'core/security/role.bicep' = {
   scope: openAiResourceGroup
   name: 'openai-role-backend'
   params: {
-    principalId: backend.outputs.identityPrincipalId
+    principalId: app.outputs.identityPrincipalId
     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
     principalType: 'ServicePrincipal'
   }
@@ -297,7 +303,7 @@ module storageRoleBackend 'core/security/role.bicep' = {
   scope: storageResourceGroup
   name: 'storage-role-backend'
   params: {
-    principalId: backend.outputs.identityPrincipalId
+    principalId: app.outputs.identityPrincipalId
     roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
     principalType: 'ServicePrincipal'
   }
@@ -307,7 +313,7 @@ module searchRoleBackend 'core/security/role.bicep' = {
   scope: searchServiceResourceGroup
   name: 'search-role-backend'
   params: {
-    principalId: backend.outputs.identityPrincipalId
+    principalId: app.outputs.identityPrincipalId
     roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
     principalType: 'ServicePrincipal'
   }
@@ -333,4 +339,4 @@ output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_CONTAINER string = storageContainerName
 output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
 
-output BACKEND_URI string = backend.outputs.uri
+output BACKEND_URI string = app.outputs.appUrl
