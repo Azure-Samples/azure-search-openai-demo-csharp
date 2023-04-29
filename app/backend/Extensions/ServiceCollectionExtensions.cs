@@ -11,9 +11,11 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<BlobServiceClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureStorageAccount = config["AZURE_STORAGE_ACCOUNT"];
+            var azureStorageAccountEndpoint = config["AzureStorageAccountEndpoint"];
+            ArgumentNullException.ThrowIfNullOrEmpty(azureStorageAccountEndpoint);
+
             var blobServiceClient = new BlobServiceClient(
-                new Uri($"https://{azureStorageAccount}.blob.core.windows.net"), s_azureCredential);
+                new Uri(azureStorageAccountEndpoint), s_azureCredential);
 
             return blobServiceClient;
         });
@@ -21,17 +23,20 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<BlobContainerClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureStorageContainer = config["AZURE_STORAGE_CONTAINER"];
+            var azureStorageContainer = config["AzureStorageContainer"];
             return sp.GetRequiredService<BlobServiceClient>().GetBlobContainerClient(azureStorageContainer);
         });
 
         services.AddSingleton<SearchClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var (azureSearchService, azureSearchIndex) =
-                (config["AZURE_SEARCH_SERVICE"], config["AZURE_SEARCH_INDEX"]);
+            var (azureSearchServiceEndpoint, azureSearchIndex) =
+                (config["AzureSearchServiceEndpoint"], config["AzureSearchIndex"]);
+
+            ArgumentNullException.ThrowIfNullOrEmpty(azureSearchServiceEndpoint);
+
             var searchClient = new SearchClient(
-                new Uri($"https://{azureSearchService}.search.windows.net"), azureSearchIndex, s_azureCredential);
+                new Uri(azureSearchServiceEndpoint), azureSearchIndex, s_azureCredential);
 
             return searchClient;
         });
@@ -39,9 +44,12 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<OpenAIClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiService = config["AZURE_OPENAI_SERVICE"];
+            var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"];
+
+            ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
+
             var openAIClient = new OpenAIClient(
-                new Uri($"https://{azureOpenAiService}.openai.azure.com"), s_azureCredential);
+                new Uri(azureOpenAiServiceEndpoint), s_azureCredential);
 
             return openAIClient;
         });
@@ -51,7 +59,8 @@ internal static class ServiceCollectionExtensions
             // Semantic Kernel doesn't support Azure AAD credential for now
             // so we implement our own text completion backend
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiGptDeployment = config["AZURE_OPENAI_GPT_DEPLOYMENT"];
+            var azureOpenAiGptDeployment = config["AzureOpenAiGptDeployment"];
+
             var openAIService = sp.GetRequiredService<AzureOpenAITextCompletionService>();
             var kernel = Kernel.Builder.Build();
             kernel.Config.AddTextCompletionService(azureOpenAiGptDeployment!, _ => openAIService);

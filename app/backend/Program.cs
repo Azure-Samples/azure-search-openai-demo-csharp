@@ -2,6 +2,8 @@
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.ConfigureAzureKeyVault();
+
 // See: https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -19,8 +21,8 @@ else
 {
     builder.Services.AddStackExchangeRedisCache(options =>
     {
-        var name = builder.Configuration["AZURE_REDIS_CACHE_NAME"];
-        var key = builder.Configuration["AZURE_REDIS_CACHE_PRIMARY_KEY"];
+        var name = builder.Configuration["RedisCache__Name"];
+        var key = builder.Configuration["RedisCache__PrimaryKey"];
 
         options.Configuration = $"""
             {name}.redis.cache.windows.net,abortConnect=false,ssl=true,allowAdmin=true,password={key}

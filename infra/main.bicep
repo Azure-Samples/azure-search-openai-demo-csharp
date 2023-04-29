@@ -160,6 +160,9 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     location: openAiResourceGroupLocation
     tags: tags
+    keyVaultName: keyVault.outputs.name
+    gptDeploymentName: gptDeploymentName
+    chatGptDeploymentName: chatGptDeploymentName
     sku: {
       name: openAiSkuName
     }
@@ -231,6 +234,8 @@ module storage 'core/storage/storage-account.bicep' = {
     location: storageResourceGroupLocation
     tags: tags
     publicNetworkAccess: 'Enabled'
+    keyVaultName: keyVault.outputs.name
+    storageContainerName: storageContainerName
     sku: {
       name: 'Standard_ZRS'
     }
