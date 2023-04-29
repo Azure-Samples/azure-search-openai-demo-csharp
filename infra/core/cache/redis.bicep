@@ -33,7 +33,7 @@ resource redis 'Microsoft.Cache/Redis@2021-06-01' = {
   }
 }
 
-module redisNameSecret '../security/keyvault-secrets.bicep' = if (keyVaultName != '') {
+module redisNameSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
   name: 'redis-cache-name'
   params: {
     keyVaultName: keyVaultName
@@ -42,7 +42,7 @@ module redisNameSecret '../security/keyvault-secrets.bicep' = if (keyVaultName !
   }
 }
 
-module redisPrimaryKeySecret '../security/keyvault-secrets.bicep' = if (keyVaultName != '') {
+module redisPrimaryKeySecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
   name: 'redis-cache-primary-key'
   params: {
     keyVaultName: keyVaultName

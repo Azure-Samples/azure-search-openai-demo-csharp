@@ -33,7 +33,7 @@ param storageContainerName string = 'content'
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
 param openAiResourceGroupLocation string = location
-
+param webAppExists bool = false
 param openAiSkuName string = 'S0'
 
 param formRecognizerServiceName string = ''
@@ -47,13 +47,10 @@ param gptModelName string = 'text-davinci-003'
 param chatGptDeploymentName string = 'chat'
 param chatGptModelName string = 'gpt-35-turbo'
 
-@description('The image name for the web service')
-param webImageName string = ''
-
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
-var abbrs = loadJsonContent('abbreviations.json')
+var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
 var apiContainerAppNameOrDefault = '${abbrs.appContainerApps}web-${resourceToken}'
@@ -102,11 +99,12 @@ module web './app/web.bicep' = {
   params: {
     name: !empty(webContainerAppName) ? webContainerAppName : '${abbrs.appContainerApps}web-${resourceToken}'
     location: location
-    imageName: webImageName
+    identityName: '${abbrs.managedIdentityUserAssignedIdentities}web-${resourceToken}'
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     containerAppsEnvironmentName: containerApps.outputs.environmentName
     containerRegistryName: containerApps.outputs.registryName
-    keyVaultName: keyVault.outputs.name
+    exists: webAppExists
+    //keyVaultName: keyVault.outputs.name
   }
 }
 
@@ -369,3 +367,4 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerApps.outputs.registry
 output AZURE_CONTAINER_REGISTRY_NAME string = containerApps.outputs.registryName
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
+output SERVICE_WEB_NAME string = web.outputs.SERVICE_WEB_NAME
