@@ -8,6 +8,7 @@ param containerAppsEnvironmentName string
 param containerRegistryName string
 param serviceName string = 'web'
 param exists bool
+param keyVaultEndpoint string
 
 resource webIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
@@ -28,6 +29,10 @@ module app '../core/host/container-app-upsert.bicep' = {
       {
         name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
         value: applicationInsights.properties.ConnectionString
+      }
+      {
+        name: 'AZURE_KEY_VAULT_ENDPOINT'
+        value: keyVaultEndpoint
       }
     ]
     targetPort: 80

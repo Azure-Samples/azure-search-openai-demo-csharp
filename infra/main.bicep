@@ -104,6 +104,7 @@ module web './app/web.bicep' = {
     containerAppsEnvironmentName: containerApps.outputs.environmentName
     containerRegistryName: containerApps.outputs.registryName
     exists: webAppExists
+    keyVaultEndpoint: keyVault.outputs.endpoint
     //keyVaultName: keyVault.outputs.name
   }
 }
