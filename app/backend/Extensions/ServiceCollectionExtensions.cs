@@ -36,6 +36,15 @@ internal static class ServiceCollectionExtensions
             return searchClient;
         });
 
+        services.AddSingleton<DocumentAnalysisClient>(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var azureFormRecognizerService = config["AZURE_FORM_RECOGNIZER_SERVICE"];
+            var documentAnalysisClient = new DocumentAnalysisClient(
+                new Uri($"https://{azureFormRecognizerService}.cognitiveservices.azure.com"), s_azureCredential);
+            return documentAnalysisClient;
+        });
+
         services.AddSingleton<OpenAIClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
@@ -80,6 +89,64 @@ internal static class ServiceCollectionExtensions
                         policy.AllowAnyOrigin()
                             .AllowAnyHeader()
                             .AllowAnyMethod()));
+
+        return services;
+    }
+
+    internal static IServiceCollection AddMemoryStore(this IServiceCollection services)
+    {
+        services.AddSingleton<IMemoryStore>((sp) =>
+        {
+            var logger = sp.GetRequiredService<ILogger<IMemoryStore>>();
+            logger.LogInformation("Loading corpus ...");
+            var blobServiceClient = sp.GetRequiredService<BlobServiceClient>();
+            var blobContainerClient = blobServiceClient.GetBlobContainerClient("corpus");
+            var blobs = blobContainerClient.GetBlobs();
+            var corpus = new List<CorpusRecord>();
+            foreach (var blob in blobs)
+            {
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(blob.Name);
+                var source = $"{fileNameWithoutExtension}.pdf";
+                var readStream = blobContainerClient.GetBlobClient(blob.Name).OpenRead();
+                var content = new StreamReader(readStream).ReadToEnd();
+
+                // split contents into short sentences
+                var sentences = content.Split(new[] { '.', '?', '!' }, StringSplitOptions.RemoveEmptyEntries);
+                var corpusIndex = 0;
+                var sb = new StringBuilder();
+                // create corpus records based on sentences
+                foreach (var sentence in sentences)
+                {
+                    sb.Append(sentence);
+                    if (sb.Length > 256)
+                    {
+                        var id = $"{source}+{corpusIndex++}";
+                        corpus.Add(new CorpusRecord(id, source, sb.ToString()));
+                        sb.Clear();
+                    }
+                }
+            }
+
+            logger.LogInformation($"Load {corpus.Count} records into corpus");
+            logger.LogInformation("Loading corpus into memory...");
+            var embeddingService = new SentenceEmbeddingService(corpus);
+            var collectionName = "knowledge";
+            var memoryStore = new VolatileMemoryStore();
+            memoryStore.CreateCollectionAsync(collectionName).Wait();
+            var embeddings = embeddingService.GenerateEmbeddingsAsync(corpus.Select(c => c.Text).ToList()).Result;
+            var memoryRecords = Enumerable.Zip(corpus, embeddings)
+                                    .Select((tuple) =>
+                                    {
+                                        var (corpusRecord, embedding) = tuple;
+                                        var metaData = new MemoryRecordMetadata(true, corpusRecord.Id, corpusRecord.Text, corpusRecord.Source, string.Empty, string.Empty);
+                                        var memoryRecord = new MemoryRecord(metaData, embedding, key: corpusRecord.Id);
+                                        return memoryRecord;
+                                    });
+
+            var _ = memoryStore.UpsertBatchAsync(collectionName, memoryRecords).ToListAsync().Result;
+
+            return memoryStore;
+        });
 
         return services;
     }
