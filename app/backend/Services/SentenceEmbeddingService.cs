@@ -1,14 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using Microsoft.ML;
-using Microsoft.ML.Transforms.Text;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
-using Microsoft.SemanticKernel.Memory;
-
 namespace MinimalApi.Services;
 
-public class SentenceEmbeddingService : IEmbeddingGeneration<string, float>
+internal sealed class SentenceEmbeddingService : IEmbeddingGeneration<string, float>
 {
     private readonly MLContext _mlContext;
     private PredictionEngine<Input, Output>? _predictionEngine;
@@ -16,10 +10,10 @@ public class SentenceEmbeddingService : IEmbeddingGeneration<string, float>
     public SentenceEmbeddingService(IEnumerable<CorpusRecord> corpusToTrain)
     {
         _mlContext = new MLContext(0);
-        Train(corpusToTrain.Select(c => c.text));
+        Train(corpusToTrain.Select(c => c.Text));
     }
 
-    public void Train(IEnumerable<string> inputs)
+    private void Train(IEnumerable<string> inputs)
     {
         var featurizeTextOption = new TextFeaturizingEstimator.Options
         {
@@ -42,11 +36,11 @@ public class SentenceEmbeddingService : IEmbeddingGeneration<string, float>
 
     private class Input
     {
-        public string? Text { get; set; }
+        public string Text { get; set; } = string.Empty;
     }
 
     private class Output
     {
-        public float[]? Embedding { get; set; }
+        public float[] Embedding { get; set; } = Array.Empty<float>();
     }
 }

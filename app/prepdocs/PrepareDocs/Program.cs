@@ -297,9 +297,6 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
     var pages = results.Value.Pages;
     for (var i = 0; i < pages.Count; i++)
     {
-        // save pages and upload it to blob
-        var pdfPage = pages[i];
-
         IReadOnlyList<DocumentTable> tablesOnPage =
             results.Value.Tables.Where(t => t.BoundingRegions[0].PageNumber == i + 1).ToList();
 

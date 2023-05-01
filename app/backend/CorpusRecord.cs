@@ -2,4 +2,4 @@
 
 namespace MinimalApi;
 
-public record CorpusRecord(string id, string source, string text);
+public record class CorpusRecord(string Id, string Source, string Text);

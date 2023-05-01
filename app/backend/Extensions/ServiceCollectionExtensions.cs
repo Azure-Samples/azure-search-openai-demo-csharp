@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure.AI.FormRecognizer.DocumentAnalysis;
-using Microsoft.SemanticKernel.Memory;
-
 namespace MinimalApi.Extensions;
 
 internal static class ServiceCollectionExtensions
@@ -98,9 +95,9 @@ internal static class ServiceCollectionExtensions
 
     internal static IServiceCollection AddMemoryStore(this IServiceCollection services)
     {
-        services.AddSingleton<IEnumerable<CorpusRecord>>((sp) =>
+        services.AddSingleton<IMemoryStore>((sp) =>
         {
-            var logger = sp.GetRequiredService<ILogger<IEnumerable<CorpusRecord>>>();
+            var logger = sp.GetRequiredService<ILogger<IMemoryStore>>();
             logger.LogInformation("Loading corpus ...");
             var blobServiceClient = sp.GetRequiredService<BlobServiceClient>();
             var blobContainerClient = blobServiceClient.GetBlobContainerClient("corpus");
@@ -118,10 +115,10 @@ internal static class ServiceCollectionExtensions
                 var corpusIndex = 0;
                 var sb = new StringBuilder();
                 // create corpus records based on sentences
-                foreach(var sentence in sentences)
+                foreach (var sentence in sentences)
                 {
                     sb.Append(sentence);
-                    if(sb.Length > 256)
+                    if (sb.Length > 256)
                     {
                         var id = $"{source}+{corpusIndex++}";
                         corpus.Add(new CorpusRecord(id, source, sb.ToString()));
@@ -130,33 +127,19 @@ internal static class ServiceCollectionExtensions
                 }
             }
 
-            logger.LogInformation($"load {corpus.Count} records into corpus");
-
-            return corpus;
-        });
-
-        services.AddSingleton<IEmbeddingGeneration<string, float>>((sp) =>
-        {
-            var corpus = sp.GetRequiredService<IEnumerable<CorpusRecord>>();
-            return new SentenceEmbeddingService(corpus);
-        });
-
-        services.AddSingleton<IMemoryStore>((sp) =>
-        {
-            var logger = sp.GetRequiredService<ILogger<IMemoryStore>>();
+            logger.LogInformation($"Load {corpus.Count} records into corpus");
             logger.LogInformation("Loading corpus into memory...");
-            var corpus = sp.GetRequiredService<IEnumerable<CorpusRecord>>();
-            var embeddingService = sp.GetRequiredService<IEmbeddingGeneration<string, float>>();
+            var embeddingService = new SentenceEmbeddingService(corpus);
             var collectionName = "knowledge";
             var memoryStore = new VolatileMemoryStore();
             memoryStore.CreateCollectionAsync(collectionName).Wait();
-            var embeddings = embeddingService.GenerateEmbeddingsAsync(corpus.Select(c => c.text).ToList()).Result;
+            var embeddings = embeddingService.GenerateEmbeddingsAsync(corpus.Select(c => c.Text).ToList()).Result;
             var memoryRecords = Enumerable.Zip(corpus, embeddings)
                                     .Select((tuple) =>
                                     {
                                         var (corpusRecord, embedding) = tuple;
-                                        var metaData = new MemoryRecordMetadata(true, corpusRecord.id, corpusRecord.text, corpusRecord.source, string.Empty, string.Empty);
-                                        var memoryRecord = new MemoryRecord(metaData, embedding, key: corpusRecord.id);
+                                        var metaData = new MemoryRecordMetadata(true, corpusRecord.Id, corpusRecord.Text, corpusRecord.Source, string.Empty, string.Empty);
+                                        var memoryRecord = new MemoryRecord(metaData, embedding, key: corpusRecord.Id);
                                         return memoryRecord;
                                     });
 

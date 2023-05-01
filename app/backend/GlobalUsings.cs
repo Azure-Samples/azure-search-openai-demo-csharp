@@ -23,3 +23,7 @@ global using MinimalApi.Extensions;
 global using MinimalApi.Services;
 global using MinimalApi.Services.Skills;
 global using Shared.Models;
+global using Azure.AI.FormRecognizer.DocumentAnalysis;
+global using Microsoft.SemanticKernel.Memory;
+global using Microsoft.ML;
+global using Microsoft.ML.Transforms.Text;
