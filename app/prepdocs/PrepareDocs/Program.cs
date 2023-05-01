@@ -26,7 +26,7 @@ s_rootCommand.SetHandler(
 
             context.Console.WriteLine($"Processing {files.Length} files...");
 
-            for (var i = 0; i < files.Length; ++ i)
+            for (var i = 0; i < files.Length; ++i)
             {
                 var fileName = files[i];
                 if (options.Verbose)
@@ -144,12 +144,26 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
         new Uri($"https://{options.SearchService}.search.windows.net/"),
         DefaultCredential);
 
-    var indices = await indexClient.GetIndexAsync(options.Index);
-    if (indices is null or { HasValue: false } or { Value: null })
+    // Call GetIndexNamesAsync() to retrieve a list of all index names
+    var indexNames = indexClient.GetIndexNamesAsync();
+
+    // Use AsPages() to process the results in pages
+    await foreach (var page in indexNames.AsPages())
     {
-        var index = new SearchIndex(options.Index)
+        // Check if the index we're interested in exists in the current page of results
+        if (page.Values.Any(indexName => indexName == options.Index))
         {
-            Fields =
+            if (options.Verbose)
+            {
+                options.Console.WriteLine($"Search index '{options.Index}' already exists");
+            }
+            return;
+        }
+    }
+
+    var index = new SearchIndex(options.Index)
+    {
+        Fields =
             {
                 new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
                 new SearchableField("content") { AnalyzerName = "en.microsoft" },
@@ -157,9 +171,9 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
                 new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
                 new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true }
             },
-            SemanticSettings = new SemanticSettings
-            {
-                Configurations =
+        SemanticSettings = new SemanticSettings
+        {
+            Configurations =
                 {
                     new SemanticConfiguration("default", new PrioritizedFields
                     {
@@ -172,20 +186,15 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
                         }
                     })
                 }
-            }
-        };
-
-        if (options.Verbose)
-        {
-            options.Console.WriteLine($"Creating '{options.Index}' search index");
         }
+    };
 
-        await indexClient.CreateIndexAsync(index);
-    }
-    else if (options.Verbose)
+    if (options.Verbose)
     {
-        options.Console.WriteLine($"Search index '{options.Index}' already exists");
+        options.Console.WriteLine($"Creating '{options.Index}' search index");
     }
+
+    await indexClient.CreateIndexAsync(index);
 }
 
 static async ValueTask UploadBlobsAsync(
@@ -201,7 +210,15 @@ static async ValueTask UploadBlobsAsync(
     await container.CreateIfNotExistsAsync();
 
     var blobName = BlobNameFromFilePage(fileName);
-    await container.UploadBlobAsync(blobName, File.OpenRead(fileName));
+
+    // Get a reference to the blob
+    BlobClient blobClient = container.GetBlobClient(blobName);
+
+    // Open the file for reading
+    using FileStream fileStream = File.OpenRead(fileName);
+
+    // Upload the file to the blob
+    await blobClient.UploadAsync(fileStream, new BlobUploadOptions());
 }
 
 static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
