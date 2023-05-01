@@ -21,8 +21,8 @@ else
 {
     builder.Services.AddStackExchangeRedisCache(options =>
     {
-        var name = builder.Configuration["RedisCache__Name"];
-        var key = builder.Configuration["RedisCache__PrimaryKey"];
+        var name = builder.Configuration["RedisCache-Name"];
+        var key = builder.Configuration["RedisCache-PrimaryKey"];
 
         options.Configuration = $"""
             {name}.redis.cache.windows.net,abortConnect=false,ssl=true,allowAdmin=true,password={key}
