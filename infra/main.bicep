@@ -79,6 +79,27 @@ resource storageResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' ex
   name: !empty(storageResourceGroupName) ? storageResourceGroupName : resourceGroup.name
 }
 
+// Store secrets in a keyvault
+module keyVault './core/security/keyvault.bicep' = {
+  name: 'keyvault'
+  scope: resourceGroup
+  params: {
+    name: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
+    location: location
+    tags: tags
+    principalId: principalId
+  }
+}
+
+module keyVaultAccess './core/security/keyvault-access.bicep' = {
+  name: 'keyvault-access'
+  scope: resourceGroup
+  params: {
+    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    keyVaultName: keyVault.outputs.name
+  }
+}
+
 // Container apps host (including container registry)
 module containerApps './core/host/container-apps.bicep' = {
   name: 'container-apps'
@@ -105,7 +126,6 @@ module web './app/web.bicep' = {
     containerRegistryName: containerApps.outputs.registryName
     exists: webAppExists
     keyVaultEndpoint: keyVault.outputs.endpoint
-    //keyVaultName: keyVault.outputs.name
   }
 }
 
@@ -116,27 +136,6 @@ module redis 'core/cache/redis.bicep' = {
     name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     location: location
     tags: tags
-    keyVaultName: keyVaultName
-  }
-}
-
-// Store secrets in a keyvault
-module keyVault './core/security/keyvault.bicep' = {
-  name: 'keyvault'
-  scope: resourceGroup
-  params: {
-    name: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
-    location: location
-    tags: tags
-    principalId: principalId
-  }
-}
-
-module keyVaultAccess './core/security/keyvault-access.bicep' = {
-  name: 'keyvault-access'
-  scope: resourceGroup
-  params: {
-    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
     keyVaultName: keyVault.outputs.name
   }
 }

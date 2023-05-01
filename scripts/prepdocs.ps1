@@ -2,21 +2,22 @@ Write-Host ""
 Write-Host "Loading azd .env file from current environment"
 Write-Host ""
 
-$output = azd env get-values
-
-foreach ($line in $output) {
-  $name, $value = $line.Split("=")
-  $value = $value -replace '^\"|\"$'
-  [Environment]::SetEnvironmentVariable($name, $value)
+foreach ($line in (& azd env get-values)) {
+    if ($line -match "([^=]+)=(.*)") {
+        $key = $matches[1]
+        $value = $matches[2] -replace '^"|"$'
+        [Environment]::SetEnvironmentVariable(
+            $key, $value, [System.EnvironmentVariableTarget]::User)
+    }
 }
 
 Write-Host "Environment variables set."
 Write-Host 'Running "PrepareDocs.dll"'
 
-$cwd = (Get-Location)
+Get-Location | Select-Object -ExpandProperty Path
 
 dotnet run --project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- `
-  $cwd/data/*.pdf `
+  './data/*.pdf' `
   --storageaccount $env:AZURE_STORAGE_ACCOUNT `
   --container $env:AZURE_STORAGE_CONTAINER `
   --searchservice $env:AZURE_SEARCH_SERVICE `
