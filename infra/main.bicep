@@ -89,14 +89,7 @@ module keyVault './core/security/keyvault.bicep' = {
   }
 }
 
-module keyVaultAccess './core/security/keyvault-access.bicep' = {
-  name: 'keyvault-access'
-  scope: resourceGroup
-  params: {
-    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
-    keyVaultName: keyVault.outputs.name
-  }
-}
+
 
 // Container apps host (including container registry)
 module containerApps './core/host/container-apps.bicep' = {
@@ -124,7 +117,7 @@ module web './app/web.bicep' = {
     containerAppsEnvironmentName: containerApps.outputs.environmentName
     containerRegistryName: containerApps.outputs.registryName
     exists: webAppExists
-    keyVaultEndpoint: keyVault.outputs.endpoint
+    keyVaultName: keyVault.outputs.name
     storageBlobEndpoint: storage.outputs.primaryEndpoints.blob
     storageContainerName: storageContainerName
     searchServiceEndpoint: searchService.outputs.endpoint

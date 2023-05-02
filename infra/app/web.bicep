@@ -8,7 +8,7 @@ param containerAppsEnvironmentName string
 param containerRegistryName string
 param serviceName string = 'web'
 param exists bool
-param keyVaultEndpoint string
+param keyVaultName string
 param storageBlobEndpoint string
 param storageContainerName string
 param searchServiceEndpoint string
@@ -23,6 +23,14 @@ resource webIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-3
   location: location
 }
 
+module webKeyVaultAccess '../core/security/keyvault-access.bicep' = {
+  name: 'web-keyvault-access'
+  params: {
+    principalId: webIdentity.properties.principalId
+    keyVaultName: keyVaultName
+  }
+}
+
 module app '../core/host/container-app-upsert.bicep' = {
   name: '${serviceName}-container-app'
   params: {
@@ -34,14 +42,17 @@ module app '../core/host/container-app-upsert.bicep' = {
     containerAppsEnvironmentName: containerAppsEnvironmentName
     containerRegistryName: containerRegistryName
     env: [
-
+      {
+        name: 'AZURE_CLIENT_ID'
+        value: webIdentity.properties.clientId
+      }
       {
         name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
         value: applicationInsights.properties.ConnectionString
       }
       {
         name: 'AZURE_KEY_VAULT_ENDPOINT'
-        value: keyVaultEndpoint
+        value: keyVault.properties.vaultUri
       }
       {
         name: 'AZURE_STORAGE_BLOB_ENDPOINT'
@@ -82,6 +93,10 @@ module app '../core/host/container-app-upsert.bicep' = {
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: applicationInsightsName
+}
+
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: keyVaultName
 }
 
 output SERVICE_WEB_IDENTITY_PRINCIPAL_ID string = webIdentity.properties.principalId

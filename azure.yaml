@@ -8,7 +8,6 @@ services:
     project: ./app/backend/
     host: containerapp
     language: dotnet
-    module: app/web
     docker:
       path: ./Dockerfile
       context: ../
