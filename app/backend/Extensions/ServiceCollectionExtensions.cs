@@ -11,7 +11,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<BlobServiceClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureStorageAccountEndpoint = config["AzureStorageAccountEndpoint"];
+            var azureStorageAccountEndpoint = config["AZURE_STORAGE_BLOB_ENDPOINT"];
             ArgumentNullException.ThrowIfNullOrEmpty(azureStorageAccountEndpoint);
 
             var blobServiceClient = new BlobServiceClient(
@@ -23,7 +23,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<BlobContainerClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureStorageContainer = config["AzureStorageContainer"];
+            var azureStorageContainer = config["AZURE_STORAGE_CONTAINER"];
             return sp.GetRequiredService<BlobServiceClient>().GetBlobContainerClient(azureStorageContainer);
         });
 
@@ -31,7 +31,7 @@ internal static class ServiceCollectionExtensions
         {
             var config = sp.GetRequiredService<IConfiguration>();
             var (azureSearchServiceEndpoint, azureSearchIndex) =
-                (config["AzureSearchServiceEndpoint"], config["AzureSearchIndex"]);
+                (config["AZURE_SEARCH_SERVICE_ENDPOINT"], config["AZURE_SEARCH_INDEX"]);
 
             ArgumentNullException.ThrowIfNullOrEmpty(azureSearchServiceEndpoint);
 
@@ -44,7 +44,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<DocumentAnalysisClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureFormRecognizerService = config["AZURE_FORM_RECOGNIZER_SERVICE"];
+            var azureFormRecognizerService = config["AZURE_FORMRECOGNIZER_SERVICE"];
             var documentAnalysisClient = new DocumentAnalysisClient(
                 new Uri($"https://{azureFormRecognizerService}.cognitiveservices.azure.com"), s_azureCredential);
             return documentAnalysisClient;
@@ -53,7 +53,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<OpenAIClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"];
+            var azureOpenAiServiceEndpoint = config["AZURE_OPENAI_ENDPOINT"];
 
             ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
 
@@ -68,7 +68,7 @@ internal static class ServiceCollectionExtensions
             // Semantic Kernel doesn't support Azure AAD credential for now
             // so we implement our own text completion backend
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiGptDeployment = config["AzureOpenAiGptDeployment"];
+            var azureOpenAiGptDeployment = config["AZURE_OPENAI_GPT_DEPLOYMENT"];
 
             var openAIService = sp.GetRequiredService<AzureOpenAITextCompletionService>();
             var kernel = Kernel.Builder.Build();
