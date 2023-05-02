@@ -11,7 +11,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<BlobServiceClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureStorageAccountEndpoint = config["AZURE_STORAGE_BLOB_ENDPOINT"];
+            var azureStorageAccountEndpoint = config["AzureStorageAccountEndpoint"];
             ArgumentNullException.ThrowIfNullOrEmpty(azureStorageAccountEndpoint);
 
             var blobServiceClient = new BlobServiceClient(
@@ -23,7 +23,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<BlobContainerClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureStorageContainer = config["AZURE_STORAGE_CONTAINER"];
+            var azureStorageContainer = config["AzureStorageContainer"];
             return sp.GetRequiredService<BlobServiceClient>().GetBlobContainerClient(azureStorageContainer);
         });
 
@@ -31,7 +31,7 @@ internal static class ServiceCollectionExtensions
         {
             var config = sp.GetRequiredService<IConfiguration>();
             var (azureSearchServiceEndpoint, azureSearchIndex) =
-                (config["AZURE_SEARCH_SERVICE_ENDPOINT"], config["AZURE_SEARCH_INDEX"]);
+                (config["AzureSearchServiceEndpoint"], config["AzureSearchIndex"]);
 
             ArgumentNullException.ThrowIfNullOrEmpty(azureSearchServiceEndpoint);
 
@@ -44,16 +44,18 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<DocumentAnalysisClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureFormRecognizerService = config["AZURE_FORMRECOGNIZER_SERVICE"];
+            var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"];
+            ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
+
             var documentAnalysisClient = new DocumentAnalysisClient(
-                new Uri($"https://{azureFormRecognizerService}.cognitiveservices.azure.com"), s_azureCredential);
+                new Uri(azureOpenAiServiceEndpoint), s_azureCredential);
             return documentAnalysisClient;
         });
 
         services.AddSingleton<OpenAIClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiServiceEndpoint = config["AZURE_OPENAI_ENDPOINT"];
+            var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"];
 
             ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
 
@@ -68,7 +70,7 @@ internal static class ServiceCollectionExtensions
             // Semantic Kernel doesn't support Azure AAD credential for now
             // so we implement our own text completion backend
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiGptDeployment = config["AZURE_OPENAI_GPT_DEPLOYMENT"];
+            var azureOpenAiGptDeployment = config["AzureOpenAiGptDeployment"];
 
             var openAIService = sp.GetRequiredService<AzureOpenAITextCompletionService>();
             var kernel = Kernel.Builder.Build();
@@ -104,6 +106,7 @@ internal static class ServiceCollectionExtensions
 
     internal static IServiceCollection AddMemoryStore(this IServiceCollection services)
     {
+        // TODO: replace this with the CorpusMemoryStore.cs
         services.AddSingleton<IMemoryStore>((sp) =>
         {
             var logger = sp.GetRequiredService<ILogger<IMemoryStore>>();
@@ -136,8 +139,9 @@ internal static class ServiceCollectionExtensions
                 }
             }
 
-            logger.LogInformation($"Load {corpus.Count} records into corpus");
+            logger.LogInformation("Load {Count} records into corpus", corpus.Count);
             logger.LogInformation("Loading corpus into memory...");
+
             var embeddingService = new SentenceEmbeddingService(corpus);
             var collectionName = "knowledge";
             var memoryStore = new VolatileMemoryStore();
