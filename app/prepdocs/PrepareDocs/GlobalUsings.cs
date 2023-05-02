@@ -18,4 +18,6 @@ global using Azure.Storage.Blobs;
 global using Azure.Storage.Blobs.Models;
 global using Microsoft.Extensions.FileSystemGlobbing;
 global using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
+global using PdfSharpCore.Pdf;
+global using PdfSharpCore.Pdf.IO;
 global using PrepareDocs;

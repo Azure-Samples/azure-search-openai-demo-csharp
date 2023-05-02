@@ -244,28 +244,9 @@ static async ValueTask UploadBlobsAsync(
     AppOptions options, string fileName)
 {
     var blobService = new BlobServiceClient(
-               new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
-                      DefaultCredential);
-    var container =
-               blobService.GetBlobContainerClient("corpus");
-    await container.CreateIfNotExistsAsync();
-    var blob = container.GetBlobClient(corpusName);
-    if (await blob.ExistsAsync())
-    {
-        return;
-    }
-    if (options.Verbose)
-    {
-        options.Console.WriteLine($"Uploading corpus '{corpusName}'");
-    }
+        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"), 
+        DefaultCredential);
 
-    var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-    await container.UploadBlobAsync(corpusName, stream);
-}
-
-static async ValueTask UploadBlobsAsync(AppOptions options, string fileName)
-{
-    var blobService = new BlobServiceClient(new Uri($"https://{options.StorageAccount}.blob.core.windows.net"), DefaultCredential);
     var container = blobService.GetBlobContainerClient(options.Container);
     await container.CreateIfNotExistsAsync();
 
@@ -286,10 +267,9 @@ static async ValueTask UploadBlobsAsync(AppOptions options, string fileName)
             document.AddPage(documents.Pages[i]);
             var tempFileName = Path.GetTempFileName();
             document.Save(tempFileName);
-            using (var stream = File.OpenRead(tempFileName))
-            {
-                await container.UploadBlobAsync(documentName, stream);
-            }
+            await using var stream = File.OpenRead(tempFileName);
+            await container.UploadBlobAsync(documentName, stream);
+
             File.Delete(tempFileName);
         }
     }
