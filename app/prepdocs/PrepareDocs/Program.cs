@@ -53,7 +53,7 @@ s_rootCommand.SetHandler(
                     // create corpus from page map and upload to blob
                     // corpus name format
                     // fileName-{page}.txt
-                    foreach(var pages in pageMap)
+                    foreach (var pages in pageMap)
                     {
                         var corpusName = $"{fileNameWithoutExtension}-{pages.Index}.txt";
                         await UploadCorpusAsync(options, corpusName, pages.Text);
@@ -258,6 +258,10 @@ static async ValueTask UploadBlobsAsync(AppOptions options, string fileName)
 static async Task UploadBlobAsync(string fileName, string blobName, BlobContainerClient container)
 {
     var blobClient = container.GetBlobClient(blobName);
+    if (await blobClient.ExistsAsync())
+    {
+        return;
+    }
     await using var fileStream = File.OpenRead(fileName);
     await blobClient.UploadAsync(fileStream, new BlobUploadOptions());
 }
