@@ -37,7 +37,7 @@ module redisNameSecret '../security/keyvault-secret.bicep' = if (keyVaultName !=
   name: 'redis-cache-name'
   params: {
     keyVaultName: keyVaultName
-    name: 'RedisCache-Name'
+    name: 'AzureRedisCacheName'
     secretValue: redis.name
   }
 }
@@ -46,7 +46,7 @@ module redisPrimaryKeySecret '../security/keyvault-secret.bicep' = if (keyVaultN
   name: 'redis-cache-primary-key'
   params: {
     keyVaultName: keyVaultName
-    name: 'RedisCache-PrimaryKey'
+    name: 'AzureRedisCachePrimaryKey'
     secretValue: redis.listKeys().primaryKey
   }
 }
