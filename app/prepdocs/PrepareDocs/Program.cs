@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using PdfSharpCore.Pdf;
+using PdfSharpCore.Pdf.IO;
+
 s_rootCommand.SetHandler(
     async (context) =>
     {
@@ -44,8 +47,18 @@ s_rootCommand.SetHandler(
                 if (options.SkipBlobs is false)
                 {
                     await UploadBlobsAsync(options, fileName);
-
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
                     var pageMap = await GetDocumentTextAsync(options, fileName);
+
+                    // create corpus from page map and upload to blob
+                    // corpus name format
+                    // fileName-{page}.txt
+                    foreach(var pages in pageMap)
+                    {
+                        var corpusName = $"{fileNameWithoutExtension}-{pages.Index}.txt";
+                        await UploadCorpusAsync(options, corpusName, pages.Text);
+                    }
+
                     var sections = CreateSections(options, pageMap, fileName);
 
                     await IndexSectionsAsync(options, sections, fileName);
@@ -197,27 +210,55 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
     await indexClient.CreateIndexAsync(index);
 }
 
-static async ValueTask UploadBlobsAsync(
-    AppOptions options, string fileName)
+static async ValueTask UploadCorpusAsync(
+       AppOptions options, string corpusName, string content)
 {
     var blobService = new BlobServiceClient(
-        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
-        DefaultCredential);
-
+               new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
+                      DefaultCredential);
     var container =
-        blobService.GetBlobContainerClient(options.Container);
+               blobService.GetBlobContainerClient("corpus");
+    await container.CreateIfNotExistsAsync();
+    var blob = container.GetBlobClient(corpusName);
+    if (await blob.ExistsAsync())
+    {
+        return;
+    }
+    if (options.Verbose)
+    {
+        options.Console.WriteLine($"Uploading corpus '{corpusName}'");
+    }
 
+    var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+    await container.UploadBlobAsync(corpusName, stream);
+}
+
+static async ValueTask UploadBlobsAsync(AppOptions options, string fileName)
+{
+    var blobService = new BlobServiceClient(new Uri($"https://{options.StorageAccount}.blob.core.windows.net"), DefaultCredential);
+    var container = blobService.GetBlobContainerClient(options.Container);
     await container.CreateIfNotExistsAsync();
 
-    var blobName = BlobNameFromFilePage(fileName);
+    if (Path.GetExtension(fileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+    {
+        var documents = PdfReader.Open(fileName, PdfDocumentOpenMode.Import);
+        for (int i = 0; i < documents.PageCount; i++)
+        {
+            var blobName = BlobNameFromFilePage(fileName, i);
+            await UploadBlobAsync(fileName, blobName, container);
+        }
+    }
+    else
+    {
+        var blobName = BlobNameFromFilePage(fileName);
+        await UploadBlobAsync(fileName, blobName, container);
+    }
+}
 
-    // Get a reference to the blob
-    BlobClient blobClient = container.GetBlobClient(blobName);
-
-    // Open the file for reading
-    using FileStream fileStream = File.OpenRead(fileName);
-
-    // Upload the file to the blob
+static async Task UploadBlobAsync(string fileName, string blobName, BlobContainerClient container)
+{
+    var blobClient = container.GetBlobClient(blobName);
+    await using var fileStream = File.OpenRead(fileName);
     await blobClient.UploadAsync(fileStream, new BlobUploadOptions());
 }
 
