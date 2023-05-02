@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.IO;
-
 s_rootCommand.SetHandler(
     async (context) =>
     {
@@ -29,9 +26,17 @@ s_rootCommand.SetHandler(
 
             context.Console.WriteLine($"Processing {files.Length} files...");
 
-            for (var i = 0; i < files.Length; ++i)
+            var tasks = Enumerable.Range(0, files.Length)
+                .Select(i =>
+                {
+                    var fileName = files[i];
+                    return ProcessSingleFileAsync(options, fileName);
+                });
+
+            await Task.WhenAll(tasks);
+
+            static async Task ProcessSingleFileAsync(AppOptions options, string fileName)
             {
-                var fileName = files[i];
                 if (options.Verbose)
                 {
                     options.Console.WriteLine($"Processing '{fileName}'");
@@ -41,7 +46,7 @@ s_rootCommand.SetHandler(
                 {
                     await RemoveBlobsAsync(options, fileName);
                     await RemoveFromIndexAsync(options, fileName);
-                    continue;
+                    return;
                 }
 
                 if (options.SkipBlobs is false)
@@ -177,28 +182,28 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
     var index = new SearchIndex(options.Index)
     {
         Fields =
-            {
-                new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
-                new SearchableField("content") { AnalyzerName = "en.microsoft" },
-                new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
-                new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
-                new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true }
-            },
+        {
+            new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
+            new SearchableField("content") { AnalyzerName = "en.microsoft" },
+            new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
+            new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
+            new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true }
+        },
         SemanticSettings = new SemanticSettings
         {
             Configurations =
+            {
+                new SemanticConfiguration("default", new PrioritizedFields
                 {
-                    new SemanticConfiguration("default", new PrioritizedFields
+                    ContentFields =
                     {
-                        ContentFields =
+                        new SemanticField
                         {
-                            new SemanticField
-                            {
-                                FieldName = "content"
-                            }
+                            FieldName = "content"
                         }
-                    })
-                }
+                    }
+                })
+            }
         }
     };
 
@@ -214,11 +219,13 @@ static async ValueTask UploadCorpusAsync(
        AppOptions options, string corpusName, string content)
 {
     var blobService = new BlobServiceClient(
-               new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
-                      DefaultCredential);
+        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
+        DefaultCredential);
     var container =
-               blobService.GetBlobContainerClient("corpus");
+        blobService.GetBlobContainerClient("corpus");
+
     await container.CreateIfNotExistsAsync();
+
     var blob = container.GetBlobClient(corpusName);
     if (await blob.ExistsAsync())
     {
@@ -323,7 +330,7 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
             }
         });
 
-    using FileStream stream = File.OpenRead(filename);
+    await using FileStream stream = File.OpenRead(filename);
 
     AnalyzeDocumentOperation operation = client.AnalyzeDocument(
         WaitUntil.Started, "prebuilt-layout", stream);
