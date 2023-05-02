@@ -233,19 +233,57 @@ static async ValueTask UploadCorpusAsync(
     await container.UploadBlobAsync(corpusName, stream);
 }
 
+static async ValueTask UploadBlobsAsync(
+    AppOptions options, string fileName)
+{
+    var blobService = new BlobServiceClient(
+               new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
+                      DefaultCredential);
+    var container =
+               blobService.GetBlobContainerClient("corpus");
+    await container.CreateIfNotExistsAsync();
+    var blob = container.GetBlobClient(corpusName);
+    if (await blob.ExistsAsync())
+    {
+        return;
+    }
+    if (options.Verbose)
+    {
+        options.Console.WriteLine($"Uploading corpus '{corpusName}'");
+    }
+
+    var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+    await container.UploadBlobAsync(corpusName, stream);
+}
+
 static async ValueTask UploadBlobsAsync(AppOptions options, string fileName)
 {
     var blobService = new BlobServiceClient(new Uri($"https://{options.StorageAccount}.blob.core.windows.net"), DefaultCredential);
     var container = blobService.GetBlobContainerClient(options.Container);
     await container.CreateIfNotExistsAsync();
 
+    // if it's pdf file, split it into single pages
     if (Path.GetExtension(fileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
     {
         var documents = PdfReader.Open(fileName, PdfDocumentOpenMode.Import);
-        for (int i = 0; i < documents.PageCount; i++)
+        for(int i = 0; i < documents.PageCount; i++)
         {
-            var blobName = BlobNameFromFilePage(fileName, i);
-            await UploadBlobAsync(fileName, blobName, container);
+            var documentName = BlobNameFromFilePage(fileName, i);
+            // check if the blob already exists
+            var blob = container.GetBlobClient(documentName);
+            if (await blob.ExistsAsync())
+            {
+                continue;
+            }
+            var document = new PdfDocument();
+            document.AddPage(documents.Pages[i]);
+            var tempFileName = Path.GetTempFileName();
+            document.Save(tempFileName);
+            using (var stream = File.OpenRead(tempFileName))
+            {
+                await container.UploadBlobAsync(documentName, stream);
+            }
+            File.Delete(tempFileName);
         }
     }
     else
