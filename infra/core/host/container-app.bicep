@@ -24,11 +24,12 @@ resource userIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-
   name: identityName
 }
 
-module containerRegistryAccess '../security/registry-access.bicep' = {
+
+module containerRegistryAccess '../security/role.bicep' = {
   name: '${deployment().name}-registry-access'
   params: {
-    containerRegistryName: containerRegistryName
     principalId: userIdentity.properties.principalId
+    roleDefinitionId: '7f951dda-4ed3-4680-a7ca-43fe172d538d'
   }
 }
 
