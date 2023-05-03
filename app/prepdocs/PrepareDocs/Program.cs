@@ -11,7 +11,7 @@ s_rootCommand.SetHandler(
         }
         else
         {
-            //await CreateSearchIndexAsync(options);
+            await CreateSearchIndexAsync(options);
 
             Matcher matcher = new();
             matcher.AddInclude(options.Files);
