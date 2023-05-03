@@ -1,46 +1,58 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+
+
 namespace MinimalApi.Services;
 
 internal sealed class SentenceEmbeddingService : IEmbeddingGeneration<string, float>
 {
+    private readonly Tokenizer _tokenizer;
+    private readonly ITransformer _sbert;
     private readonly MLContext _mlContext;
-    private PredictionEngine<Input, Output>? _predictionEngine;
+    private PredictionEngine<ModelInput, ModelOutput>? _predictionEngine;
 
-    public SentenceEmbeddingService(IEnumerable<CorpusRecord> corpusToTrain)
+    public SentenceEmbeddingService()
     {
+        _tokenizer = new Tokenizer(new Bpe("SBert/vocab.json", null, unknownToken: "[UNK]", continuingSubwordPrefix: "##", endOfWordSuffix: null));
         _mlContext = new MLContext(0);
-        Train(corpusToTrain.Select(c => c.Text));
-    }
-
-    private void Train(IEnumerable<string> inputs)
-    {
-        var featurizeTextOption = new TextFeaturizingEstimator.Options
-        {
-            StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options
-            {
-                Language = TextFeaturizingEstimator.Language.English,
-            }
-        };
-        var textFeaturizer = _mlContext.Transforms.Text.FeaturizeText(outputColumnName: "Embedding", featurizeTextOption, "Text");
-        var model = textFeaturizer.Fit(_mlContext.Data.LoadFromEnumerable(inputs.Select(i => new { Text = i })));
-        _predictionEngine = _mlContext.Model.CreatePredictionEngine<Input, Output>(model);
+        var onnx = _mlContext.Transforms.ApplyOnnxModel(modelFile: "SBert/sbert.onnx");
+        _sbert = onnx.Fit(_mlContext.Data.LoadFromEnumerable(new List<ModelInput>()));
+        _predictionEngine = _mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(_sbert);
     }
 
     public Task<IList<Embedding<float>>> GenerateEmbeddingsAsync(IList<string> data, CancellationToken cancellationToken = default)
     {
-        var outputs = data.Select(i => _predictionEngine!.Predict(new Input { Text = i })).ToList();
-        var embeddings = outputs.Select(o => new Embedding<float>(o.Embedding!)).ToList();
+        var tokens = data.Select(d => _tokenizer.Encode(d).Ids).ToArray();
+        var embeddings = new List<Embedding<float>>();
+        foreach (var token in tokens)
+        {
+            var output = _predictionEngine!.Predict(new ModelInput
+            {
+                Token = token.Select(i => (long)i).ToArray(),
+                TokenTypes = token.Select(i => (long)0).ToArray(),
+                AttentionMask = token.Select(i => (long)1).ToArray(),
+            });
+            embeddings.Add(new Embedding<float>(output!.Embedding));
+        }
+
         return Task.FromResult<IList<Embedding<float>>>(embeddings);
     }
 
-    private class Input
+    private class ModelInput
     {
-        public string Text { get; set; } = string.Empty;
+        [ColumnName("input_ids")]
+        public long[] Token { get; set; } = Array.Empty<long>();
+
+        [ColumnName("token_type_ids")]
+        public long[] TokenTypes { get; set; } = Array.Empty<long>();
+
+        [ColumnName("attention_mask")]
+        public long[] AttentionMask { get; set; } = Array.Empty<long>();
     }
 
-    private class Output
+    private class ModelOutput
     {
+        [ColumnName("pooler_output")]
         public float[] Embedding { get; set; } = Array.Empty<float>();
     }
 }

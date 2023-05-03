@@ -9,16 +9,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SBert\sbert.onnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="SBert\sbert.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.AI.FormRecognizer" Version="4.0.0" />
     <PackageReference Include="Azure.Identity" Version="$(AzureIdentityVersion)" />
     <PackageReference Include="Azure.Search.Documents" Version="$(AzureSearchDocumentsVersion)" />
     <PackageReference Include="Azure.Storage.Blobs" Version="$(AzureStorageBlobsVersion)" />
     <PackageReference Include="Azure.AI.OpenAI" Version="$(AzureOpenAIVersion)" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="7.0.5" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.14.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="$(WebAssemblyDevServerVersion)" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="$(SemanticKernelVersion)" />
     <PackageReference Include="Microsoft.ML" Version="$(MicrosoftMLVersion)" />
+    <PackageReference Include="Microsoft.ML.Tokenizers" Version="0.20.1" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="$(MicrosoftMLVersion)" />
   </ItemGroup>
 
   <ItemGroup>

@@ -26,4 +26,5 @@ global using Shared.Models;
 global using Azure.AI.FormRecognizer.DocumentAnalysis;
 global using Microsoft.SemanticKernel.Memory;
 global using Microsoft.ML;
-global using Microsoft.ML.Transforms.Text;
+global using Microsoft.ML.Data;
+global using Microsoft.ML.Tokenizers;

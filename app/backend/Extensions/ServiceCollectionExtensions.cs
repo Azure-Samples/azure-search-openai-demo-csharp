@@ -129,7 +129,7 @@ internal static class ServiceCollectionExtensions
 
             logger.LogInformation($"Load {corpus.Count} records into corpus");
             logger.LogInformation("Loading corpus into memory...");
-            var embeddingService = new SentenceEmbeddingService(corpus);
+            var embeddingService = new SentenceEmbeddingService();
             var collectionName = "knowledge";
             var memoryStore = new VolatileMemoryStore();
             memoryStore.CreateCollectionAsync(collectionName).Wait();
