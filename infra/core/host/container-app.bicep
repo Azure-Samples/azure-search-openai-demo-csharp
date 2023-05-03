@@ -24,7 +24,6 @@ resource userIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-
   name: identityName
 }
 
-
 module containerRegistryAccess '../security/role.bicep' = {
   name: '${deployment().name}-registry-access'
   params: {
