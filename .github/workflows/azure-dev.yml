@@ -1,0 +1,42 @@
+on:
+  push:
+    branches:
+      - deploy
+
+permissions:
+  id-token: write
+  contents: read
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/azure-dev-cli-apps:latest
+    env:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCEGROUPNAME }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Set AZD login with AZ CLI
+        run: |
+          azd config set auth.useAzCliAuth "true"
+
+      - name: Azure Dev Provision
+        run: azd provision --no-prompt
+        env:
+          AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
+          AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_TAGS: ${{ secrets.AZURE_TAGS }}
+
+      - name: Azure Dev Deploy
+        run: azd deploy --no-prompt
+        env:
+          AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
+          AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
