@@ -26,17 +26,9 @@ s_rootCommand.SetHandler(
 
             context.Console.WriteLine($"Processing {files.Length} files...");
 
-            var tasks = Enumerable.Range(0, files.Length)
-                .Select(i =>
-                {
-                    var fileName = files[i];
-                    return ProcessSingleFileAsync(options, fileName);
-                });
-
-            await Task.WhenAll(tasks);
-
-            static async Task ProcessSingleFileAsync(AppOptions options, string fileName)
+            for (var i = 0; i < files.Length; ++ i)
             {
+                var fileName = files[i];
                 if (options.Verbose)
                 {
                     options.Console.WriteLine($"Processing '{fileName}'");
@@ -46,28 +38,18 @@ s_rootCommand.SetHandler(
                 {
                     await RemoveBlobsAsync(options, fileName);
                     await RemoveFromIndexAsync(options, fileName);
-                    return;
+                    continue;
                 }
 
-                if (options.SkipBlobs)
+                if (options.SkipBlobs is false)
                 {
-                    return;
+                    await UploadBlobsAsync(options, fileName);
+
+                    var pageMap = await GetDocumentTextAsync(options, fileName);
+                    var sections = CreateSections(options, pageMap, fileName);
+
+                    await IndexSectionsAsync(options, sections, fileName);
                 }
-
-                await UploadBlobsAsync(options, fileName);
-                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-                var pageMap = await GetDocumentTextAsync(options, fileName);
-
-                // Create corpus from page map and upload to blob
-                // Corpus name format: fileName-{page}.txt
-                foreach (var page in pageMap)
-                {
-                    var corpusName = $"{fileNameWithoutExtension}-{page.Index}.txt";
-                    await UploadCorpusAsync(options, corpusName, page.Text);
-                }
-
-                var sections = CreateSections(options, pageMap, fileName);
-                await IndexSectionsAsync(options, sections, fileName);
             }
         }
     });
@@ -82,7 +64,15 @@ static async ValueTask RemoveBlobsAsync(
         options.Console.WriteLine($"Removing blobs for '{fileName ?? "all"}'");
     }
 
-    var container = await GetBlobContainerClientAsync(options);
+    var blobService = new BlobServiceClient(
+        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
+        DefaultCredential);
+
+    var container =
+        blobService.GetBlobContainerClient(options.Container);
+
+    await container.CreateIfNotExistsAsync();
+
     var prefix = string.IsNullOrWhiteSpace(fileName)
         ? Path.GetFileName(fileName)
         : null;
@@ -154,135 +144,64 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
         new Uri($"https://{options.SearchService}.search.windows.net/"),
         DefaultCredential);
 
-    // Call GetIndexNamesAsync() to retrieve a list of all index names
-    var indexNames = indexClient.GetIndexNamesAsync();
-
-    // Use AsPages() to process the results in pages
-    await foreach (var page in indexNames.AsPages())
+    var indices = await indexClient.GetIndexAsync(options.Index);
+    if (indices is null or { HasValue: false } or { Value: null })
     {
-        // Check if the index we're interested in exists in the current page of results
-        if (page.Values.Any(indexName => indexName == options.Index))
+        var index = new SearchIndex(options.Index)
         {
-            if (options.Verbose)
+            Fields =
             {
-                options.Console.WriteLine($"Search index '{options.Index}' already exists");
-            }
-            return;
-        }
-    }
-
-    var index = new SearchIndex(options.Index)
-    {
-        Fields =
-        {
-            new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
-            new SearchableField("content") { AnalyzerName = "en.microsoft" },
-            new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
-            new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
-            new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true }
-        },
-        SemanticSettings = new SemanticSettings
-        {
-            Configurations =
+                new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
+                new SearchableField("content") { AnalyzerName = "en.microsoft" },
+                new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
+                new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
+                new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true }
+            },
+            SemanticSettings = new SemanticSettings
             {
-                new SemanticConfiguration("default", new PrioritizedFields
+                Configurations =
                 {
-                    ContentFields =
+                    new SemanticConfiguration("default", new PrioritizedFields
                     {
-                        new SemanticField
+                        ContentFields =
                         {
-                            FieldName = "content"
+                            new SemanticField
+                            {
+                                FieldName = "content"
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
+        };
+
+        if (options.Verbose)
+        {
+            options.Console.WriteLine($"Creating '{options.Index}' search index");
         }
-    };
 
-    if (options.Verbose)
-    {
-        options.Console.WriteLine($"Creating '{options.Index}' search index");
+        await indexClient.CreateIndexAsync(index);
     }
-
-    await indexClient.CreateIndexAsync(index);
-}
-
-static async ValueTask UploadCorpusAsync(
-       AppOptions options, string corpusName, string content)
-{
-    var blobService = new BlobServiceClient(
-        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
-        DefaultCredential);
-    var container =
-        blobService.GetBlobContainerClient("corpus");
-
-    await container.CreateIfNotExistsAsync();
-
-    var blob = container.GetBlobClient(corpusName);
-    if (await blob.ExistsAsync())
+    else if (options.Verbose)
     {
-        return;
+        options.Console.WriteLine($"Search index '{options.Index}' already exists");
     }
-    if (options.Verbose)
-    {
-        options.Console.WriteLine($"Uploading corpus '{corpusName}'");
-    }
-
-    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-    await container.UploadBlobAsync(corpusName, stream);
 }
 
 static async ValueTask UploadBlobsAsync(
     AppOptions options, string fileName)
 {
-    var container = await GetBlobContainerClientAsync(options);
+    var blobService = new BlobServiceClient(
+        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
+        DefaultCredential);
 
-    // if it's pdf file, split it into single pages
-    if (Path.GetExtension(fileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
-    {
-        using var documents = PdfReader.Open(fileName, PdfDocumentOpenMode.Import);
-        for (int i = 0; i < documents.PageCount; i++)
-        {
-            var documentName = BlobNameFromFilePage(fileName, i);
-            var blob = container.GetBlobClient(documentName);
-            if (await blob.ExistsAsync())
-            {
-                continue;
-            }
+    var container =
+        blobService.GetBlobContainerClient(options.Container);
 
-            var tempFileName = Path.GetTempFileName();
+    await container.CreateIfNotExistsAsync();
 
-            try
-            {
-                using var document = new PdfDocument();
-                document.AddPage(documents.Pages[i]);
-                document.Save(tempFileName);
-
-                await using var stream = File.OpenRead(tempFileName);
-                await container.UploadBlobAsync(documentName, stream);
-            }
-            finally
-            {
-                File.Delete(tempFileName);
-            }
-        }
-    }
-    else
-    {
-        var blobName = BlobNameFromFilePage(fileName);
-        await UploadBlobAsync(fileName, blobName, container);
-    }
-}
-
-static async Task UploadBlobAsync(string fileName, string blobName, BlobContainerClient container)
-{
-    var blobClient = container.GetBlobClient(blobName);
-    if (await blobClient.ExistsAsync())
-    {
-        return;
-    }
-    await using var fileStream = File.OpenRead(fileName);
-    await blobClient.UploadAsync(fileStream, new BlobUploadOptions());
+    var blobName = BlobNameFromFilePage(fileName);
+    await container.UploadBlobAsync(blobName, File.OpenRead(fileName));
 }
 
 static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
@@ -304,7 +223,7 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
             }
         });
 
-    await using FileStream stream = File.OpenRead(filename);
+    using FileStream stream = File.OpenRead(filename);
 
     AnalyzeDocumentOperation operation = client.AnalyzeDocument(
         WaitUntil.Started, "prebuilt-layout", stream);

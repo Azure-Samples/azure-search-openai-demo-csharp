@@ -70,7 +70,7 @@ internal static class SearchClientExtensions
                     contentValue = (string)value;
                 }
             }
-            catch (ArgumentNullException)
+            catch (Exception)
             {
                 contentValue = null;
             }
