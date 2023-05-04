@@ -9,7 +9,7 @@ internal static class WebApplicationExtensions
         var api = app.MapGroup("api");
 
         // PDF endpoint
-        api.MapGet("content/{citation}", OnGetCitationAsync).CacheOutput();
+        api.MapPost("citations", OnPostCitationAsync).CacheOutput();
 
         // Blazor 📎 Clippy streaming endpoint
         api.MapPost("openai/chat", OnPostChatPromptAsync);
@@ -23,14 +23,15 @@ internal static class WebApplicationExtensions
         return app;
     }
 
-    private static async Task<IResult> OnGetCitationAsync(
+    private static async Task<IResult> OnPostCitationAsync(
         HttpContext http,
-        string citation,
+        CitationRequest request,
         BlobContainerClient client,
         ILogger<WebApplication> logger,
+        IConfiguration config,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("OnGetCitationAsync {Citation}", citation);
+        logger.LogInformation("OnGetCitationAsync {Citation}", request.Citation);
 
         if (await client.ExistsAsync(cancellationToken) is { Value: false })
         {
@@ -38,22 +39,13 @@ internal static class WebApplicationExtensions
             return Results.NotFound("Blob container not found");
         }
 
-        var contentDispositionHeader =
-            new ContentDispositionHeaderValue("inline")
-            {
-                FileName = citation,
-            };
+        var url = $"""
+            {config["AzureStorageAccountEndpoint"]}/{config["AzureStorageContainer"]}/{request.Citation}
+            """;
 
-        http.Response.Headers.ContentDisposition = contentDispositionHeader.ToString();
-        var contentType = citation.EndsWith(".pdf")
-            ? "application/pdf"
-            : "application/octet-stream";
+        logger.LogInformation("Returning citation URL of: {Url}", url);
 
-        var stream =
-            await client.GetBlobClient(citation)
-                .OpenReadAsync(cancellationToken: cancellationToken);
-
-        return Results.Stream(stream, contentType);
+        return TypedResults.Ok(new CitationResponse(Url: url));
     }
 
     private static async IAsyncEnumerable<ChatChunkResponse> OnPostChatPromptAsync(

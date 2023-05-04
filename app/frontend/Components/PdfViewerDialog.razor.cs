@@ -5,7 +5,8 @@ namespace ClientApp.Components;
 public sealed partial class PdfViewerDialog
 {
     private bool _isLoaded = false;
-    private Uri? _baseAddress;
+    private CitationResponse? _citationResponse;
+
     private string _pdfViewerVisibilityStyle => _isLoaded ? "display:default;" : "display:none;";
 
     [Inject] public required IHttpClientFactory Factory { get; set; }
@@ -14,19 +15,32 @@ public sealed partial class PdfViewerDialog
 
     [CascadingParameter] public required MudDialogInstance Dialog { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         var client = Factory.CreateClient(typeof(ApiClient).Name);
-        _baseAddress = client.BaseAddress;
 
-        await base.OnInitializedAsync();
-        await JavaScriptModule.RegisterIFrameLoadedAsync(
-            "#pdf-viewer",
-            () =>
-            {
-                _isLoaded = true;
-                StateHasChanged();
-            });
+        var json = JsonSerializer.Serialize(
+            new CitationRequest(Title),
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+        using var body = new StringContent(
+            json, Encoding.UTF8, "application/json");
+        var response = await client.PostAsync("api/citations", body);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _citationResponse = await response.Content.ReadFromJsonAsync<CitationResponse>();
+
+            await JavaScriptModule.RegisterIFrameLoadedAsync(
+                "#pdf-viewer",
+                () =>
+                {
+                    _isLoaded = true;
+                    StateHasChanged();
+                });
+        }
+
+        await base.OnParametersSetAsync();
     }
 
     private void OnCloseClick() => Dialog.Close(DialogResult.Ok(true));
