@@ -24,6 +24,12 @@ public sealed partial class VoiceDialog : IDisposable
         SpeechSynthesis.OnVoicesChanged(() => GetVoicesAsync(true));
 
         _voicePreferences = new VoicePreferences(LocalStorage);
+
+        if (_voicePreferences.Voice is null &&
+            _voices.FirstOrDefault(voice => voice.Default) is { } voice)
+        {
+            _voicePreferences.Voice = voice.Name;
+        }
     }
 
     private async Task GetVoicesAsync(bool isFromCallback = false)
