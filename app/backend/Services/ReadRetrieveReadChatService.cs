@@ -51,20 +51,21 @@ public class ReadRetrieveReadChatService
         var context = new ContextVariables();
         var historyText = history.GetChatHistoryAsText(includeLastTurn: false);
         context["chat_history"] = historyText;
-        if (history.LastOrDefault()?.User is { } userQuestion)
+        var userQuestion = history.LastOrDefault()?.User;
+        if (userQuestion is null)
         {
-            context["question"] = userQuestion;
+            throw new InvalidOperationException("user question is null");
         }
         else
         {
-            throw new InvalidOperationException("Use question is null");
+            context["question"] = userQuestion;
         }
 
         var query = await _kernel.RunAsync(context, cancellationToken, queryFunction);
 
         // step 2
         // use query to search related docs
-        var documentContents = await _searchClient.QueryDocumentsAsync(query.Result, overrides, cancellationToken);
+        var  documentContents = await _searchClient.QueryDocumentsAsync(query.Result, overrides, cancellationToken);
 
         // step 3
         // use llm to get answer
@@ -101,7 +102,7 @@ public class ReadRetrieveReadChatService
         }
         else
         {
-            throw new InvalidOperationException("Failed to get search result");
+            throw new InvalidOperationException("fail to get search result");
         }
 
         var ans = await _kernel.RunAsync(answerContext, cancellationToken, answerFunction);

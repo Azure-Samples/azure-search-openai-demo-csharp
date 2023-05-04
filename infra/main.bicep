@@ -9,14 +9,10 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+param appServicePlanName string = ''
+param backendServiceName string = ''
+param frontendResourceLocation string = 'eastus2'
 param resourceGroupName string = ''
-param keyVaultName string = ''
-param containerAppsEnvironmentName string = ''
-param containerRegistryName string = ''
-param webContainerAppName string = ''
-param applicationInsightsDashboardName string = ''
-param applicationInsightsName string = ''
-param logAnalyticsName string = ''
 
 param searchServiceName string = ''
 param searchServiceResourceGroupName string = ''
@@ -33,7 +29,7 @@ param storageContainerName string = 'content'
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
 param openAiResourceGroupLocation string = location
-param webAppExists bool = false
+
 param openAiSkuName string = 'S0'
 
 param formRecognizerServiceName string = ''
@@ -50,17 +46,15 @@ param chatGptModelName string = 'gpt-35-turbo'
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
-var abbrs = loadJsonContent('./abbreviations.json')
+var abbrs = loadJsonContent('abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
-param tags string = ''
-var baseTags = { 'azd-env-name': environmentName }
-var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
+var tags = { 'azd-env-name': environmentName }
 
 // Organize resources in a resource group
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
   location: location
-  tags: updatedTags
+  tags: tags
 }
 
 resource openAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(openAiResourceGroupName)) {
@@ -79,79 +73,57 @@ resource storageResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' ex
   name: !empty(storageResourceGroupName) ? storageResourceGroupName : resourceGroup.name
 }
 
-// Store secrets in a keyvault
-module keyVault './core/security/keyvault.bicep' = {
-  name: 'keyvault'
+// Create an App Service Plan to group applications under the same payment plan and SKU
+module appServicePlan 'core/host/appserviceplan.bicep' = {
+  name: 'appserviceplan'
   scope: resourceGroup
   params: {
-    name: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
+    name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
     location: location
-    tags: updatedTags
-    principalId: principalId
+    tags: tags
+    sku: {
+      name: 'B1'
+      capacity: 1
+    }
+    kind: 'linux'
   }
 }
 
-
-
-// Container apps host (including container registry)
-module containerApps './core/host/container-apps.bicep' = {
-  name: 'container-apps'
+// The application frontend
+module frontend 'core/host/staticwebapp.bicep' = {
+  name: 'frontend'
   scope: resourceGroup
   params: {
-    name: 'app'
-    containerAppsEnvironmentName: !empty(containerAppsEnvironmentName) ? containerAppsEnvironmentName : '${abbrs.appManagedEnvironments}${resourceToken}'
-    containerRegistryName: !empty(containerRegistryName) ? containerRegistryName : '${abbrs.containerRegistryRegistries}${resourceToken}'
-    location: location
-    logAnalyticsWorkspaceName: monitoring.outputs.logAnalyticsWorkspaceName
+    name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesAppService}frontend-${resourceToken}'
+    location: frontendResourceLocation
+    tags: union(tags, { 'azd-service-name': 'frontend' })
   }
 }
 
-// Web frontend
-module web './app/web.bicep' = {
-  name: 'web'
+// The application backend
+module backend 'core/host/appservice.bicep' = {
+  name: 'backend'
   scope: resourceGroup
   params: {
-    name: !empty(webContainerAppName) ? webContainerAppName : '${abbrs.appContainerApps}web-${resourceToken}'
+    name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesAppService}backend-${resourceToken}'
     location: location
-    tags: updatedTags
-    identityName: '${abbrs.managedIdentityUserAssignedIdentities}web-${resourceToken}'
-    applicationInsightsName: monitoring.outputs.applicationInsightsName
-    containerAppsEnvironmentName: containerApps.outputs.environmentName
-    containerRegistryName: containerApps.outputs.registryName
-    exists: webAppExists
-    keyVaultName: keyVault.outputs.name
-    storageBlobEndpoint: storage.outputs.primaryEndpoints.blob
-    storageContainerName: storageContainerName
-    searchServiceEndpoint: searchService.outputs.endpoint
-    searchIndexName: searchIndexName
-    formRecognizerEndpoint: formRecognizer.outputs.endpoint
-    openAiEndpoint: openAi.outputs.endpoint
-    openAiGptDeployment: gptDeploymentName
-    openAiChatGptDeployment: chatGptDeploymentName
-  }
-}
-
-module redis 'core/cache/redis.bicep' = {
-  name: 'redis'
-  scope: resourceGroup
-  params: {
-    name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
-    location: location
-    tags: updatedTags
-    keyVaultName: keyVault.outputs.name
-  }
-}
-
-// Monitor application with Azure Monitor
-module monitoring './core/monitor/monitoring.bicep' = {
-  name: 'monitoring'
-  scope: resourceGroup
-  params: {
-    location: location
-    tags: updatedTags
-    logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
-    applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'
-    applicationInsightsDashboardName: !empty(applicationInsightsDashboardName) ? applicationInsightsDashboardName : '${abbrs.portalDashboards}${resourceToken}'
+    tags: union(tags, { 'azd-service-name': 'backend' })
+    appServicePlanId: appServicePlan.outputs.id
+    runtimeName: 'dotnetcore'
+    runtimeVersion: '7.0'
+    scmDoBuildDuringDeployment: false
+    enableOryxBuild: false
+    managedIdentity: true
+    allowedOrigins: [ frontend.outputs.uri ]
+    appSettings: {
+      AZURE_STORAGE_ACCOUNT: storage.outputs.name
+      AZURE_STORAGE_CONTAINER: storageContainerName
+      AZURE_OPENAI_SERVICE: openAi.outputs.name
+      AZURE_SEARCH_INDEX: searchIndexName
+      AZURE_SEARCH_SERVICE: searchService.outputs.name
+      AZURE_OPENAI_GPT_DEPLOYMENT: gptDeploymentName
+      AZURE_OPENAI_CHATGPT_DEPLOYMENT: chatGptDeploymentName
+    }
   }
 }
 
@@ -161,10 +133,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
   params: {
     name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     location: openAiResourceGroupLocation
-    tags: updatedTags
-    keyVaultName: keyVault.outputs.name
-    gptDeploymentName: gptDeploymentName
-    chatGptDeploymentName: chatGptDeploymentName
+    tags: tags
     sku: {
       name: openAiSkuName
     }
@@ -202,7 +171,7 @@ module formRecognizer 'core/ai/cognitiveservices.bicep' = {
     name: !empty(formRecognizerServiceName) ? formRecognizerServiceName : '${abbrs.cognitiveServicesFormRecognizer}${resourceToken}'
     kind: 'FormRecognizer'
     location: formRecognizerResourceGroupLocation
-    tags: updatedTags
+    tags: tags
     sku: {
       name: formRecognizerSkuName
     }
@@ -215,8 +184,7 @@ module searchService 'core/search/search-services.bicep' = {
   params: {
     name: !empty(searchServiceName) ? searchServiceName : 'gptkb-${resourceToken}'
     location: searchServiceResourceGroupLocation
-    keyVaultName: keyVault.outputs.name
-    tags: updatedTags
+    tags: tags
     authOptions: {
       aadOrApiKey: {
         aadAuthFailureMode: 'http401WithBearerChallenge'
@@ -235,10 +203,8 @@ module storage 'core/storage/storage-account.bicep' = {
   params: {
     name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     location: storageResourceGroupLocation
-    tags: updatedTags
+    tags: tags
     publicNetworkAccess: 'Enabled'
-    keyVaultName: keyVault.outputs.name
-    storageContainerName: storageContainerName
     sku: {
       name: 'Standard_ZRS'
     }
@@ -321,7 +287,7 @@ module openAiRoleBackend 'core/security/role.bicep' = {
   scope: openAiResourceGroup
   name: 'openai-role-backend'
   params: {
-    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    principalId: backend.outputs.identityPrincipalId
     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
     principalType: 'ServicePrincipal'
   }
@@ -331,7 +297,7 @@ module storageRoleBackend 'core/security/role.bicep' = {
   scope: storageResourceGroup
   name: 'storage-role-backend'
   params: {
-    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    principalId: backend.outputs.identityPrincipalId
     roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
     principalType: 'ServicePrincipal'
   }
@@ -341,7 +307,7 @@ module searchRoleBackend 'core/security/role.bicep' = {
   scope: searchServiceResourceGroup
   name: 'search-role-backend'
   params: {
-    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    principalId: backend.outputs.identityPrincipalId
     roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
     principalType: 'ServicePrincipal'
   }
@@ -352,7 +318,6 @@ output AZURE_TENANT_ID string = tenant().tenantId
 output AZURE_RESOURCE_GROUP string = resourceGroup.name
 
 output AZURE_OPENAI_SERVICE string = openAi.outputs.name
-output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
 output AZURE_OPENAI_GPT_DEPLOYMENT string = gptDeploymentName
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
@@ -363,18 +328,9 @@ output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = formRecognizerResourceGroup.
 output AZURE_SEARCH_INDEX string = searchIndexName
 output AZURE_SEARCH_SERVICE string = searchService.outputs.name
 output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
-output AZURE_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.endpoint
 
 output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_CONTAINER string = storageContainerName
 output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
-output AZURE_STORAGE_BLOB_ENDPOINT string = storage.outputs.primaryEndpoints.blob
 
-output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
-output APPLICATIONINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName
-output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerApps.outputs.environmentName
-output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerApps.outputs.registryLoginServer
-output AZURE_CONTAINER_REGISTRY_NAME string = containerApps.outputs.registryName
-output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
-output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
-output SERVICE_WEB_NAME string = web.outputs.SERVICE_WEB_NAME
+output BACKEND_URI string = backend.outputs.uri

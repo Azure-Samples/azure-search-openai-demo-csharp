@@ -11,11 +11,7 @@ done <<EOF
 $(azd env get-values)
 EOF
 
-echo "Environment variables set."
 echo 'Running "PrepareDocs.dll"'
-
-pwd
-
 dotnet run --project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- \
   './data/*.pdf' \
   --storageaccount "$AZURE_STORAGE_ACCOUNT" \

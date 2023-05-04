@@ -1,13 +1,11 @@
 <Project>
 
   <PropertyGroup>
-    <AzureIdentityVersion>1.9.0-beta.3</AzureIdentityVersion>
+    <AzureIdentityVersion>1.8.2</AzureIdentityVersion>
     <AzureSearchDocumentsVersion>11.5.0-beta.2</AzureSearchDocumentsVersion>
     <AzureStorageBlobsVersion>12.16.0</AzureStorageBlobsVersion>
     <SemanticKernelVersion>0.13.277.1-preview</SemanticKernelVersion>
     <AzureOpenAIVersion>1.0.0-beta.5</AzureOpenAIVersion>
-    <WebAssemblyDevServerVersion>7.0.5</WebAssemblyDevServerVersion>
-    <MicrosoftMLVersion>2.0.1</MicrosoftMLVersion>
   </PropertyGroup>
 
 </Project>
