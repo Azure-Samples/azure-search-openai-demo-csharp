@@ -2,38 +2,15 @@
 
 name: azure-search-openai-demo-csharp
 metadata:
-  template: azure-search-openai-demo-csharp@0.0.2-beta
+  template: azure-search-openai-demo-csharp@0.0.3-beta
 services:
-  frontend:
-    project: ./app/frontend
-    host: staticwebapp
-    dist: ./build/wwwroot
-    hooks:
-      prepackage:
-        windows:
-          shell: pwsh
-          run: dotnet publish -p:BACKEND_URI=$env:BACKEND_URI -o build -c Release
-          continueOnError: false
-          interactive: true
-        posix:
-          shell: sh
-          run: dotnet publish -p:BACKEND_URI=$BACKEND_URI -o build -c Release
-          continueOnError: false
-          interactive: true
-      postdeploy:
-        windows:
-          shell: pwsh
-          run: rm -Force -r ./build
-          continueOnError: false
-          interactive: true
-        posix:
-          shell: pwsh
-          run: rm -rf ./build
-          continueOnError: false
-          interactive: true
-  backend:
-    project: ./app/backend
-    host: appservice
+  web:
+    project: ./app/backend/
+    host: containerapp
+    language: dotnet
+    docker:
+      path: ./Dockerfile
+      context: ../
 hooks:
   postprovision:
     windows:
