@@ -1,4 +1,6 @@
-﻿namespace MinimalApi.Pages;
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace MinimalApi.Pages;
 
 [IgnoreAntiforgeryToken]
 [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
