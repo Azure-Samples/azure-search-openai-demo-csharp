@@ -27,10 +27,14 @@ internal static class WebApplicationExtensions
         HttpContext http,
         string citation,
         BlobContainerClient client,
+        ILogger<WebApplication> logger,
         CancellationToken cancellationToken)
     {
+        logger.LogInformation("OnGetCitationAsync {Citation}", citation);
+
         if (await client.ExistsAsync(cancellationToken) is { Value: false })
         {
+            logger.LogWarning("Blob container client doesn't exist");
             return Results.NotFound("Blob container not found");
         }
 
