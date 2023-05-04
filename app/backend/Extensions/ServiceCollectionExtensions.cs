@@ -95,6 +95,7 @@ internal static class ServiceCollectionExtensions
 
     internal static IServiceCollection AddMemoryStore(this IServiceCollection services)
     {
+        services.AddSingleton<IEmbeddingGeneration<string, float>>((sp) => new SentenceEmbeddingService());
         services.AddSingleton<IMemoryStore>((sp) =>
         {
             var logger = sp.GetRequiredService<ILogger<IMemoryStore>>();
@@ -111,7 +112,7 @@ internal static class ServiceCollectionExtensions
                 var content = new StreamReader(readStream).ReadToEnd();
 
                 // split contents into short sentences
-                var sentences = content.Split(new[] { '.', '?', '!' }, StringSplitOptions.RemoveEmptyEntries);
+                var sentences = content.Split(new[] { '.', '?', '!', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 var corpusIndex = 0;
                 var sb = new StringBuilder();
                 // create corpus records based on sentences
@@ -129,7 +130,7 @@ internal static class ServiceCollectionExtensions
 
             logger.LogInformation($"Load {corpus.Count} records into corpus");
             logger.LogInformation("Loading corpus into memory...");
-            var embeddingService = new SentenceEmbeddingService();
+            var embeddingService = sp.GetRequiredService<IEmbeddingGeneration<string, float>>();
             var collectionName = "knowledge";
             var memoryStore = new VolatileMemoryStore();
             memoryStore.CreateCollectionAsync(collectionName).Wait();

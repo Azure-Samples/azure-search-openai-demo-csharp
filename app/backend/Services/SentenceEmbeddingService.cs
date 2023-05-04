@@ -26,11 +26,12 @@ internal sealed class SentenceEmbeddingService : IEmbeddingGeneration<string, fl
         var embeddings = new List<Embedding<float>>();
         foreach (var token in tokens)
         {
+            var chunkToken = token.Take(512);
             var output = _predictionEngine!.Predict(new ModelInput
             {
-                Token = token.Select(i => (long)i).ToArray(),
-                TokenTypes = token.Select(i => (long)0).ToArray(),
-                AttentionMask = token.Select(i => (long)1).ToArray(),
+                Token = chunkToken.Select(i => (long)i).ToArray(), // max length of 512
+                TokenTypes = chunkToken.Select(i => (long)0).ToArray(),
+                AttentionMask = chunkToken.Select(i => (long)1).ToArray(),
             });
             embeddings.Add(new Embedding<float>(output!.Embedding));
         }
