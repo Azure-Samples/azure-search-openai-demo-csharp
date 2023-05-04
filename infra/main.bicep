@@ -52,15 +52,13 @@ param principalId string = ''
 
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
-param tags string = ''
-var baseTags = { 'azd-env-name': environmentName }
-var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
+var tags = { 'azd-env-name': environmentName }
 
 // Organize resources in a resource group
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
   location: location
-  tags: updatedTags
+  tags: tags
 }
 
 resource openAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(openAiResourceGroupName)) {
@@ -86,7 +84,7 @@ module keyVault './core/security/keyvault.bicep' = {
   params: {
     name: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
     location: location
-    tags: updatedTags
+    tags: tags
     principalId: principalId
   }
 }
@@ -113,7 +111,7 @@ module web './app/web.bicep' = {
   params: {
     name: !empty(webContainerAppName) ? webContainerAppName : '${abbrs.appContainerApps}web-${resourceToken}'
     location: location
-    tags: updatedTags
+    tags: tags
     identityName: '${abbrs.managedIdentityUserAssignedIdentities}web-${resourceToken}'
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     containerAppsEnvironmentName: containerApps.outputs.environmentName
@@ -137,7 +135,7 @@ module redis 'core/cache/redis.bicep' = {
   params: {
     name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     location: location
-    tags: updatedTags
+    tags: tags
     keyVaultName: keyVault.outputs.name
   }
 }
@@ -148,7 +146,7 @@ module monitoring './core/monitor/monitoring.bicep' = {
   scope: resourceGroup
   params: {
     location: location
-    tags: updatedTags
+    tags: tags
     logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
     applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'
     applicationInsightsDashboardName: !empty(applicationInsightsDashboardName) ? applicationInsightsDashboardName : '${abbrs.portalDashboards}${resourceToken}'
@@ -161,7 +159,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
   params: {
     name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     location: openAiResourceGroupLocation
-    tags: updatedTags
+    tags: tags
     keyVaultName: keyVault.outputs.name
     gptDeploymentName: gptDeploymentName
     chatGptDeploymentName: chatGptDeploymentName
@@ -202,7 +200,7 @@ module formRecognizer 'core/ai/cognitiveservices.bicep' = {
     name: !empty(formRecognizerServiceName) ? formRecognizerServiceName : '${abbrs.cognitiveServicesFormRecognizer}${resourceToken}'
     kind: 'FormRecognizer'
     location: formRecognizerResourceGroupLocation
-    tags: updatedTags
+    tags: tags
     sku: {
       name: formRecognizerSkuName
     }
@@ -216,7 +214,7 @@ module searchService 'core/search/search-services.bicep' = {
     name: !empty(searchServiceName) ? searchServiceName : 'gptkb-${resourceToken}'
     location: searchServiceResourceGroupLocation
     keyVaultName: keyVault.outputs.name
-    tags: updatedTags
+    tags: tags
     authOptions: {
       aadOrApiKey: {
         aadAuthFailureMode: 'http401WithBearerChallenge'
@@ -235,7 +233,7 @@ module storage 'core/storage/storage-account.bicep' = {
   params: {
     name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     location: storageResourceGroupLocation
-    tags: updatedTags
+    tags: tags
     publicNetworkAccess: 'Enabled'
     keyVaultName: keyVault.outputs.name
     storageContainerName: storageContainerName
