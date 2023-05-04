@@ -1,6 +1,7 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
+param searchIndexName string
 param keyVaultName string = ''
 
 param sku object = {
@@ -35,7 +36,6 @@ param replicaCount int = 1
   'standard'
 ])
 param semanticSearch string = 'disabled'
-param searchIndexName string = 'default'
 
 resource search 'Microsoft.Search/searchServices@2021-04-01-preview' = {
   name: name

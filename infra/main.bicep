@@ -213,6 +213,7 @@ module searchService 'core/search/search-services.bicep' = {
   params: {
     name: !empty(searchServiceName) ? searchServiceName : 'gptkb-${resourceToken}'
     location: searchServiceResourceGroupLocation
+    searchIndexName: searchIndexName
     keyVaultName: keyVault.outputs.name
     tags: tags
     authOptions: {
