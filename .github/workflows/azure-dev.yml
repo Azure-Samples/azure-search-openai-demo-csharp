@@ -31,9 +31,9 @@ jobs:
 
       - name: Install Azure Developer CLI
         run: |
-          curl -fsSL https://azuresdkreleasepreview.blob.core.windows.net/azd/standalone/pr/2052/install-azd.sh | bash -s -- --base-url https://azuresdkreleasepreview.blob.core.windows.net/azd/standalone/pr/2052 --version '' --verbose --skip-verify | sudo bash
+          powershell -c "Set-ExecutionPolicy Bypass Process; irm 'https://azuresdkreleasepreview.blob.core.windows.net/azd/standalone/pr/2052/install-azd.ps1' > install-azd.ps1; ./install-azd.ps1 -BaseUrl 'https://azuresdkreleasepreview.blob.core.windows.net/azd/standalone/pr/2052' -Version '' -SkipVerify -Verbose;"
           azd --version
-        shell: sh
+        shell: pwsh
 
       - name: Log in with Azure (Federated Credentials)
         if: ${{ env.AZURE_CLIENT_ID != '' }}
