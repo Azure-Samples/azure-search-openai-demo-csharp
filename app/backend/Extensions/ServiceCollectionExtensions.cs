@@ -156,7 +156,10 @@ internal static class ServiceCollectionExtensions
                                         return memoryRecord;
                                     });
 
-            var _ = memoryStore.UpsertBatchAsync(collectionName, memoryRecords).ToListAsync().Result;
+            var _ = memoryStore.UpsertBatchAsync(collectionName, memoryRecords)
+                .ToListAsync()
+                .GetAwaiter()
+                .GetResult();
 
             return memoryStore;
         });
