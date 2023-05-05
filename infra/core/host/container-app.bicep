@@ -10,6 +10,7 @@ param env array = []
 param external bool = true
 param imageName string
 param targetPort int = 80
+param redisServiceName string
 
 @description('User assigned identity name')
 param identityName string = ''
@@ -32,7 +33,7 @@ module containerRegistryAccess '../security/role.bicep' = {
   }
 }
 
-resource app 'Microsoft.App/containerApps@2022-03-01' = {
+resource app 'Microsoft.App/containerApps@2022-11-01-preview' = {
   name: name
   location: location
   tags: tags
@@ -63,6 +64,12 @@ resource app 'Microsoft.App/containerApps@2022-03-01' = {
       ]
     }
     template: {
+      serviceBinds: [
+        {
+          serviceId: redis.id
+          name: redis.name
+        }
+      ]
       containers: [
         {
           image: !empty(imageName) ? imageName : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
@@ -85,6 +92,10 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-03-01'
 // 2022-02-01-preview needed for anonymousPullEnabled
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existing = {
   name: containerRegistryName
+}
+
+resource redis 'Microsoft.App/containerApps@2022-11-01-preview' existing = {
+  name: redisServiceName
 }
 
 output defaultDomain string = containerAppsEnvironment.properties.defaultDomain

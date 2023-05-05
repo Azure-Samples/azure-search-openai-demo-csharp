@@ -89,8 +89,6 @@ module keyVault './core/security/keyvault.bicep' = {
   }
 }
 
-
-
 // Container apps host (including container registry)
 module containerApps './core/host/container-apps.bicep' = {
   name: 'container-apps'
@@ -126,17 +124,18 @@ module web './app/web.bicep' = {
     openAiEndpoint: openAi.outputs.endpoint
     openAiGptDeployment: gptDeploymentName
     openAiChatGptDeployment: chatGptDeploymentName
+    redisServiceName: redis.outputs.serviceName
   }
 }
 
-module redis 'core/cache/redis.bicep' = {
+module redis 'core/cache/redis-aca.bicep' = {
   name: 'redis'
   scope: resourceGroup
   params: {
-    name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
+    name: 'redis'
     location: location
     tags: tags
-    keyVaultName: keyVault.outputs.name
+    containerAppsEnvironmentName: containerApps.outputs.environmentName
   }
 }
 

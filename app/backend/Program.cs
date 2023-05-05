@@ -2,6 +2,7 @@
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.ConfigureAzureKeyVault();
 
 // See: https://aka.ms/aspnetcore/swashbuckle
@@ -22,7 +23,13 @@ else
     builder.Services.AddStackExchangeRedisCache(options =>
     {
         var connectionString = builder.Configuration["AzureRedisCacheConnectionString"];
-
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            var endpoint = builder.Configuration["REDIS_ENDPOINT"];
+            var password = builder.Configuration["REDIS_PASSWORD"];
+            connectionString = $"{endpoint},password={password},abortConnect=False,connectTimeout=60000,ssl=False";
+        }
+        
         options.Configuration = connectionString;
         options.InstanceName = "content";
     });

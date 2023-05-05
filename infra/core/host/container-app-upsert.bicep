@@ -10,6 +10,7 @@ param env array = []
 param external bool = true
 param targetPort int = 80
 param exists bool
+param redisServiceName string
 
 @description('User assigned identity name')
 param identityName string = ''
@@ -41,6 +42,7 @@ module app 'container-app.bicep' = {
     env: env
     imageName: exists ? existingApp.properties.template.containers[0].image : ''
     targetPort: targetPort
+    redisServiceName: redisServiceName
   }
 }
 

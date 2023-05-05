@@ -17,6 +17,7 @@ param formRecognizerEndpoint string
 param openAiEndpoint string
 param openAiGptDeployment string
 param openAiChatGptDeployment string
+param redisServiceName string
 
 resource webIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
@@ -88,6 +89,7 @@ module app '../core/host/container-app-upsert.bicep' = {
       }
     ]
     targetPort: 80
+    redisServiceName: redisServiceName
   }
 }
 
