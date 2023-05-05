@@ -13,6 +13,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: azdevcliextacr.azurecr.io/azure-dev:pr-2052
     env:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -28,12 +30,6 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 7.0.x
-
-      - name: Install Azure Developer CLI
-        run: |
-          powershell -c "Set-ExecutionPolicy Bypass Process; irm 'https://azuresdkreleasepreview.blob.core.windows.net/azd/standalone/pr/2052/install-azd.ps1' > install-azd.ps1; ./install-azd.ps1 -BaseUrl 'https://azuresdkreleasepreview.blob.core.windows.net/azd/standalone/pr/2052' -Version '' -SkipVerify -Verbose;"
-          azd --version
-        shell: pwsh
 
       - name: Log in with Azure (Federated Credentials)
         if: ${{ env.AZURE_CLIENT_ID != '' }}
