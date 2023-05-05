@@ -1,12 +1,40 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
+param searchIndexName string
+param keyVaultName string = ''
 
 param sku object = {
   name: 'standard'
 }
 
 param authOptions object = {}
+param disableLocalAuth bool = false
+param disabledDataExfiltrationOptions array = []
+param encryptionWithCmk object = {
+  enforcement: 'Unspecified'
+}
+@allowed([
+  'default'
+  'highDensity'
+])
+param hostingMode string = 'default'
+param networkRuleSet object = {
+  bypass: 'None'
+  ipRules: []
+}
+param partitionCount int = 1
+@allowed([
+  'enabled'
+  'disabled'
+])
+param publicNetworkAccess string = 'enabled'
+param replicaCount int = 1
+@allowed([
+  'disabled'
+  'free'
+  'standard'
+])
 param semanticSearch string = 'disabled'
 
 resource search 'Microsoft.Search/searchServices@2021-04-01-preview' = {
@@ -18,24 +46,39 @@ resource search 'Microsoft.Search/searchServices@2021-04-01-preview' = {
   }
   properties: {
     authOptions: authOptions
-    disableLocalAuth: false
-    disabledDataExfiltrationOptions: []
-    encryptionWithCmk: {
-      enforcement: 'Unspecified'
-    }
-    hostingMode: 'default'
-    networkRuleSet: {
-      bypass: 'None'
-      ipRules: []
-    }
-    partitionCount: 1
-    publicNetworkAccess: 'Enabled'
-    replicaCount: 1
+    disableLocalAuth: disableLocalAuth
+    disabledDataExfiltrationOptions: disabledDataExfiltrationOptions
+    encryptionWithCmk: encryptionWithCmk
+    hostingMode: hostingMode
+    networkRuleSet: networkRuleSet
+    partitionCount: partitionCount
+    publicNetworkAccess: publicNetworkAccess
+    replicaCount: replicaCount
     semanticSearch: semanticSearch
   }
   sku: sku
 }
 
+var url = 'https://${name}.search.windows.net'
+
+module searchServiceSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'search-service-secret'
+  params: {
+    keyVaultName: keyVaultName
+    name: 'AzureSearchServiceEndpoint'
+    secretValue: url
+  }
+}
+
+module searchIndexSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'search-index-secret'
+  params: {
+    keyVaultName: keyVaultName
+    name: 'AzureSearchIndex'
+    secretValue: searchIndexName
+  }
+}
+
 output id string = search.id
-output endpoint string = 'https://${name}.search.windows.net/'
+output endpoint string = url
 output name string = search.name

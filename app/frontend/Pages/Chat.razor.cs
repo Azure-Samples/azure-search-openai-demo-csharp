@@ -12,7 +12,7 @@ public sealed partial class Chat
     private readonly Dictionary<UserQuestion, ApproachResponse?> _questionAndAnswerMap = new();
 
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
-    
+
     [Inject] public required ApiClient ApiClient { get; set; }
 
     [CascadingParameter(Name = nameof(Settings))]
@@ -47,7 +47,7 @@ public sealed partial class Chat
                 .ToList();
 
             history.Add(new ChatTurn(_userQuestion));
-            
+
             var request = new ChatRequest(history.ToArray(), Settings.Approach, Settings.Overrides);
             var result = await ApiClient.ChatConversationAsync(request);
 

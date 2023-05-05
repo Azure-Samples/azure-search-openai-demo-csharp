@@ -11,13 +11,17 @@ done <<EOF
 $(azd env get-values)
 EOF
 
+echo "Environment variables set."
 echo 'Running "PrepareDocs.dll"'
+
+pwd
+
 dotnet run --project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- \
   './data/*.pdf' \
-  --storageaccount "$AZURE_STORAGE_ACCOUNT" \
+  --storageendpoint "$AZURE_STORAGE_BLOB_ENDPOINT" \
   --container "$AZURE_STORAGE_CONTAINER" \
-  --searchservice "$AZURE_SEARCH_SERVICE" \
-  --index "$AZURE_SEARCH_INDEX" \
-  --formrecognizerservice "$AZURE_FORMRECOGNIZER_SERVICE" \
+  --searchendpoint "$AZURE_SEARCH_SERVICE_ENDPOINT" \
+  --searchindex "$AZURE_SEARCH_INDEX" \
+  --formrecognizerendpoint "$AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT" \
   --tenantid "$AZURE_TENANT_ID" \
   -v
