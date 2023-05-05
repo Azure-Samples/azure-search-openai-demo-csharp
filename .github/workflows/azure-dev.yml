@@ -33,7 +33,7 @@ jobs:
         run: |
           curl -fsSL https://azuresdkreleasepreview.blob.core.windows.net/azd/standalone/pr/2052/install-azd.sh | bash -s -- --base-url https://azuresdkreleasepreview.blob.core.windows.net/azd/standalone/pr/2052 --version '' --verbose --skip-verify | sudo bash
           azd --version
-        shell: bash
+        shell: sh
 
       - name: Log in with Azure (Federated Credentials)
         if: ${{ env.AZURE_CLIENT_ID != '' }}
