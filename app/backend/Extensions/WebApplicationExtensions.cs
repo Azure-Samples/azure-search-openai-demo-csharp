@@ -9,7 +9,7 @@ internal static class WebApplicationExtensions
         var api = app.MapGroup("api");
 
         // PDF endpoint
-        api.MapPost("citations", OnPostCitationAsync).CacheOutput();
+        api.MapGet("content/{citation}", OnGetCitationAsync).CacheOutput();
 
         // Blazor 📎 Clippy streaming endpoint
         api.MapPost("openai/chat", OnPostChatPromptAsync);
@@ -23,29 +23,33 @@ internal static class WebApplicationExtensions
         return app;
     }
 
-    private static async Task<IResult> OnPostCitationAsync(
+    private static async Task<IResult> OnGetCitationAsync(
         HttpContext http,
-        CitationRequest request,
+        string citation,
         BlobContainerClient client,
-        ILogger<WebApplication> logger,
-        IConfiguration config,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("OnGetCitationAsync {Citation}", request.Citation);
-
         if (await client.ExistsAsync(cancellationToken) is { Value: false })
         {
-            logger.LogWarning("Blob container client doesn't exist");
             return Results.NotFound("Blob container not found");
         }
 
-        var url = $"""
-            {config["AzureStorageAccountEndpoint"]}/{config["AzureStorageContainer"]}/{request.Citation}
-            """;
+        var contentDispositionHeader =
+            new ContentDispositionHeaderValue("inline")
+            {
+                FileName = citation,
+            };
 
-        logger.LogInformation("Returning citation URL of: {Url}", url);
+        http.Response.Headers.ContentDisposition = contentDispositionHeader.ToString();
+        var contentType = citation.EndsWith(".pdf")
+            ? "application/pdf"
+            : "application/octet-stream";
 
-        return TypedResults.Ok(new CitationResponse(Url: url));
+        var stream =
+            await client.GetBlobClient(citation)
+                .OpenReadAsync(cancellationToken: cancellationToken);
+
+        return Results.Stream(stream, contentType);
     }
 
     private static async IAsyncEnumerable<ChatChunkResponse> OnPostChatPromptAsync(
@@ -54,7 +58,7 @@ internal static class WebApplicationExtensions
         IConfiguration config,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var deploymentId = config["AzureOpenAiChatGptDeployment"];
+        var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
         var response = await client.GetChatCompletionsStreamingAsync(
             deploymentId, new ChatCompletionsOptions
             {

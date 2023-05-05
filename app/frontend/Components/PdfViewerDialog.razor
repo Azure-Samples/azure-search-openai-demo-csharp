@@ -1,15 +1,12 @@
 ﻿<MudDialog DisableSidePadding="true">
     <DialogContent>
         <MudContainer Style="min-height: 60vh; max-height: 75vh; overflow-y: scroll">
-            @if (_citationResponse is not null)
-            {
-                <div style="@_pdfViewerVisibilityStyle">
-                    @{
-                        var url = $"{_citationResponse.Url}#view-fitV";
-                    }
-                    <iframe id="pdf-viewer" src="@url" title="@Title" />
-                </div>
-            }
+            <div style="@_pdfViewerVisibilityStyle">
+                @{
+                    var url = $"{_baseAddress}api/content/{Title}#view-fitV";
+                }
+                <iframe id="pdf-viewer" src="@url" title="@Title" />
+            </div>
             @if (_isLoaded is false)
             {
                 <MudSkeleton Class="pa-2" />
