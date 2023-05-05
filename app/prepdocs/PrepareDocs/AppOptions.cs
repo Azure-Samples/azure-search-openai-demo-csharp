@@ -6,14 +6,14 @@ internal record class AppOptions(
     string Files,
     string? Category,
     bool SkipBlobs,
-    string? StorageAccount,
+    string? StorageServiceBlobEndpoint,
     string? Container,
     string? TenantId,
-    string? SearchService,
-    string? Index,
+    string? SearchServiceEndpoint,
+    string? SearchIndexName,
     bool Remove,
     bool RemoveAll,
-    string? FormRecognizerService,
+    string? FormRecognizerServiceEndpoint,
     bool Verbose,
     IConsole Console) : AppConsole(Console);
 

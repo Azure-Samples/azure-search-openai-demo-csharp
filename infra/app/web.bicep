@@ -71,7 +71,7 @@ module app '../core/host/container-app-upsert.bicep' = {
         value: searchIndexName
       }
       {
-        name: 'AZURE_FORMRECOGNIZER_SERVICE'
+        name: 'AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT'
         value: formRecognizerEndpoint
       }
       {

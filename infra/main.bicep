@@ -357,6 +357,7 @@ output AZURE_OPENAI_GPT_DEPLOYMENT string = gptDeploymentName
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
 
 output AZURE_FORMRECOGNIZER_SERVICE string = formRecognizer.outputs.name
+output AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT string = formRecognizer.outputs.endpoint
 output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = formRecognizerResourceGroup.name
 
 output AZURE_SEARCH_INDEX string = searchIndexName

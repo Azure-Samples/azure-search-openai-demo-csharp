@@ -82,19 +82,33 @@ static async ValueTask RemoveBlobsAsync(
         options.Console.WriteLine($"Removing blobs for '{fileName ?? "all"}'");
     }
 
-    var container = await GetBlobContainerClientAsync(options);
     var prefix = string.IsNullOrWhiteSpace(fileName)
         ? Path.GetFileName(fileName)
         : null;
 
-    await foreach (var blob in container.GetBlobsAsync())
+    var getContainerClientTask = GetBlobContainerClientAsync(options);
+    var getCorpusClientTask = GetCorpusBlobContainerClientAsync(options);
+    var clientTasks = new[] { getContainerClientTask, getCorpusClientTask };
+
+    await Task.WhenAll(clientTasks);
+
+    foreach (var clientTask in clientTasks)
     {
-        if (string.IsNullOrWhiteSpace(prefix) ||
-            blob.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        {
-            await container.DeleteBlobAsync(blob.Name);
-        }
+        var client = await clientTask;
+        await DeleteAllBlobsFromContainerAsync(client, prefix);
     }
+
+    static async Task DeleteAllBlobsFromContainerAsync(BlobContainerClient client, string? prefix)
+    {
+        await foreach (var blob in client.GetBlobsAsync())
+        {
+            if (string.IsNullOrWhiteSpace(prefix) ||
+                blob.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                await client.DeleteBlobAsync(blob.Name);
+            }
+        }
+    };
 }
 
 static async ValueTask RemoveFromIndexAsync(
@@ -103,14 +117,11 @@ static async ValueTask RemoveFromIndexAsync(
     if (options.Verbose)
     {
         options.Console.WriteLine($"""
-            Removing sections from '{fileName ?? "all"}' from search index '{options.Index}.'
+            Removing sections from '{fileName ?? "all"}' from search index '{options.SearchIndexName}.'
             """);
     }
 
-    var searchClient = new SearchClient(
-        new Uri($"https://{options.SearchService}.search.windows.net/"),
-        options.Index,
-        DefaultCredential);
+    var searchClient = await GetSearchClientAsync(options);
 
     while (true)
     {
@@ -150,28 +161,22 @@ static async ValueTask RemoveFromIndexAsync(
 
 static async ValueTask CreateSearchIndexAsync(AppOptions options)
 {
-    var indexClient = new SearchIndexClient(
-        new Uri($"https://{options.SearchService}.search.windows.net/"),
-        DefaultCredential);
+    var indexClient = await GetSearchIndexClientAsync(options);
 
-    // Call GetIndexNamesAsync() to retrieve a list of all index names
     var indexNames = indexClient.GetIndexNamesAsync();
-
-    // Use AsPages() to process the results in pages
     await foreach (var page in indexNames.AsPages())
     {
-        // Check if the index we're interested in exists in the current page of results
-        if (page.Values.Any(indexName => indexName == options.Index))
+        if (page.Values.Any(indexName => indexName == options.SearchIndexName))
         {
             if (options.Verbose)
             {
-                options.Console.WriteLine($"Search index '{options.Index}' already exists");
+                options.Console.WriteLine($"Search index '{options.SearchIndexName}' already exists");
             }
             return;
         }
     }
 
-    var index = new SearchIndex(options.Index)
+    var index = new SearchIndex(options.SearchIndexName)
     {
         Fields =
         {
@@ -201,7 +206,7 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
 
     if (options.Verbose)
     {
-        options.Console.WriteLine($"Creating '{options.Index}' search index");
+        options.Console.WriteLine($"Creating '{options.SearchIndexName}' search index");
     }
 
     await indexClient.CreateIndexAsync(index);
@@ -210,14 +215,7 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
 static async ValueTask UploadCorpusAsync(
        AppOptions options, string corpusName, string content)
 {
-    var blobService = new BlobServiceClient(
-        new Uri($"https://{options.StorageAccount}.blob.core.windows.net"),
-        DefaultCredential);
-    var container =
-        blobService.GetBlobContainerClient("corpus");
-
-    await container.CreateIfNotExistsAsync();
-
+    var container = await GetCorpusBlobContainerClientAsync(options);
     var blob = container.GetBlobClient(corpusName);
     if (await blob.ExistsAsync())
     {
@@ -228,7 +226,7 @@ static async ValueTask UploadCorpusAsync(
         options.Console.WriteLine($"Uploading corpus '{corpusName}'");
     }
 
-    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+    await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
     await container.UploadBlobAsync(corpusName, stream);
 }
 
@@ -237,7 +235,7 @@ static async ValueTask UploadBlobsAsync(
 {
     var container = await GetBlobContainerClientAsync(options);
 
-    // if it's pdf file, split it into single pages
+    // If it's a PDF, split it into single pages.
     if (Path.GetExtension(fileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
     {
         using var documents = PdfReader.Open(fileName, PdfDocumentOpenMode.Import);
@@ -293,19 +291,9 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
         options.Console.WriteLine($"Extracting text from '{filename}' using Azure Form Recognizer");
     }
 
-    var client = new DocumentAnalysisClient(
-        new Uri($"https://{options.FormRecognizerService}.cognitiveservices.azure.com/"),
-        DefaultCredential,
-        new DocumentAnalysisClientOptions
-        {
-            Diagnostics =
-            {
-                IsLoggingContentEnabled = true
-            }
-        });
-
     await using FileStream stream = File.OpenRead(filename);
 
+    var client = await GetFormRecognizerClientAsync(options);
     AnalyzeDocumentOperation operation = client.AnalyzeDocument(
         WaitUntil.Started, "prebuilt-layout", stream);
 
@@ -485,14 +473,11 @@ static async ValueTask IndexSectionsAsync(
     if (options.Verbose)
     {
         options.Console.WriteLine($"""
-            Indexing sections from '{fileName}' into search index '{options.Index}'
+            Indexing sections from '{fileName}' into search index '{options.SearchIndexName}'
             """);
     }
 
-    var searchClient = new SearchClient(
-        new Uri($"https://{options.SearchService}.search.windows.net"),
-        options.Index,
-        DefaultCredential);
+    var searchClient = await GetSearchClientAsync(options);
 
     var iteration = 0;
     var batch = new IndexDocumentsBatch<SearchDocument>();
