@@ -316,14 +316,13 @@ module searchContribRoleUser 'core/security/role.bicep' = {
   }
 }
 
-// SYSTEM IDENTITIES
 module openAiRoleBackend 'core/security/role.bicep' = {
   scope: openAiResourceGroup
   name: 'openai-role-backend'
   params: {
     principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-    principalType: 'ServicePrincipal'
+    principalType: 'User'
   }
 }
 
@@ -333,7 +332,7 @@ module storageRoleBackend 'core/security/role.bicep' = {
   params: {
     principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
-    principalType: 'ServicePrincipal'
+    principalType: 'User'
   }
 }
 
@@ -343,7 +342,7 @@ module searchRoleBackend 'core/security/role.bicep' = {
   params: {
     principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
-    principalType: 'ServicePrincipal'
+    principalType: 'User'
   }
 }
 
