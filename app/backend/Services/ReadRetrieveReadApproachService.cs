@@ -10,6 +10,7 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
     private readonly AzureOpenAITextCompletionService _completionService;
     private readonly ILogger<ReadRetrieveReadApproachService> _logger;
     private readonly IConfiguration _configuration;
+
     private const string PlanPrompt = """
         Do the following steps:
          - Search information for $question and save result to $knowledge

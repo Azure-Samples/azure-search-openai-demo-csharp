@@ -7,6 +7,7 @@ public class ReadRetrieveReadChatService
     private readonly SearchClient _searchClient;
     private readonly IKernel _kernel;
     private readonly IConfiguration _configuration;
+
     private const string FollowUpQuestionsPrompt = """
         Generate three very brief follow-up questions that the user would likely ask next about their healthcare plan and employee handbook.
         Use double angle brackets to reference the questions, e.g. <<Are there exclusions for prescriptions?>>.
