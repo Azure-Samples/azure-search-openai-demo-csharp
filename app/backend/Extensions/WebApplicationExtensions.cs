@@ -8,9 +8,6 @@ internal static class WebApplicationExtensions
     {
         var api = app.MapGroup("api");
 
-        // PDF endpoint
-        api.MapGet("content/{citation}", OnGetCitationAsync);
-
         // Blazor 📎 Clippy streaming endpoint
         api.MapPost("openai/chat", OnPostChatPromptAsync);
 
@@ -21,35 +18,6 @@ internal static class WebApplicationExtensions
         api.MapPost("ask", OnPostAskAsync);
 
         return app;
-    }
-
-    private static async Task<IResult> OnGetCitationAsync(
-        HttpContext http,
-        string citation,
-        BlobContainerClient client,
-        CancellationToken cancellationToken)
-    {
-        if (await client.ExistsAsync(cancellationToken) is { Value: false })
-        {
-            return Results.NotFound("Blob container not found");
-        }
-
-        var contentDispositionHeader =
-            new ContentDispositionHeaderValue("inline")
-            {
-                FileName = citation,
-            };
-
-        http.Response.Headers.ContentDisposition = contentDispositionHeader.ToString();
-        var contentType = citation.EndsWith(".pdf")
-            ? "application/pdf"
-            : "application/octet-stream";
-
-        var stream =
-            await client.GetBlobClient(citation)
-                .OpenReadAsync(cancellationToken: cancellationToken);
-
-        return Results.Stream(stream, contentType);
     }
 
     private static async IAsyncEnumerable<ChatChunkResponse> OnPostChatPromptAsync(

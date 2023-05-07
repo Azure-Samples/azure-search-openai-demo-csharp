@@ -32,9 +32,9 @@ public class AnswerParserTests
                 """,
                 new List<CitationDetails>
                 {
-                    new CitationDetails("Northwind_Health_Plus_Benefits_Details-70.pdf", 1),
-                    new CitationDetails("Northwind_Health_Plus_Benefits_Details-102.pdf", 2),
-                    new CitationDetails("Northwind_Health_Plus_Benefits_Details-25.pdf", 3)
+                    new CitationDetails("Northwind_Health_Plus_Benefits_Details-70.pdf", "content", 1),
+                    new CitationDetails("Northwind_Health_Plus_Benefits_Details-102.pdf", "content", 2),
+                    new CitationDetails("Northwind_Health_Plus_Benefits_Details-25.pdf", "content", 3)
                 },
                 new HashSet<string>()
             };
@@ -48,7 +48,7 @@ public class AnswerParserTests
         List<CitationDetails> expectedCitations,
         HashSet<string> expectedFollowups)
     {
-        var html = Answer.ParseAnswerToHtml(answerText);
+        var html = Answer.ParseAnswerToHtml(answerText, "content");
         Assert.Equal(expectedHtml, html.AnswerHtml);
         Assert.Equal(html.Citations, expectedCitations);
         Assert.Equal(html.FollowupQuestions, expectedFollowups);

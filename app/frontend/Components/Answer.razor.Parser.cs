@@ -4,7 +4,7 @@ namespace ClientApp.Components;
 
 public sealed partial class Answer
 {
-    internal static HtmlParsedAnswer ParseAnswerToHtml(string answer)
+    internal static HtmlParsedAnswer ParseAnswerToHtml(string answer, string citationBaseUrl)
     {
         var citations = new List<CitationDetails>();
         var followupQuestions = new HashSet<string>();
@@ -35,7 +35,7 @@ public sealed partial class Answer
                 }
                 else
                 {
-                    var citation = new CitationDetails(part, citationNumber);
+                    var citation = new CitationDetails(part, citationBaseUrl, citationNumber);
                     citations.Add(citation);
                 }
 

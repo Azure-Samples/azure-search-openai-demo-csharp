@@ -8,6 +8,7 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
 {
     private readonly SearchClient _searchClient;
     private readonly ILogger<ReadDecomposeAskApproachService> _logger;
+    private readonly IConfiguration _configuration;
     private readonly AzureOpenAITextCompletionService _completionService;
 
     private const string AnswerPromptPrefix = """
@@ -175,11 +176,13 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
     public ReadDecomposeAskApproachService(
         SearchClient searchClient,
         AzureOpenAITextCompletionService completionService,
-        ILogger<ReadDecomposeAskApproachService> logger)
+        ILogger<ReadDecomposeAskApproachService> logger,
+        IConfiguration configuration)
     {
         _searchClient = searchClient;
         _completionService = completionService;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -211,13 +214,14 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
 
         do
         {
-            plan = await kernel.StepAsync(question, plan);
+            plan = await kernel.StepAsync(question, plan, cancellationToken: cancellationToken);
         } while (plan.HasNextStep);
 
         return new ApproachResponse(
             DataPoints: plan.State["knowledge"].ToString().Split('\r'),
             Answer: plan.State["Answer"],
-            Thoughts: plan.State["SUMMARY"].Replace("\n", "<br>"));
+            Thoughts: plan.State["SUMMARY"].Replace("\n", "<br>"),
+            CitationBaseUrl: _configuration.ToCitationBaseUrl());
     }
 
     private static string PlanToString(Plan originalPlan)
