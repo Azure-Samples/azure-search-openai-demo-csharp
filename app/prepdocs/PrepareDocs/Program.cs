@@ -216,8 +216,8 @@ static async ValueTask UploadCorpusAsync(
        AppOptions options, string corpusName, string content)
 {
     var container = await GetCorpusBlobContainerClientAsync(options);
-    var blob = container.GetBlobClient(corpusName);
-    if (await blob.ExistsAsync())
+    var blobClient = container.GetBlobClient(corpusName);
+    if (await blobClient.ExistsAsync())
     {
         return;
     }
@@ -227,7 +227,10 @@ static async ValueTask UploadCorpusAsync(
     }
 
     await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-    await container.UploadBlobAsync(corpusName, stream);
+    await blobClient.UploadAsync(stream, new BlobHttpHeaders
+    {
+        ContentType = "text/plain"
+    });
 }
 
 static async ValueTask UploadBlobsAsync(
@@ -242,8 +245,8 @@ static async ValueTask UploadBlobsAsync(
         for (int i = 0; i < documents.PageCount; i++)
         {
             var documentName = BlobNameFromFilePage(fileName, i);
-            var blob = container.GetBlobClient(documentName);
-            if (await blob.ExistsAsync())
+            var blobClient = container.GetBlobClient(documentName);
+            if (await blobClient.ExistsAsync())
             {
                 continue;
             }
@@ -257,7 +260,10 @@ static async ValueTask UploadBlobsAsync(
                 document.Save(tempFileName);
 
                 await using var stream = File.OpenRead(tempFileName);
-                await container.UploadBlobAsync(documentName, stream);
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                {
+                    ContentType = "application/pdf"
+                });
             }
             finally
             {
@@ -279,8 +285,26 @@ static async Task UploadBlobAsync(string fileName, string blobName, BlobContaine
     {
         return;
     }
+
+    var blobHttpHeaders = new BlobHttpHeaders
+    {
+        ContentType = GetContentType(fileName)
+    };
+
     await using var fileStream = File.OpenRead(fileName);
-    await blobClient.UploadAsync(fileStream, new BlobUploadOptions());
+    await blobClient.UploadAsync(fileStream, blobHttpHeaders);
+}
+
+static string GetContentType(string fileName)
+{
+    var extension = Path.GetExtension(fileName);
+    return extension switch
+    {
+        ".pdf" => "application/pdf",
+        ".txt" => "text/plain",
+
+        _ => "application/octet-stream"
+    };
 }
 
 static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
