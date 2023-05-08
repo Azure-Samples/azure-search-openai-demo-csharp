@@ -9,7 +9,7 @@ internal static class WebApplicationExtensions
         var api = app.MapGroup("api");
 
         // PDF endpoint
-        api.MapGet("content/{citation}", OnGetCitationAsync).CacheOutput();
+        api.MapGet("content/{citation}", OnGetCitationAsync);
 
         // Blazor 📎 Clippy streaming endpoint
         api.MapPost("openai/chat", OnPostChatPromptAsync);
