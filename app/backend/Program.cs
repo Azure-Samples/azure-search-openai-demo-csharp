@@ -13,7 +13,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddCrossOriginResourceSharing();
 builder.Services.AddAzureServices();
 
-if (builder.Environment.IsDevelopment())
+var redisConnectionString = builder.Configuration["AzureRedisCacheConnectionString"];
+if (builder.Environment.IsDevelopment() || string.IsNullOrWhiteSpace(redisConnectionString))
 {
     builder.Services.AddDistributedMemoryCache();
 }
@@ -21,9 +22,7 @@ else
 {
     builder.Services.AddStackExchangeRedisCache(options =>
     {
-        var connectionString = builder.Configuration["AzureRedisCacheConnectionString"];
-
-        options.Configuration = connectionString;
+        options.Configuration = redisConnectionString;
         options.InstanceName = "content";
     });
 }
