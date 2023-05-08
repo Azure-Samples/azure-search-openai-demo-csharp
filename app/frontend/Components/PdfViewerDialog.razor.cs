@@ -4,27 +4,22 @@ namespace ClientApp.Components;
 
 public sealed partial class PdfViewerDialog
 {
-    private bool _isLoaded = false;
-    private Uri? _baseAddress;
-    private string _pdfViewerVisibilityStyle => _isLoaded ? "display:default;" : "display:none;";
+    private bool _isLoading = true;
+    private string _pdfViewerVisibilityStyle => _isLoading ? "display:none;" : "display:default;";
 
-    [Inject] public required IHttpClientFactory Factory { get; set; }
-
-    [Parameter] public required string Title { get; set; }
+    [Parameter] public required string FileName { get; set; }
+    [Parameter] public required string BaseUrl { get; set; }
 
     [CascadingParameter] public required MudDialogInstance Dialog { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var client = Factory.CreateClient(typeof(ApiClient).Name);
-        _baseAddress = client.BaseAddress;
-
         await base.OnInitializedAsync();
         await JavaScriptModule.RegisterIFrameLoadedAsync(
             "#pdf-viewer",
             () =>
             {
-                _isLoaded = true;
+                _isLoading = false;
                 StateHasChanged();
             });
     }

@@ -6,6 +6,7 @@ public class ReadRetrieveReadChatService
 {
     private readonly SearchClient _searchClient;
     private readonly IKernel _kernel;
+    private readonly IConfiguration _configuration;
 
     private const string FollowUpQuestionsPrompt = """
         Generate three very brief follow-up questions that the user would likely ask next about their healthcare plan and employee handbook.
@@ -28,10 +29,14 @@ public class ReadRetrieveReadChatService
         {{$chat_history}}
         """;
 
-    public ReadRetrieveReadChatService(SearchClient searchClient, IKernel kernel)
+    public ReadRetrieveReadChatService(
+        SearchClient searchClient,
+        IKernel kernel,
+        IConfiguration configuration)
     {
         _searchClient = searchClient;
         _kernel = kernel;
+        _configuration = configuration;
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -110,7 +115,8 @@ public class ReadRetrieveReadChatService
         return new ApproachResponse(
             DataPoints: documentContents.Split('\r'),
             Answer: ans.Result,
-            Thoughts: $"Searched for:<br>{query}<br><br>Prompt:<br>{prompt.Replace("\n", "<br>")}");
+            Thoughts: $"Searched for:<br>{query}<br><br>Prompt:<br>{prompt.Replace("\n", "<br>")}",
+            CitationBaseUrl: _configuration.ToCitationBaseUrl());
     }
 
     private ISKFunction CreateQueryPromptFunction(ChatTurn[] history)

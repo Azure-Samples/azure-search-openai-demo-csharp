@@ -9,6 +9,7 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
     private readonly SearchClient _searchClient;
     private readonly AzureOpenAITextCompletionService _completionService;
     private readonly ILogger<ReadRetrieveReadApproachService> _logger;
+    private readonly IConfiguration _configuration;
 
     private const string PlanPrompt = """
         Do the following steps:
@@ -51,11 +52,13 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
     public ReadRetrieveReadApproachService(
         SearchClient searchClient,
         AzureOpenAITextCompletionService service,
-        ILogger<ReadRetrieveReadApproachService> logger)
+        ILogger<ReadRetrieveReadApproachService> logger,
+        IConfiguration configuration)
     {
         _searchClient = searchClient;
         _completionService = service;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -81,7 +84,7 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
 
         do
         {
-            plan = await kernel.StepAsync(plan);
+            plan = await kernel.StepAsync(plan, cancellationToken: cancellationToken);
             sb.AppendLine($"Step {step++} - Execution results:\n");
             sb.AppendLine(plan.State + "\n");
         } while (plan.HasNextStep);
@@ -89,7 +92,8 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
         return new ApproachResponse(
             DataPoints: plan.State["knowledge"].ToString().Split('\r'),
             Answer: plan.State["Answer"],
-            Thoughts: sb.ToString().Replace("\n", "<br>"));
+            Thoughts: sb.ToString().Replace("\n", "<br>"),
+            CitationBaseUrl: _configuration.ToCitationBaseUrl());
     }
 
     private static string PlanToString(Plan originalPlan)

@@ -9,6 +9,7 @@ global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
 global using ClientApp;
 global using ClientApp.Components;
+global using ClientApp.Extensions;
 global using ClientApp.Interop;
 global using ClientApp.Models;
 global using ClientApp.Options;
