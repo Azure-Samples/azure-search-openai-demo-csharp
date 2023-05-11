@@ -22,24 +22,23 @@ else
     builder.Services.AddStackExchangeRedisCache(options =>
     {
         var name = builder.Configuration["AzureRedisCacheName"] +
-		    ".redis.cache.windows.net";
+			".redis.cache.windows.net" ;
         var key = builder.Configuration["AzureRedisCachePrimaryKey"];
 		var ssl = "true";
 
-		// "ACA" is the ACA binding name
-		var RedisHost = Environment.GetEnvironmentVariable("ACA_REDIS_HOST");
+		var RedisHost = Environment.GetEnvironmentVariable("REDIS_HOST");
 		if ( RedisHost != "" )
 		{
-			name = RedisHost + ":" + 
-			    Environment.GetEnvironmentVariable("ACA_REDIS_PORT");
-			key = Environment.GetEnvironmentVariable("ACA_REDIS_PASSWORD");
+			name = RedisHost + ":" +
+			    Environment.GetEnvironmentVariable("REDIS_PORT");
+			key = Environment.GetEnvironmentVariable("REDIS_PASSWORD");
 			ssl = "false";
 		}
 
 		RedisHost = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
 		if ( RedisHost != "" )
 		{
-			name = RedisHost + ":" + 
+			name = RedisHost + ":" +
 			    Environment.GetEnvironmentVariable("AZURE_REDIS_PORT");
 			key = Environment.GetEnvironmentVariable("AZURE_REDIS_PASSWORD");
 			ssl = "false";
