@@ -46,6 +46,12 @@
     },
     "webAppExists": {
       "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}"
+    },
+    "resourceGroupName": {
+      "value": "${AZURE_RESOURCE_GROUP}"
+    },
+    "tags": {
+      "value": "${AZURE_TAGS}"
     }
   }
 }
