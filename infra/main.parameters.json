@@ -44,6 +44,12 @@
     "storageResourceGroupName": {
       "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
     },
+    "redisCacheName": {
+      "value": "${AZURE_REDIS_CACHE}"
+    },
+    "redisCacheResourceGroupName": {
+      "value": "${AZURE_REDIS_CACHE_RESOURCE_GROUP}"
+    },
     "webAppExists": {
       "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}"
     },
