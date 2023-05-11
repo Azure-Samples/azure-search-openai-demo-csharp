@@ -1,26 +1,80 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-var builder = WebAssemblyHostBuilder.CreateDefault(args);
+var builder = WebApplication.CreateBuilder(args);
 
-builder.RootComponents.Add<App>("#app");
-builder.RootComponents.Add<HeadOutlet>("head::after");
+builder.Configuration.ConfigureAzureKeyVault();
 
-builder.Services.Configure<AppSettings>(
-    builder.Configuration.GetSection(nameof(AppSettings)));
-builder.Services.AddHttpClient<ApiClient>(client =>
+// See: https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddOutputCache();
+builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+builder.Services.AddCrossOriginResourceSharing();
+builder.Services.AddAzureServices();
+
+if (builder.Environment.IsDevelopment())
 {
-    client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
-});
-builder.Services.AddScoped<OpenAIPromptQueue>();
-builder.Services.AddLocalStorageServices();
-builder.Services.AddSessionStorageServices();
-builder.Services.AddSpeechSynthesisServices();
-builder.Services.AddSpeechRecognitionServices();
-builder.Services.AddMudServices();
+    builder.Services.AddDistributedMemoryCache();
+}
+else
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        var name = builder.Configuration["AzureRedisCacheName"] +
+		    ".redis.cache.windows.net";
+        var key = builder.Configuration["AzureRedisCachePrimaryKey"];
+		var ssl = "true";
 
-await JSHost.ImportAsync(
-    moduleName: nameof(JavaScriptModule),
-    moduleUrl: $"../js/iframe.js?{Guid.NewGuid()}" /* cache bust */);
+		// "ACA" is the ACA binding name
+		var RedisHost = Environment.GetEnvironmentVariable("ACA_REDIS_HOST");
+		if ( RedisHost != "" )
+		{
+			name = RedisHost + ":" + 
+			    Environment.GetEnvironmentVariable("ACA_REDIS_PORT");
+			key = Environment.GetEnvironmentVariable("ACA_REDIS_PASSWORD");
+			ssl = "false";
+		}
 
-var host = builder.Build();
-await host.RunAsync();
+		RedisHost = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
+		if ( RedisHost != "" )
+		{
+			name = RedisHost + ":" + 
+			    Environment.GetEnvironmentVariable("AZURE_REDIS_PORT");
+			key = Environment.GetEnvironmentVariable("AZURE_REDIS_PASSWORD");
+			ssl = "false";
+		}
+
+        options.Configuration = $"""
+            {name},abortConnect=false,ssl={ssl},allowAdmin=true,password={key}
+            """;
+        options.InstanceName = "content";
+    });
+}
+
+var app = builder.Build();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.UseWebAssemblyDebugging();
+}
+else
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseOutputCache();
+app.UseCors();
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
+app.UseRouting();
+app.MapRazorPages();
+app.MapControllers();
+app.MapFallbackToFile("index.html");
+
+app.MapApi();
+
+app.Run();
