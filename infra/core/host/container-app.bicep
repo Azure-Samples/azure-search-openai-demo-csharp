@@ -10,6 +10,8 @@ param env array = []
 param external bool = true
 param imageName string
 param targetPort int = 80
+param allowedOrigins array = []
+param serviceBinds array = []
 
 @description('User assigned identity name')
 param identityName string = ''
@@ -32,7 +34,7 @@ module containerRegistryAccess '../security/role.bicep' = {
   }
 }
 
-resource app 'Microsoft.App/containerApps@2022-03-01' = {
+resource app 'Microsoft.App/containerApps@2022-11-01-preview' = {
   name: name
   location: location
   tags: tags
@@ -53,6 +55,9 @@ resource app 'Microsoft.App/containerApps@2022-03-01' = {
         external: external
         targetPort: targetPort
         transport: 'auto'
+        corsPolicy: {
+          allowedOrigins: union([ 'https://portal.azure.com', 'https://ms.portal.azure.com' ], allowedOrigins)
+        }
       }
       secrets: secrets
       registries: [
@@ -63,6 +68,7 @@ resource app 'Microsoft.App/containerApps@2022-03-01' = {
       ]
     }
     template: {
+      serviceBinds: serviceBinds
       containers: [
         {
           image: !empty(imageName) ? imageName : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
@@ -78,8 +84,11 @@ resource app 'Microsoft.App/containerApps@2022-03-01' = {
   }
 }
 
-resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' existing = {
+resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-11-01-preview' = {
   name: containerAppsEnvironmentName
+  location: location
+  tags: tags
+  properties: {}
 }
 
 // 2022-02-01-preview needed for anonymousPullEnabled

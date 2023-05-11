@@ -103,6 +103,7 @@ module containerApps './core/host/container-apps.bicep' = {
     containerRegistryName: !empty(containerRegistryName) ? containerRegistryName : '${abbrs.containerRegistryRegistries}${resourceToken}'
     location: location
     logAnalyticsWorkspaceName: monitoring.outputs.logAnalyticsWorkspaceName
+    resourceToken : resourceToken
   }
 }
 
@@ -128,6 +129,7 @@ module web './app/web.bicep' = {
     openAiEndpoint: openAi.outputs.endpoint
     openAiGptDeployment: gptDeploymentName
     openAiChatGptDeployment: chatGptDeploymentName
+    serviceBinds: [ containerApps.outputs.redisServiceBind ]
   }
 }
 

@@ -10,6 +10,7 @@ param env array = []
 param external bool = true
 param targetPort int = 80
 param exists bool
+param serviceBinds array = []
 
 @description('User assigned identity name')
 param identityName string = ''
@@ -20,7 +21,7 @@ param containerCpuCoreCount string = '0.5'
 @description('Memory allocated to a single container instance, e.g. 1Gi')
 param containerMemory string = '1.0Gi'
 
-resource existingApp 'Microsoft.App/containerApps@2022-03-01' existing = if (exists) {
+resource existingApp 'Microsoft.App/containerApps@2022-11-01-preview' existing = if (exists) {
   name: name
 }
 
@@ -41,6 +42,7 @@ module app 'container-app.bicep' = {
     env: env
     imageName: exists ? existingApp.properties.template.containers[0].image : ''
     targetPort: targetPort
+    serviceBinds: serviceBinds
   }
 }
 
