@@ -41,3 +41,5 @@ module redisPrimaryKeySecret '../security/keyvault-secret.bicep' = if (keyVaultN
     secretValue: '${redis.name}.redis.cache.windows.net,password=${redis.listKeys().primaryKey},ssl=True,abortConnect=False'
   }
 }
+
+output name string = redis.name

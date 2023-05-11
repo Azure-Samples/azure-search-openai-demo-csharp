@@ -9,23 +9,32 @@ on:
     branches:
       - 'releases/**'
 
-# https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux#set-up-azure-login-with-openid-connect-authentication
+# https://learn.microsoft.com/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux#set-up-azure-login-with-openid-connect-authentication
 permissions:
   id-token: write
   contents: read
+
+env:
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCEGROUPNAME }}
+  AZURE_DEV_USER_AGENT: ${{ secrets.AZURE_DEV_USER_AGENT }}
+  # Existing resources, when applicable
+  AZURE_OPENAI_SERVICE: ${{ secrets.AZURE_OPENAI_SERVICE }}
+  AZURE_OPENAI_RESOURCE_GROUP: ${{ secrets.AZURE_OPENAI_RESOURCE_GROUP }}
+  AZURE_SEARCH_SERVICE: ${{ secrets.AZURE_SEARCH_SERVICE }}
+  AZURE_SEARCH_SERVICE_RESOURCE_GROUP: ${{ secrets.AZURE_SEARCH_SERVICE_RESOURCE_GROUP }}
+  AZURE_REDIS_CACHE: ${{ secrets.AZURE_REDIS_CACHE }}
+  AZURE_REDIS_CACHE_RESOURCE_GROUP: ${{ secrets.AZURE_REDIS_CACHE_RESOURCE_GROUP }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: azdevcliextacr.azurecr.io/azure-dev:pr-2052
-    env:
-      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-      AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCEGROUPNAME }}
-      AZURE_DEV_USER_AGENT: ${{ secrets.AZURE_DEV_USER_AGENT }}
+      image: mcr.microsoft.com/azure-dev-cli-apps:latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
