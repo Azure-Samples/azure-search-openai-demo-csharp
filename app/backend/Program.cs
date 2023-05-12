@@ -21,13 +21,32 @@ else
 {
     builder.Services.AddStackExchangeRedisCache(options =>
     {
-        var name = builder.Configuration["AzureRedisCacheName"];
+        var name = builder.Configuration["AzureRedisCacheName"] +
+			".redis.cache.windows.net" ;
         var key = builder.Configuration["AzureRedisCachePrimaryKey"];
+		var ssl = "true";
+
+		var RedisHost = Environment.GetEnvironmentVariable("REDIS_HOST");
+		if ( RedisHost != "" )
+		{
+			name = RedisHost + ":" +
+			    Environment.GetEnvironmentVariable("REDIS_PORT");
+			key = Environment.GetEnvironmentVariable("REDIS_PASSWORD");
+			ssl = "false";
+		}
+
+		RedisHost = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
+		if ( RedisHost != "" )
+		{
+			name = RedisHost + ":" +
+			    Environment.GetEnvironmentVariable("AZURE_REDIS_PORT");
+			key = Environment.GetEnvironmentVariable("AZURE_REDIS_PASSWORD");
+			ssl = "false";
+		}
 
         options.Configuration = $"""
-            {name}.redis.cache.windows.net,abortConnect=false,ssl=true,allowAdmin=true,password={key}
+            {name},abortConnect=false,ssl={ssl},allowAdmin=true,password={key}
             """;
-
         options.InstanceName = "content";
     });
 }
