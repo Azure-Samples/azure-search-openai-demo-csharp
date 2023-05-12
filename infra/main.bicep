@@ -11,9 +11,7 @@ param location string
 
 param resourceGroupName string = ''
 param keyVaultName string = ''
-param containerAppsEnvironmentName string = ''
 param containerRegistryName string = ''
-param webContainerAppName string = ''
 param applicationInsightsDashboardName string = ''
 param applicationInsightsName string = ''
 param logAnalyticsName string = ''
@@ -37,7 +35,6 @@ param redisCacheResourceGroupLocation string = location
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
 param openAiResourceGroupLocation string = location
-param webAppExists bool = false
 param openAiSkuName string = 'S0'
 
 param formRecognizerServiceName string = ''
@@ -50,6 +47,9 @@ param gptDeploymentName string = 'davinci'
 param gptModelName string = 'text-davinci-003'
 param chatGptDeploymentName string = 'chat'
 param chatGptModelName string = 'gpt-35-turbo'
+
+@description('The resource name of the AKS cluster')
+param clusterName string = ''
 
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
@@ -99,43 +99,17 @@ module keyVault './core/security/keyvault.bicep' = {
   }
 }
 
-
-
-// Container apps host (including container registry)
-module containerApps './core/host/container-apps.bicep' = {
-  name: 'container-apps'
+// The AKS cluster to host applications
+module aks './core/host/aks.bicep' = {
+  name: 'aks'
   scope: resourceGroup
   params: {
-    name: 'app'
-    containerAppsEnvironmentName: !empty(containerAppsEnvironmentName) ? containerAppsEnvironmentName : '${abbrs.appManagedEnvironments}${resourceToken}'
+    location: location
+    name: !empty(clusterName) ? clusterName : '${abbrs.containerServiceManagedClusters}${resourceToken}'
     containerRegistryName: !empty(containerRegistryName) ? containerRegistryName : '${abbrs.containerRegistryRegistries}${resourceToken}'
-    location: location
-    logAnalyticsWorkspaceName: monitoring.outputs.logAnalyticsWorkspaceName
-  }
-}
-
-// Web frontend
-module web './app/web.bicep' = {
-  name: 'web'
-  scope: resourceGroup
-  params: {
-    name: !empty(webContainerAppName) ? webContainerAppName : '${abbrs.appContainerApps}web-${resourceToken}'
-    location: location
-    tags: updatedTags
-    identityName: '${abbrs.managedIdentityUserAssignedIdentities}web-${resourceToken}'
-    applicationInsightsName: monitoring.outputs.applicationInsightsName
-    containerAppsEnvironmentName: containerApps.outputs.environmentName
-    containerRegistryName: containerApps.outputs.registryName
-    exists: webAppExists
+    logAnalyticsName: monitoring.outputs.logAnalyticsWorkspaceName
     keyVaultName: keyVault.outputs.name
-    storageBlobEndpoint: storage.outputs.primaryEndpoints.blob
-    storageContainerName: storageContainerName
-    searchServiceEndpoint: searchService.outputs.endpoint
-    searchIndexName: searchIndexName
-    formRecognizerEndpoint: formRecognizer.outputs.endpoint
-    openAiEndpoint: openAi.outputs.endpoint
-    openAiGptDeployment: gptDeploymentName
-    openAiChatGptDeployment: chatGptDeploymentName
+
   }
 }
 
@@ -271,7 +245,7 @@ module openAiRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-    principalType: 'ServicePrincipal'
+    principalType: 'User'
   }
 }
 
@@ -281,7 +255,7 @@ module formRecognizerRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: 'a97b65f3-24c7-4388-baec-2e87135dc908'
-    principalType: 'ServicePrincipal'
+    principalType: 'User'
   }
 }
 
@@ -291,7 +265,7 @@ module storageRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
-    principalType: 'ServicePrincipal'
+    principalType: 'User'
   }
 }
 
@@ -301,7 +275,7 @@ module storageContribRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-    principalType: 'ServicePrincipal'
+    principalType: 'User'
   }
 }
 
@@ -311,7 +285,7 @@ module searchRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
-    principalType: 'ServicePrincipal'
+    principalType: 'User'
   }
 }
 
@@ -321,7 +295,7 @@ module searchContribRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
-    principalType: 'ServicePrincipal'
+    principalType: 'User'
   }
 }
 
@@ -330,7 +304,7 @@ module openAiRoleBackend 'core/security/role.bicep' = {
   scope: openAiResourceGroup
   name: 'openai-role-backend'
   params: {
-    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    principalId: aks.outputs.clusterIdentity.objectId
     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
     principalType: 'ServicePrincipal'
   }
@@ -340,7 +314,7 @@ module storageRoleBackend 'core/security/role.bicep' = {
   scope: storageResourceGroup
   name: 'storage-role-backend'
   params: {
-    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    principalId: aks.outputs.clusterIdentity.objectId
     roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
     principalType: 'ServicePrincipal'
   }
@@ -350,7 +324,7 @@ module searchRoleBackend 'core/security/role.bicep' = {
   scope: searchServiceResourceGroup
   name: 'search-role-backend'
   params: {
-    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    principalId: aks.outputs.clusterIdentity.objectId
     roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
     principalType: 'ServicePrincipal'
   }
@@ -385,9 +359,10 @@ output AZURE_REDIS_CACHE_RESOURCE_GROUP string = redisCacheResourceGroup.name
 
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
 output APPLICATIONINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName
-output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerApps.outputs.environmentName
-output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerApps.outputs.registryLoginServer
-output AZURE_CONTAINER_REGISTRY_NAME string = containerApps.outputs.registryName
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
-output SERVICE_WEB_NAME string = web.outputs.SERVICE_WEB_NAME
+
+output AZURE_AKS_CLUSTER_NAME string = aks.outputs.clusterName
+output AZURE_AKS_IDENTITY_CLIENT_ID string = aks.outputs.clusterIdentity.clientId
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = aks.outputs.containerRegistryLoginServer
+output AZURE_CONTAINER_REGISTRY_NAME string = aks.outputs.containerRegistryName

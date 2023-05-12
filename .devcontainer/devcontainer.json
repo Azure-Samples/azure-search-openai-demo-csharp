@@ -3,16 +3,17 @@
     "build": {
         "dockerfile": "Dockerfile",
         "args": {
+            "IMAGE": "dotnet",
+            "VERSION": "7.0",
             "VARIANT": "bullseye"
         }
     },
     "features": {
-        "ghcr.io/devcontainers/features/python:1": {
-            "version": "os-provided"
-        },
-        "ghcr.io/devcontainers/features/node:1": {
-            "version": "16",
-            "nodeGypDependencies": false
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+            "version": "latest",
+            "helm": "latest",
+            "minikube": "none"
         },
         "ghcr.io/devcontainers/features/powershell:1.1.0": {},
         "ghcr.io/devcontainers/features/azure-cli:1.0.8": {}
@@ -22,7 +23,12 @@
             "extensions": [
                 "ms-azuretools.azure-dev",
                 "ms-azuretools.vscode-bicep",
-                "ms-python.python"
+                "ms-azuretools.vscode-docker",
+                "ms-dotnettools.csharp",
+                "ms-dotnettools.vscode-dotnet-runtime",
+                "ms-azuretools.vscode-azurefunctions",
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "ms-kubernetes-tools.vscode-aks-tools"
             ]
         }
     },

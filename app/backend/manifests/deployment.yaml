@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: ${SERVICE_WEB_IMAGE_NAME}
+          ports:
+            - containerPort: 80
+          env:
+            - name: AZURE_CLIENT_ID
+              value: ${AZURE_AKS_IDENTITY_CLIENT_ID}
+            - name: AZURE_OPENAI_GPT_DEPLOYMENT
+              value: ${AZURE_OPENAI_GPT_DEPLOYMENT}
+            - name: AZURE_OPENAI_CHATGPT_DEPLOYMENT
+              value: ${AZURE_OPENAI_CHATGPT_DEPLOYMENT}
+            - name: AZURE_KEY_VAULT_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: azd
+                  key: AZURE_KEY_VAULT_ENDPOINT
+                  optional: false
+            - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: azd
+                  key: APPLICATIONINSIGHTS_CONNECTION_STRING
+                  optional: false

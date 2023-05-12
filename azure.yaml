@@ -6,7 +6,7 @@ metadata:
 services:
   web:
     project: ./app/backend/
-    host: containerapp
+    host: aks
     language: dotnet
     docker:
       path: ./Dockerfile
