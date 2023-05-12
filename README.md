@@ -84,6 +84,50 @@ It will look like the following:
 
 * Simply run `azd up`
 
+#### Deploying your repo using App Spaces
+
+> **Note**<br>
+> Make sure you have AZD supported bicep files in your repository and add an initial GitHub Actions Workflow file which can either be triggered manually (for initial deployment) or on code change (automatically re-deploying with the latest changes)
+> To make your repo deploy-ble via App Spaces, you will need to make changes to your main bicep and main parameters file to allow App Spaces to deploy to a Resource Group of your choice and add appropriate Tags on the Resource Group to be able to manage it properly under the APP Spaces umbrella.
+
+1. Add AZURE_RESOURCE_GROUP to main parameters file to read the value from environment variable set in GitHub Actions workflow file by App Spaces.
+   ```
+   "resourceGroupName": {
+      "value": "${AZURE_RESOURCE_GROUP}"
+    }
+   ```
+2. Add AZURE_TAGS to main parameters file to read the value from environment variable set in GitHub Actions workflow file by App Spaces.
+   ```
+   "tags": {
+      "value": "${AZURE_TAGS}"
+    }
+   ```
+3. Add support for resource group and tags in your main bicep file to read the value being set by App Spaces.
+   ```
+   param resourceGroupName string = ''
+   param tags string = ''
+   ```
+4. Combine the default tags set by Azd with those being set by App Spaces. Replace *tags initialization* in your main bicep file with the following - 
+   ```
+   var baseTags = { 'azd-env-name': environmentName }
+   var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
+   ````
+   Make sure to use "updatedTags" when assigning tags to different resources created in your bicep file. For example - 
+   ```
+   module appServicePlan '../../../../../../common/infra/bicep/core/host/appserviceplan.bicep' = {
+     name: 'appserviceplan'
+     scope: rg
+     params: {
+       name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
+       location: location
+       tags: updatedTags
+       sku: {
+         name: 'B1'
+       }
+     }
+   }
+   ```
+
 #### Running locally
 
 1. Run `azd auth login`
