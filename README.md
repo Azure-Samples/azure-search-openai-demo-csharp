@@ -111,7 +111,7 @@ It will look like the following:
    var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
    ````
    Make sure to use "updatedTags" when assigning tags to different resources created in your bicep file. For example - 
-   ```
+   ```json
    module appServicePlan '../../../../../../common/infra/bicep/core/host/appserviceplan.bicep' = {
      name: 'appserviceplan'
      scope: rg
@@ -124,7 +124,6 @@ It will look like the following:
        }
      }
    }
-   ```
 
 #### Running locally
 
