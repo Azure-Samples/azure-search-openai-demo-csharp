@@ -91,11 +91,10 @@ It will look like the following:
 > To make your repo deploy-ble via App Spaces, you will need to make changes to your main bicep and main parameters file to allow App Spaces to deploy to a Resource Group of your choice and add appropriate Tags on the Resource Group to be able to manage it properly under the APP Spaces umbrella.
 
 1. Add AZURE_RESOURCE_GROUP to main parameters file to read the value from environment variable set in GitHub Actions workflow file by App Spaces.
-   ```
+   ```json
    "resourceGroupName": {
       "value": "${AZURE_RESOURCE_GROUP}"
     }
-   ```
 2. Add AZURE_TAGS to main parameters file to read the value from environment variable set in GitHub Actions workflow file by App Spaces.
    ```
    "tags": {
