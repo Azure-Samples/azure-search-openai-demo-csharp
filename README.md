@@ -102,10 +102,9 @@ It will look like the following:
     }
    ```
 3. Add support for resource group and tags in your main bicep file to read the value being set by App Spaces.
-   ```
+   ```bicep
    param resourceGroupName string = ''
    param tags string = ''
-   ```
 4. Combine the default tags set by Azd with those being set by App Spaces. Replace *tags initialization* in your main bicep file with the following - 
    ```
    var baseTags = { 'azd-env-name': environmentName }
