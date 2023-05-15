@@ -105,10 +105,9 @@ It will look like the following:
    param resourceGroupName string = ''
    param tags string = ''
 4. Combine the default tags set by Azd with those being set by App Spaces. Replace *tags initialization* in your main bicep file with the following - 
-   ```
+   ```bicep
    var baseTags = { 'azd-env-name': environmentName }
    var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
-   ````
    Make sure to use "updatedTags" when assigning tags to different resources created in your bicep file. For example - 
    ```json
    module appServicePlan '../../../../../../common/infra/bicep/core/host/appserviceplan.bicep' = {
