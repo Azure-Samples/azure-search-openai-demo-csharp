@@ -108,19 +108,12 @@ It will look like the following:
    ```bicep
    var baseTags = { 'azd-env-name': environmentName }
    var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
-   Make sure to use "updatedTags" when assigning tags to different resources created in your bicep file. For example - 
+   Make sure to use "updatedTags" when assigning "tags" to resource group created in your bicep file and update the other resources to use "baseTags" instead of "tags". For example - 
    ```json
-   module appServicePlan '../../../../../../common/infra/bicep/core/host/appserviceplan.bicep' = {
-     name: 'appserviceplan'
-     scope: rg
-     params: {
-       name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
-       location: location
-       tags: updatedTags
-       sku: {
-         name: 'B1'
-       }
-     }
+   resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+     name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
+     location: location
+     tags: updatedTags
    }
 
 #### Running locally
