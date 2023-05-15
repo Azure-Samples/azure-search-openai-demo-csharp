@@ -96,11 +96,10 @@ It will look like the following:
       "value": "${AZURE_RESOURCE_GROUP}"
     }
 2. Add AZURE_TAGS to main parameters file to read the value from environment variable set in GitHub Actions workflow file by App Spaces.
-   ```
+   ```json
    "tags": {
       "value": "${AZURE_TAGS}"
     }
-   ```
 3. Add support for resource group and tags in your main bicep file to read the value being set by App Spaces.
    ```bicep
    param resourceGroupName string = ''
