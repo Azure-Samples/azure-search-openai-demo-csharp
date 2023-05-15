@@ -88,7 +88,7 @@ It will look like the following:
 
 > **Note**<br>
 > Make sure you have AZD supported bicep files in your repository and add an initial GitHub Actions Workflow file which can either be triggered manually (for initial deployment) or on code change (automatically re-deploying with the latest changes)
-> To make your repo deploy-ble via App Spaces, you will need to make changes to your main bicep and main parameters file to allow App Spaces to deploy to a Resource Group of your choice and add appropriate Tags on the Resource Group to be able to manage it properly under the APP Spaces umbrella.
+> To make your repository compatible with App Spaces, you need to make changes to your main bicep and main parameters file to allow AZD to deploy to an existing resource group with the appropriate tags.
 
 1. Add AZURE_RESOURCE_GROUP to main parameters file to read the value from environment variable set in GitHub Actions workflow file by App Spaces.
    ```json
