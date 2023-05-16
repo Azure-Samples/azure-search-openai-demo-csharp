@@ -26,21 +26,20 @@ else
         var key = builder.Configuration["AzureRedisCachePrimaryKey"];
 		var ssl = "true";
 
-		var RedisHost = Environment.GetEnvironmentVariable("REDIS_HOST");
-		if ( RedisHost != "" )
+        string? GetEnvVar(string key) =>
+            Environment.GetEnvironmentVariable(key);
+
+		if (GetEnvVar("REDIS_HOST") is string redisHost)
 		{
-			name = RedisHost + ":" +
-			    Environment.GetEnvironmentVariable("REDIS_PORT");
-			key = Environment.GetEnvironmentVariable("REDIS_PASSWORD");
+			name = $"{redisHost}:{GetEnvVar("REDIS_PORT")}";                
+			key = GetEnvVar("REDIS_PASSWORD");
 			ssl = "false";
 		}
 
-		RedisHost = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
-		if ( RedisHost != "" )
+		if (GetEnvVar("AZURE_REDIS_HOST") is string azureRedisHost)
 		{
-			name = RedisHost + ":" +
-			    Environment.GetEnvironmentVariable("AZURE_REDIS_PORT");
-			key = Environment.GetEnvironmentVariable("AZURE_REDIS_PASSWORD");
+			name = $"{azureRedisHost}:{GetEnvVar("AZURE_REDIS_PORT")}";
+			key = GetEnvVar("AZURE_REDIS_PASSWORD");
 			ssl = "false";
 		}
 
