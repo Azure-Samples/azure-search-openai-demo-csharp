@@ -23,7 +23,7 @@ internal static partial class Program
     private static readonly Option<string> s_searchService =
         new(name: "--searchendpoint", description: "The Azure Cognitive Search service endpoint where content should be indexed (must exist already)");
 
-    private static readonly Option<string> s_azureOpenAIServce =
+    private static readonly Option<string> s_azureOpenAIService =
         new(name: "--openaiendpoint", description: "Optional. The Azure OpenAI service endpoint which will be used to extract text, tables and layout from the documents (must exist already)");
 
     private static readonly Option<string> s_searchIndexName =
@@ -51,7 +51,7 @@ internal static partial class Program
         """)
     {
         s_files, s_category, s_skipBlobs, s_storageEndpoint,
-        s_container, s_tenantId, s_searchService, s_azureOpenAIServce, s_searchIndexName, s_embeddingModelName,
+        s_container, s_tenantId, s_searchService, s_azureOpenAIService, s_searchIndexName, s_embeddingModelName,
         s_remove, s_removeAll, s_formRecognizerServiceEndpoint, s_verbose
     };
 
@@ -64,7 +64,7 @@ internal static partial class Program
             Container: context.ParseResult.GetValueForOption(s_container),
             TenantId: context.ParseResult.GetValueForOption(s_tenantId),
             SearchServiceEndpoint: context.ParseResult.GetValueForOption(s_searchService),
-            AzureOpenAIServiceEndpoint: context.ParseResult.GetValueForOption(s_azureOpenAIServce),
+            AzureOpenAIServiceEndpoint: context.ParseResult.GetValueForOption(s_azureOpenAIService),
             SearchIndexName: context.ParseResult.GetValueForOption(s_searchIndexName),
             EmbeddingModelName: context.ParseResult.GetValueForOption(s_embeddingModelName),
             Remove: context.ParseResult.GetValueForOption(s_remove),
