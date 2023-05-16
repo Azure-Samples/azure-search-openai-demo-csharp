@@ -27,7 +27,7 @@ else
 		var ssl = "true";
 
         string? GetEnvVar(string key) =>
-            Environment.GetEnviromentVariable(key);
+            Environment.GetEnvironmentVariable(key);
 
 		if (GetEnvVar("REDIS_HOST") is string redisHost)
 		{
