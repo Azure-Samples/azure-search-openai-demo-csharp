@@ -86,6 +86,38 @@ It will look like the following:
 
 * Simply run `azd up`
 
+#### Deploying your repo using App Spaces
+
+> **Note**<br>
+> Make sure you have AZD supported bicep files in your repository and add an initial GitHub Actions Workflow file which can either be triggered manually (for initial deployment) or on code change (automatically re-deploying with the latest changes)
+> To make your repository compatible with App Spaces, you need to make changes to your main bicep and main parameters file to allow AZD to deploy to an existing resource group with the appropriate tags.
+
+1. Add AZURE_RESOURCE_GROUP to main parameters file to read the value from environment variable set in GitHub Actions workflow file by App Spaces.
+   ```json
+   "resourceGroupName": {
+      "value": "${AZURE_RESOURCE_GROUP}"
+    }
+2. Add AZURE_TAGS to main parameters file to read the value from environment variable set in GitHub Actions workflow file by App Spaces.
+   ```json
+   "tags": {
+      "value": "${AZURE_TAGS}"
+    }
+3. Add support for resource group and tags in your main bicep file to read the value being set by App Spaces.
+   ```bicep
+   param resourceGroupName string = ''
+   param tags string = ''
+4. Combine the default tags set by Azd with those being set by App Spaces. Replace *tags initialization* in your main bicep file with the following - 
+   ```bicep
+   var baseTags = { 'azd-env-name': environmentName }
+   var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
+   Make sure to use "updatedTags" when assigning "tags" to resource group created in your bicep file and update the other resources to use "baseTags" instead of "tags". For example - 
+   ```json
+   resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+     name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
+     location: location
+     tags: updatedTags
+   }
+
 #### Running locally
 
 1. Run `azd auth login`
