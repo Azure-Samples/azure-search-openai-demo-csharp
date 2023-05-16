@@ -1,12 +1,16 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.Numerics;
+using Azure.Search.Documents;
+
 namespace MinimalApi.Extensions;
 
 internal static class SearchClientExtensions
 {
     internal static async Task<string> QueryDocumentsAsync(
         this SearchClient searchClient,
-        string query,
+        string? query = null,
+        float[]? embedding = null,
         RequestOverrides? overrides = null,
         CancellationToken cancellationToken = default)
     {
@@ -33,6 +37,18 @@ internal static class SearchClientExtensions
                 Filter = filter,
                 Size = top,
             };
+
+        if (embedding != null)
+        {
+            var vectorQuery = new SearchQueryVector
+            {
+                K = top,
+                Value = embedding,
+                Fields = "embedding",
+            };
+
+            searchOption.Vector = vectorQuery;
+        }
 
         var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption, cancellationToken);
         if (searchResultResponse.Value is null)

@@ -75,7 +75,7 @@ public class ReadRetrieveReadChatService
 
         // step 2
         // use query to search related docs
-        var documentContents = await _searchClient.QueryDocumentsAsync(query.Result, overrides, cancellationToken);
+        var documentContents = await _searchClient.QueryDocumentsAsync(query.Result, embedding: null, overrides: overrides, cancellationToken);
 
         // step 3
         // use llm to get answer

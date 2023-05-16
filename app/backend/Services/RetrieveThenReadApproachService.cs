@@ -38,7 +38,7 @@ internal sealed class RetrieveThenReadApproachService : IApproachBasedService
     private readonly IKernel _kernel;
     private readonly IConfiguration _configuration;
     private readonly ISKFunction _function;
-
+    private readonly OpenAIClient? _embeddingClient;
     public Approach Approach => Approach.RetrieveThenRead;
 
     public RetrieveThenReadApproachService(SearchClient searchClient, IKernel kernel, IConfiguration configuration)
@@ -48,6 +48,7 @@ internal sealed class RetrieveThenReadApproachService : IApproachBasedService
         _configuration = configuration;
         _function = kernel.CreateSemanticFunction(
             SemanticFunction, maxTokens: 200, temperature: 0.7, topP: 0.5);
+        _embeddingClient = new OpenAIClient(new Uri(configuration["AzureOpenAiServiceEndpoint"]!), new DefaultAzureCredential());
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -55,7 +56,12 @@ internal sealed class RetrieveThenReadApproachService : IApproachBasedService
         RequestOverrides? overrides = null,
         CancellationToken cancellationToken = default)
     {
-        var text = await _searchClient.QueryDocumentsAsync(question, cancellationToken: cancellationToken);
+        var questionEmbeddingResponse = await _embeddingClient!.GetEmbeddingsAsync("embedding", new EmbeddingsOptions(question)
+        {
+            InputType = "query",
+        }, cancellationToken);
+        var embedding = questionEmbeddingResponse.Value.Data.First().Embedding.ToArray();
+        var text = await _searchClient.QueryDocumentsAsync(query: null, embedding: embedding, overrides: overrides, cancellationToken: cancellationToken);
         var context = _kernel.CreateNewContext();
         context["retrieve"] = text;
         context["question"] = question;

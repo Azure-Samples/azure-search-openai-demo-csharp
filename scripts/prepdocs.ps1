@@ -20,6 +20,8 @@ dotnet run --project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- `
     --storageendpoint $env:AZURE_STORAGE_BLOB_ENDPOINT `
     --container $env:AZURE_STORAGE_CONTAINER `
     --searchendpoint $env:AZURE_SEARCH_SERVICE_ENDPOINT `
+    --openaiendpoint $env:AZURE_OPENAI_ENDPOINT `
+    --embeddingmodel embedding `
     --searchindex $env:AZURE_SEARCH_INDEX `
     --formrecognizerendpoint $env:AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT `
     --tenantid $env:AZURE_TENANT_ID `
