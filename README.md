@@ -36,6 +36,8 @@ The repo includes sample data so it's ready to try end-to-end. In this sample ap
 - [Git](https://git-scm.com/downloads)
 - [Powershell 7+ (pwsh)](https://github.com/powershell/powershell) - For Windows users only.
    - **Important**: Ensure you can run `pwsh.exe` from a PowerShell command. If this fails, you likely need to upgrade PowerShell.
+- [Docker](https://www.docker.com/products/docker-desktop/)
+  - **Important**: Ensure Docker is running before running any `azd` provisioning / deployment commands.
 
 > **Note**<br>
 > Your Azure Account must have `Microsoft.Authorization/roleAssignments/write` permissions, such as [User Access Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#user-access-administrator) or [Owner](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#owner).
