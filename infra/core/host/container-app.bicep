@@ -84,7 +84,7 @@ resource app 'Microsoft.App/containerApps@2022-11-01-preview' = {
   }
 }
 
-resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-11-01-preview' = {
+resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-11-01-preview' existing = {
   name: containerAppsEnvironmentName
   location: location
   tags: tags
