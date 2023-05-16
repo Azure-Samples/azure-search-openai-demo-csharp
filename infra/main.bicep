@@ -162,7 +162,7 @@ module storageAccountEndpointSecret './core/security/keyvault-secret.bicep' = if
 
   name: 'storage-account-endpoint-secret'
   params: {
-    keyVaultName: keyVaultName
+    keyVaultName: keyVault.outputs.name
     name: 'AzureStorageAccountEndpoint'
     secretValue: 'https://${storage.name}.blob.${environment().suffixes.storage}'
   }
@@ -172,11 +172,12 @@ module storageContainerSecret './core/security/keyvault-secret.bicep' = if (keyV
   scope: searchServiceResourceGroup
   name: 'storage-container-secret'
   params: {
-    keyVaultName: keyVaultName
+    keyVaultName: keyVault.outputs.name
     name: 'AzureStorageContainer'
     secretValue: storageContainerName
   }
 }
+
 // Container apps host (including container registry)
 module containerApps './core/host/container-apps.bicep' = {
   name: 'container-apps'
