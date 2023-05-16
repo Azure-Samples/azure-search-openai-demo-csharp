@@ -18,6 +18,8 @@ param openAiEndpoint string
 param openAiGptDeployment string
 param openAiChatGptDeployment string
 
+param serviceBinds array
+
 resource webIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
   location: location
@@ -39,6 +41,7 @@ module app '../core/host/container-app-upsert.bicep' = {
     tags: union(tags, { 'azd-service-name': serviceName })
     identityName: identityName
     exists: exists
+    serviceBinds: serviceBinds
     containerAppsEnvironmentName: containerAppsEnvironmentName
     containerRegistryName: containerRegistryName
     env: [
