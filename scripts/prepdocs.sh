@@ -22,6 +22,8 @@ dotnet run --project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- \
   --container "$AZURE_STORAGE_CONTAINER" \
   --searchendpoint "$AZURE_SEARCH_SERVICE_ENDPOINT" \
   --searchindex "$AZURE_SEARCH_INDEX" \
+  --openaiendpoint "$AZURE_OPENAI_ENDPOINT" \
+  --embeddingmodel "$AZURE_OPENAI_EMBEDDING_DEPLOYMENT" \
   --formrecognizerendpoint "$AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT" \
   --tenantid "$AZURE_TENANT_ID" \
   -v

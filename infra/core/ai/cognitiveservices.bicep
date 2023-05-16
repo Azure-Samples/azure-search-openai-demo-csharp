@@ -65,6 +65,15 @@ module openAiChatGptDeploymentSecret '../security/keyvault-secret.bicep' = if (k
   }
 }
 
+module openAiEmbeddingDeploymentSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'openai-embedding-deployment-secret'
+  params: {
+    keyVaultName: keyVaultName
+    name: 'AzureOpenAiEmbeddingDeployment'
+    secretValue: chatGptDeploymentName
+  }
+}
+
 output endpoint string = url
 output id string = account.id
 output name string = account.name
