@@ -18,7 +18,7 @@ jobs:
       with:
         dotnet-version: 7.0.x
     - name: Restore dependencies
-      run: dotnet restore ./app/app.sln
+      run: dotnet restore ./app/app.sln --configfile ./Nuget.Config
     - name: Build
       run: dotnet build ./app/app.sln -c Release
     - name: Test
