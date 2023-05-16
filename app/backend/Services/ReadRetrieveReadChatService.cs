@@ -6,6 +6,7 @@ public class ReadRetrieveReadChatService
 {
     private readonly SearchClient _searchClient;
     private readonly IKernel _kernel;
+    private readonly IConfiguration _configuration;
 
     private const string FollowUpQuestionsPrompt = """
         Generate three very brief follow-up questions that the user would likely ask next about their healthcare plan and employee handbook.
@@ -16,10 +17,16 @@ public class ReadRetrieveReadChatService
 
     private const string AnswerPromptTemplate = """
         <|im_start|>
-        system Assistant helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers.
+        You are a system assistant who helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers.
         Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
         For tabular information return it as an html table. Do not return markdown format.
-        Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brakets to reference the source, e.g. [info1.txt]. Don't combine sources, list each source separately, e.g. [info1.txt][info2.pdf].
+        Each source has a name followed by colon and the actual information, always include the full path of source file for each fact you use in the response. Use square brakets to reference the source. Don't combine sources, list each source separately.
+        ### Examples
+        Sources:
+        info1.txt: deductibles depend on whether you are in-network or out-of-network. In-network deductibles are $500 for employees and $1000 for families. Out-of-network deductibles are $1000 for employees and $2000 for families.
+        info2.pdf: Overlake is in-network for the employee plan.
+        reply: In-network deductibles are $500 for employees and $1000 for families [info1.txt][info2.pdf] and Overlake is in-network for the employee plan [info2.pdf].
+        ###
         {{$follow_up_questions_prompt}}
         {{$injected_prompt}}
         Sources:
@@ -28,10 +35,14 @@ public class ReadRetrieveReadChatService
         {{$chat_history}}
         """;
 
-    public ReadRetrieveReadChatService(SearchClient searchClient, IKernel kernel)
+    public ReadRetrieveReadChatService(
+        SearchClient searchClient,
+        IKernel kernel,
+        IConfiguration configuration)
     {
         _searchClient = searchClient;
         _kernel = kernel;
+        _configuration = configuration;
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -110,7 +121,8 @@ public class ReadRetrieveReadChatService
         return new ApproachResponse(
             DataPoints: documentContents.Split('\r'),
             Answer: ans.Result,
-            Thoughts: $"Searched for:<br>{query}<br><br>Prompt:<br>{prompt.Replace("\n", "<br>")}");
+            Thoughts: $"Searched for:<br>{query}<br><br>Prompt:<br>{prompt.Replace("\n", "<br>")}",
+            CitationBaseUrl: _configuration.ToCitationBaseUrl());
     }
 
     private ISKFunction CreateQueryPromptFunction(ChatTurn[] history)

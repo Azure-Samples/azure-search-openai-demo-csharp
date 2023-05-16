@@ -30,6 +30,10 @@ param storageResourceGroupName string = ''
 param storageResourceGroupLocation string = location
 param storageContainerName string = 'content'
 
+param redisCacheName string = ''
+param redisCacheResourceGroupName string = ''
+param redisCacheResourceGroupLocation string = location
+
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
 param openAiResourceGroupLocation string = location
@@ -77,6 +81,10 @@ resource searchServiceResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-
 
 resource storageResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(storageResourceGroupName)) {
   name: !empty(storageResourceGroupName) ? storageResourceGroupName : resourceGroup.name
+}
+
+resource redisCacheResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(redisCacheResourceGroupName)) {
+  name: !empty(redisCacheResourceGroupName) ? redisCacheResourceGroupName : resourceGroup.name
 }
 
 // Store secrets in a keyvault
@@ -133,10 +141,10 @@ module web './app/web.bicep' = {
 
 module redis 'core/cache/redis.bicep' = {
   name: 'redis'
-  scope: resourceGroup
+  scope: redisCacheResourceGroup
   params: {
-    name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
-    location: location
+    name: !empty(redisCacheName) ? redisCacheName : '${abbrs.cacheRedis}${resourceToken}'
+    location: redisCacheResourceGroupLocation
     tags: updatedTags
     keyVaultName: keyVault.outputs.name
   }
@@ -215,6 +223,7 @@ module searchService 'core/search/search-services.bicep' = {
   params: {
     name: !empty(searchServiceName) ? searchServiceName : 'gptkb-${resourceToken}'
     location: searchServiceResourceGroupLocation
+    searchIndexName: searchIndexName
     keyVaultName: keyVault.outputs.name
     tags: updatedTags
     authOptions: {
@@ -249,7 +258,7 @@ module storage 'core/storage/storage-account.bicep' = {
     containers: [
       {
         name: storageContainerName
-        publicAccess: 'None'
+        publicAccess: 'Blob'
       }
     ]
   }
@@ -358,6 +367,7 @@ output AZURE_OPENAI_GPT_DEPLOYMENT string = gptDeploymentName
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
 
 output AZURE_FORMRECOGNIZER_SERVICE string = formRecognizer.outputs.name
+output AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT string = formRecognizer.outputs.endpoint
 output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = formRecognizerResourceGroup.name
 
 output AZURE_SEARCH_INDEX string = searchIndexName
@@ -369,6 +379,9 @@ output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_CONTAINER string = storageContainerName
 output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
 output AZURE_STORAGE_BLOB_ENDPOINT string = storage.outputs.primaryEndpoints.blob
+
+output AZURE_REDIS_CACHE string = redis.outputs.name
+output AZURE_REDIS_CACHE_RESOURCE_GROUP string = redisCacheResourceGroup.name
 
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
 output APPLICATIONINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName

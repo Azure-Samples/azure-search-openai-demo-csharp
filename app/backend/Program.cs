@@ -13,7 +13,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddCrossOriginResourceSharing();
 builder.Services.AddAzureServices();
 
-if (builder.Environment.IsDevelopment())
+var redisConnectionString = builder.Configuration["AzureRedisCacheConnectionString"];
+if (builder.Environment.IsDevelopment() || string.IsNullOrWhiteSpace(redisConnectionString))
 {
     builder.Services.AddDistributedMemoryCache();
 }
@@ -21,13 +22,7 @@ else
 {
     builder.Services.AddStackExchangeRedisCache(options =>
     {
-        var name = builder.Configuration["AzureRedisCacheName"];
-        var key = builder.Configuration["AzureRedisCachePrimaryKey"];
-
-        options.Configuration = $"""
-            {name}.redis.cache.windows.net,abortConnect=false,ssl=true,allowAdmin=true,password={key}
-            """;
-
+        options.Configuration = redisConnectionString;
         options.InstanceName = "content";
     });
 }

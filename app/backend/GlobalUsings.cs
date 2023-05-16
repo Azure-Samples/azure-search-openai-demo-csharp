@@ -15,7 +15,6 @@ global using Microsoft.AspNetCore.Mvc.RazorPages;
 global using Microsoft.Extensions.Caching.Distributed;
 global using Microsoft.ML;
 global using Microsoft.ML.Transforms.Text;
-global using Microsoft.Net.Http.Headers;
 global using Microsoft.SemanticKernel;
 global using Microsoft.SemanticKernel.AI;
 global using Microsoft.SemanticKernel.AI.Embeddings;

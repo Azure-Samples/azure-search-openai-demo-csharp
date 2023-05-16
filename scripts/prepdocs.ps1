@@ -17,10 +17,10 @@ Get-Location | Select-Object -ExpandProperty Path
 
 dotnet run --project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- `
     './data/*.pdf' `
-    --storageaccount $env:AZURE_STORAGE_ACCOUNT `
+    --storageendpoint $env:AZURE_STORAGE_BLOB_ENDPOINT `
     --container $env:AZURE_STORAGE_CONTAINER `
-    --searchservice $env:AZURE_SEARCH_SERVICE `
-    --index $env:AZURE_SEARCH_INDEX `
-    --formrecognizerservice $env:AZURE_FORMRECOGNIZER_SERVICE `
+    --searchendpoint $env:AZURE_SEARCH_SERVICE_ENDPOINT `
+    --searchindex $env:AZURE_SEARCH_INDEX `
+    --formrecognizerendpoint $env:AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT `
     --tenantid $env:AZURE_TENANT_ID `
     -v

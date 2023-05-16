@@ -36,14 +36,16 @@ internal sealed class RetrieveThenReadApproachService : IApproachBasedService
           """;
 
     private readonly IKernel _kernel;
+    private readonly IConfiguration _configuration;
     private readonly ISKFunction _function;
 
     public Approach Approach => Approach.RetrieveThenRead;
 
-    public RetrieveThenReadApproachService(SearchClient searchClient, IKernel kernel)
+    public RetrieveThenReadApproachService(SearchClient searchClient, IKernel kernel, IConfiguration configuration)
     {
         _searchClient = searchClient;
         _kernel = kernel;
+        _configuration = configuration;
         _function = kernel.CreateSemanticFunction(
             SemanticFunction, maxTokens: 200, temperature: 0.7, topP: 0.5);
     }
@@ -59,9 +61,11 @@ internal sealed class RetrieveThenReadApproachService : IApproachBasedService
         context["question"] = question;
 
         var answer = await _kernel.RunAsync(context.Variables, cancellationToken, _function);
+
         return new ApproachResponse(
             DataPoints: text.Split('\r'),
             Answer: answer.ToString(),
-            Thoughts: $"Question: {question} \r Prompt: {context.Variables}");
+            Thoughts: $"Question: {question} \r Prompt: {context.Variables}",
+            CitationBaseUrl: _configuration.ToCitationBaseUrl());
     }
 }

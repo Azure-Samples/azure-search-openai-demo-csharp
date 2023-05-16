@@ -33,20 +33,13 @@ resource redis 'Microsoft.Cache/Redis@2021-06-01' = {
   }
 }
 
-module redisNameSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
-  name: 'redis-cache-name'
+module redisPrimaryKeySecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'redis-cache-connection-string'
   params: {
     keyVaultName: keyVaultName
-    name: 'AzureRedisCacheName'
-    secretValue: redis.name
+    name: 'AzureRedisCacheConnectionString'
+    secretValue: '${redis.name}.redis.cache.windows.net,password=${redis.listKeys().primaryKey},ssl=True,abortConnect=False'
   }
 }
 
-module redisPrimaryKeySecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
-  name: 'redis-cache-primary-key'
-  params: {
-    keyVaultName: keyVaultName
-    name: 'AzureRedisCachePrimaryKey'
-    secretValue: redis.listKeys().primaryKey
-  }
-}
+output name string = redis.name

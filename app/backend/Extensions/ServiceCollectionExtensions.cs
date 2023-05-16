@@ -106,61 +106,6 @@ internal static class ServiceCollectionExtensions
 
     internal static IServiceCollection AddMemoryStore(this IServiceCollection services)
     {
-        // TODO: replace this with the CorpusMemoryStore.cs
-        services.AddSingleton<IMemoryStore>((sp) =>
-        {
-            var logger = sp.GetRequiredService<ILogger<IMemoryStore>>();
-            logger.LogInformation("Loading corpus ...");
-            var blobServiceClient = sp.GetRequiredService<BlobServiceClient>();
-            var blobContainerClient = blobServiceClient.GetBlobContainerClient("corpus");
-            var blobs = blobContainerClient.GetBlobs();
-            var corpus = new List<CorpusRecord>();
-            foreach (var blob in blobs)
-            {
-                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(blob.Name);
-                var source = $"{fileNameWithoutExtension}.pdf";
-                var readStream = blobContainerClient.GetBlobClient(blob.Name).OpenRead();
-                var content = new StreamReader(readStream).ReadToEnd();
-
-                // split contents into short sentences
-                var sentences = content.Split(new[] { '.', '?', '!' }, StringSplitOptions.RemoveEmptyEntries);
-                var corpusIndex = 0;
-                var sb = new StringBuilder();
-                // create corpus records based on sentences
-                foreach (var sentence in sentences)
-                {
-                    sb.Append(sentence);
-                    if (sb.Length > 256)
-                    {
-                        var id = $"{source}+{corpusIndex++}";
-                        corpus.Add(new CorpusRecord(id, source, sb.ToString()));
-                        sb.Clear();
-                    }
-                }
-            }
-
-            logger.LogInformation("Load {Count} records into corpus", corpus.Count);
-            logger.LogInformation("Loading corpus into memory...");
-
-            var embeddingService = new SentenceEmbeddingService(corpus);
-            var collectionName = "knowledge";
-            var memoryStore = new VolatileMemoryStore();
-            memoryStore.CreateCollectionAsync(collectionName).Wait();
-            var embeddings = embeddingService.GenerateEmbeddingsAsync(corpus.Select(c => c.Text).ToList()).Result;
-            var memoryRecords = Enumerable.Zip(corpus, embeddings)
-                                    .Select((tuple) =>
-                                    {
-                                        var (corpusRecord, embedding) = tuple;
-                                        var metaData = new MemoryRecordMetadata(true, corpusRecord.Id, corpusRecord.Text, corpusRecord.Source, string.Empty, string.Empty);
-                                        var memoryRecord = new MemoryRecord(metaData, embedding, key: corpusRecord.Id);
-                                        return memoryRecord;
-                                    });
-
-            var _ = memoryStore.UpsertBatchAsync(collectionName, memoryRecords).ToListAsync().Result;
-
-            return memoryStore;
-        });
-
-        return services;
+        return services.AddSingleton<IMemoryStore, CorpusMemoryStore>();
     }
 }
