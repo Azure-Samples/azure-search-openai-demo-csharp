@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure.AI.OpenAI;
-
 internal static partial class Program
 {
     private static BlobContainerClient? s_corpusContainerClient;

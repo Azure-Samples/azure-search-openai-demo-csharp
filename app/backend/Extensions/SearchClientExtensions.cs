@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Numerics;
-using Azure.Search.Documents;
-
 namespace MinimalApi.Extensions;
 
 internal static class SearchClientExtensions
