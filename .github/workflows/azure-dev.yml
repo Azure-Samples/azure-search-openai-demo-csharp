@@ -73,7 +73,7 @@ jobs:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Azure Dev Provision
-        run: azd provision --no-prompt
+        run: azd provision --no-prompt --debug
         env:
           AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
@@ -81,7 +81,7 @@ jobs:
           AZURE_TAGS: ${{ secrets.AZURE_TAGS }}
 
       - name: Azure Dev Deploy
-        run: azd deploy --no-prompt
+        run: azd deploy --no-prompt --debug
         env:
           AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
