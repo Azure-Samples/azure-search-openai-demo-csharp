@@ -3,7 +3,7 @@ on:
     inputs:
       reason:
         description: The reason for running the workflow
-        required: true
+        required: false
         default: Manual run
   push:
     branches:
