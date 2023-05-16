@@ -58,6 +58,9 @@
     },
     "tags": {
       "value": "${AZURE_TAGS}"
+    },
+    "principalType": {
+      "value": "User"
     }
   }
 }

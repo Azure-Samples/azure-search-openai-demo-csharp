@@ -9,6 +9,8 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+param principalType string = 'User'
+
 param resourceGroupName string = ''
 param keyVaultName string = ''
 param containerAppsEnvironmentName string = ''
@@ -30,9 +32,11 @@ param storageResourceGroupName string = ''
 param storageResourceGroupLocation string = location
 param storageContainerName string = 'content'
 
-param redisCacheName string = ''
+// param redisCacheName string = ''
 param redisCacheResourceGroupName string = ''
-param redisCacheResourceGroupLocation string = location
+// param redisCacheResourceGroupLocation string = location
+
+param redisContainerAppName string = ''
 
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
@@ -99,8 +103,80 @@ module keyVault './core/security/keyvault.bicep' = {
   }
 }
 
+module openAiServiceEndpointSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'openai-service-endpoint-secret'
+  scope: resourceGroup
+  params: {
+    keyVaultName: keyVault.outputs.name
+    name: 'AzureOpenAiServiceEndpoint'
+    secretValue: openAi.outputs.endpoint
+  }
+}
 
+module openAiGptDeploymentSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'openai-gpt-deployment-secret'
+  scope: resourceGroup
 
+  params: {
+    keyVaultName: keyVault.outputs.name
+    name: 'AzureOpenAiGptDeployment'
+    secretValue: gptDeploymentName
+  }
+}
+
+module openAiChatGptDeploymentSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'openai-chatgpt-deployment-secret'
+  scope: resourceGroup
+
+  params: {
+    keyVaultName: keyVault.outputs.name
+    name: 'AzureOpenAiChatGptDeployment'
+    secretValue: chatGptDeploymentName
+  }
+}
+
+module searchServiceSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'search-service-secret'
+  scope: resourceGroup
+
+  params: {
+    keyVaultName: keyVault.outputs.name
+    name: 'AzureSearchServiceEndpoint'
+    secretValue: searchService.outputs.endpoint
+  }
+}
+
+module searchIndexSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'search-index-secret'
+  scope: resourceGroup
+
+  params: {
+    keyVaultName: keyVault.outputs.name
+    name: 'AzureSearchIndex'
+    secretValue: searchIndexName
+  }
+}
+
+module storageAccountEndpointSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  scope: searchServiceResourceGroup
+
+  name: 'storage-account-endpoint-secret'
+  params: {
+    keyVaultName: keyVaultName
+    name: 'AzureStorageAccountEndpoint'
+    secretValue: 'https://${storage.name}.blob.${environment().suffixes.storage}'
+  }
+}
+
+module storageContainerSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  scope: searchServiceResourceGroup
+  name: 'storage-container-secret'
+  params: {
+    keyVaultName: keyVaultName
+    name: 'AzureStorageContainer'
+    secretValue: storageContainerName
+  }
+}
 // Container apps host (including container registry)
 module containerApps './core/host/container-apps.bicep' = {
   name: 'container-apps'
@@ -111,7 +187,6 @@ module containerApps './core/host/container-apps.bicep' = {
     containerRegistryName: !empty(containerRegistryName) ? containerRegistryName : '${abbrs.containerRegistryRegistries}${resourceToken}'
     location: location
     logAnalyticsWorkspaceName: monitoring.outputs.logAnalyticsWorkspaceName
-    resourceToken : resourceToken
   }
 }
 
@@ -137,18 +212,31 @@ module web './app/web.bicep' = {
     openAiEndpoint: openAi.outputs.endpoint
     openAiGptDeployment: gptDeploymentName
     openAiChatGptDeployment: chatGptDeploymentName
-    serviceBinds: [ containerApps.outputs.redisServiceBind ]
+    serviceBinds: [ redis.outputs.serviceBind ]
   }
 }
 
-module redis 'core/cache/redis.bicep' = {
-  name: 'redis'
-  scope: redisCacheResourceGroup
+// module redis 'core/cache/redis.bicep' = {
+//   name: 'redis'
+//   scope: redisCacheResourceGroup
+//   params: {
+//     name: !empty(redisCacheName) ? redisCacheName : '${abbrs.cacheRedis}${resourceToken}'
+//     location: redisCacheResourceGroupLocation
+//     tags: updatedTags
+//     keyVaultName: keyVault.outputs.name
+//   }
+// }
+
+// this launches a redis instance inside of the ACA env
+module redis './core/host/springboard-service.bicep' = {
+  name: 'springboard-dev-service'
+  scope: resourceGroup
   params: {
-    name: !empty(redisCacheName) ? redisCacheName : '${abbrs.cacheRedis}${resourceToken}'
-    location: redisCacheResourceGroupLocation
+    name: !empty(redisContainerAppName) ? redisContainerAppName : '${abbrs.cacheRedis}${resourceToken}'
+    location: location
     tags: updatedTags
-    keyVaultName: keyVault.outputs.name
+    managedEnvironmentId: containerApps.outputs.environmentId
+    serviceType: 'redis'
   }
 }
 
@@ -172,9 +260,6 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     location: openAiResourceGroupLocation
     tags: updatedTags
-    keyVaultName: keyVault.outputs.name
-    gptDeploymentName: gptDeploymentName
-    chatGptDeploymentName: chatGptDeploymentName
     sku: {
       name: openAiSkuName
     }
@@ -225,8 +310,6 @@ module searchService 'core/search/search-services.bicep' = {
   params: {
     name: !empty(searchServiceName) ? searchServiceName : 'gptkb-${resourceToken}'
     location: searchServiceResourceGroupLocation
-    searchIndexName: searchIndexName
-    keyVaultName: keyVault.outputs.name
     tags: updatedTags
     authOptions: {
       aadOrApiKey: {
@@ -248,8 +331,6 @@ module storage 'core/storage/storage-account.bicep' = {
     location: storageResourceGroupLocation
     tags: updatedTags
     publicNetworkAccess: 'Enabled'
-    keyVaultName: keyVault.outputs.name
-    storageContainerName: storageContainerName
     sku: {
       name: 'Standard_ZRS'
     }
@@ -273,7 +354,7 @@ module openAiRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-    principalType: 'ServicePrincipal'
+    principalType: principalType
   }
 }
 
@@ -283,7 +364,7 @@ module formRecognizerRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: 'a97b65f3-24c7-4388-baec-2e87135dc908'
-    principalType: 'ServicePrincipal'
+    principalType: principalType
   }
 }
 
@@ -293,7 +374,7 @@ module storageRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
-    principalType: 'ServicePrincipal'
+    principalType: principalType
   }
 }
 
@@ -303,7 +384,7 @@ module storageContribRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-    principalType: 'ServicePrincipal'
+    principalType: principalType
   }
 }
 
@@ -313,7 +394,7 @@ module searchRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
-    principalType: 'ServicePrincipal'
+    principalType: principalType
   }
 }
 
@@ -323,7 +404,7 @@ module searchContribRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
-    principalType: 'ServicePrincipal'
+    principalType: principalType
   }
 }
 
