@@ -13,8 +13,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddCrossOriginResourceSharing();
 builder.Services.AddAzureServices();
 
-var redisConnectionString = builder.Configuration["AzureRedisCacheConnectionString"];
-if (builder.Environment.IsDevelopment() || string.IsNullOrWhiteSpace(redisConnectionString))
+if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddDistributedMemoryCache();
 }
@@ -22,7 +21,31 @@ else
 {
     builder.Services.AddStackExchangeRedisCache(options =>
     {
-        options.Configuration = redisConnectionString;
+        var name = builder.Configuration["AzureRedisCacheName"] +
+			".redis.cache.windows.net" ;
+        var key = builder.Configuration["AzureRedisCachePrimaryKey"];
+		var ssl = "true";
+
+        string? GetEnvVar(string key) =>
+            Environment.GetEnvironmentVariable(key);
+
+		if (GetEnvVar("REDIS_HOST") is string redisHost)
+		{
+			name = $"{redisHost}:{GetEnvVar("REDIS_PORT")}";                
+			key = GetEnvVar("REDIS_PASSWORD");
+			ssl = "false";
+		}
+
+		if (GetEnvVar("AZURE_REDIS_HOST") is string azureRedisHost)
+		{
+			name = $"{azureRedisHost}:{GetEnvVar("AZURE_REDIS_PORT")}";
+			key = GetEnvVar("AZURE_REDIS_PASSWORD");
+			ssl = "false";
+		}
+
+        options.Configuration = $"""
+            {name},abortConnect=false,ssl={ssl},allowAdmin=true,password={key}
+            """;
         options.InstanceName = "content";
     });
 }

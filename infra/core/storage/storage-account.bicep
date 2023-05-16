@@ -24,8 +24,6 @@ param networkAcls object = {
 @allowed([ 'Enabled', 'Disabled' ])
 param publicNetworkAccess string = 'Enabled'
 param sku object = { name: 'Standard_LRS' }
-param keyVaultName string = ''
-param storageContainerName string = ''
 
 resource storage 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: name
@@ -56,24 +54,6 @@ resource storage 'Microsoft.Storage/storageAccounts@2022-05-01' = {
         publicAccess: contains(container, 'publicAccess') ? container.publicAccess : 'None'
       }
     }]
-  }
-}
-
-module storageAccountEndpointSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
-  name: 'storage-account-endpoint-secret'
-  params: {
-    keyVaultName: keyVaultName
-    name: 'AzureStorageAccountEndpoint'
-    secretValue: 'https://${storage.name}.blob.core.windows.net'
-  }
-}
-
-module storageContainerSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
-  name: 'storage-container-secret'
-  params: {
-    keyVaultName: keyVaultName
-    name: 'AzureStorageContainer'
-    secretValue: storageContainerName
   }
 }
 
