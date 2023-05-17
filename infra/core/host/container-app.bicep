@@ -23,7 +23,7 @@ param imageName string
 param targetPort int = 80
 @allowed([ 'None', 'SystemAssigned', 'UserAssigned' ])
 param identityType string = 'None'
-param serviceBinds array = []
+//param serviceBinds array = []
 param allowedOrigins array = []
 
 @description('User assigned identity name')

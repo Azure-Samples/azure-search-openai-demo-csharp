@@ -103,7 +103,7 @@ module keyVault './core/security/keyvault.bicep' = {
   }
 }
 
-module openAiServiceEndpointSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+module openAiServiceEndpointSecret './core/security/keyvault-secret.bicep' = {
   name: 'openai-service-endpoint-secret'
   scope: resourceGroup
   params: {
@@ -113,7 +113,7 @@ module openAiServiceEndpointSecret './core/security/keyvault-secret.bicep' = if 
   }
 }
 
-module openAiGptDeploymentSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+module openAiGptDeploymentSecret './core/security/keyvault-secret.bicep' = {
   name: 'openai-gpt-deployment-secret'
   scope: resourceGroup
 
@@ -124,7 +124,7 @@ module openAiGptDeploymentSecret './core/security/keyvault-secret.bicep' = if (k
   }
 }
 
-module openAiChatGptDeploymentSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+module openAiChatGptDeploymentSecret './core/security/keyvault-secret.bicep' = {
   name: 'openai-chatgpt-deployment-secret'
   scope: resourceGroup
 
@@ -135,7 +135,7 @@ module openAiChatGptDeploymentSecret './core/security/keyvault-secret.bicep' = i
   }
 }
 
-module searchServiceSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+module searchServiceSecret './core/security/keyvault-secret.bicep' =  {
   name: 'search-service-secret'
   scope: resourceGroup
 
@@ -146,7 +146,7 @@ module searchServiceSecret './core/security/keyvault-secret.bicep' = if (keyVaul
   }
 }
 
-module searchIndexSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+module searchIndexSecret './core/security/keyvault-secret.bicep' =  {
   name: 'search-index-secret'
   scope: resourceGroup
 
@@ -157,7 +157,7 @@ module searchIndexSecret './core/security/keyvault-secret.bicep' = if (keyVaultN
   }
 }
 
-module storageAccountEndpointSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+module storageAccountEndpointSecret './core/security/keyvault-secret.bicep' =  {
   scope: searchServiceResourceGroup
 
   name: 'storage-account-endpoint-secret'
@@ -168,7 +168,7 @@ module storageAccountEndpointSecret './core/security/keyvault-secret.bicep' = if
   }
 }
 
-module storageContainerSecret './core/security/keyvault-secret.bicep' = if (keyVaultName != '') {
+module storageContainerSecret './core/security/keyvault-secret.bicep' = {
   scope: searchServiceResourceGroup
   name: 'storage-container-secret'
   params: {

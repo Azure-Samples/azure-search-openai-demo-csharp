@@ -29,17 +29,18 @@ module webKeyVaultAccess '../core/security/keyvault-access.bicep' = {
   name: 'web-keyvault-access'
   params: {
     principalId: webIdentity.properties.principalId
-    keyVaultName: keyVaultName
+    keyVaultName: keyVault.name
   }
 }
 
 module app '../core/host/container-app-upsert.bicep' = {
   name: '${serviceName}-container-app'
+  dependsOn: [webKeyVaultAccess]
   params: {
     name: name
     location: location
     tags: union(tags, { 'azd-service-name': serviceName })
-    identityName: identityName
+    identityName: webIdentity.name
     exists: exists
     // serviceBinds: serviceBinds
     containerAppsEnvironmentName: containerAppsEnvironmentName
