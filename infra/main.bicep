@@ -103,78 +103,43 @@ module keyVault './core/security/keyvault.bicep' = {
   }
 }
 
-module openAiServiceEndpointSecret './core/security/keyvault-secret.bicep' = {
-  name: 'openai-service-endpoint-secret'
+module keyVaultSecrets './core/security/keyvault-secrets.bicep' = {
   scope: resourceGroup
+  name: 'keyvault-secrets'
+  
   params: {
     keyVaultName: keyVault.outputs.name
-    name: 'AzureOpenAiServiceEndpoint'
-    secretValue: openAi.outputs.endpoint
-  }
-}
-
-module openAiGptDeploymentSecret './core/security/keyvault-secret.bicep' = {
-  name: 'openai-gpt-deployment-secret'
-  scope: resourceGroup
-
-  params: {
-    keyVaultName: keyVault.outputs.name
-    name: 'AzureOpenAiGptDeployment'
-    secretValue: gptDeploymentName
-  }
-}
-
-module openAiChatGptDeploymentSecret './core/security/keyvault-secret.bicep' = {
-  name: 'openai-chatgpt-deployment-secret'
-  scope: resourceGroup
-
-  params: {
-    keyVaultName: keyVault.outputs.name
-    name: 'AzureOpenAiChatGptDeployment'
-    secretValue: chatGptDeploymentName
-  }
-}
-
-module searchServiceSecret './core/security/keyvault-secret.bicep' =  {
-  name: 'search-service-secret'
-  scope: resourceGroup
-
-  params: {
-    keyVaultName: keyVault.outputs.name
-    name: 'AzureSearchServiceEndpoint'
-    secretValue: searchService.outputs.endpoint
-  }
-}
-
-module searchIndexSecret './core/security/keyvault-secret.bicep' =  {
-  name: 'search-index-secret'
-  scope: resourceGroup
-
-  params: {
-    keyVaultName: keyVault.outputs.name
-    name: 'AzureSearchIndex'
-    secretValue: searchIndexName
-  }
-}
-
-module storageAccountEndpointSecret './core/security/keyvault-secret.bicep' =  {
-  scope: searchServiceResourceGroup
-
-  name: 'storage-account-endpoint-secret'
-  params: {
-    keyVaultName: keyVault.outputs.name
-    name: 'AzureStorageAccountEndpoint'
-    secretValue: 'https://${storage.name}.blob.${environment().suffixes.storage}'
-  }
-}
-
-module storageContainerSecret './core/security/keyvault-secret.bicep' = {
-  scope: searchServiceResourceGroup
-  name: 'storage-container-secret'
-  params: {
-    keyVaultName: keyVault.outputs.name
-    name: 'AzureStorageContainer'
-    secretValue: storageContainerName
+    tags: updatedTags
+    secrets: [
+      {
+        name: 'AzureOpenAiServiceEndpoint'
+        value: openAi.outputs.endpoint
+      }
+      {
+        name: 'AzureOpenAiGptDeployment'
+        value: gptDeploymentName
+      }
+      {
+        name: 'AzureOpenAiChatGptDeployment'
+        value: chatGptDeploymentName
+      }
+      {
+        name: 'AzureSearchServiceEndpoint'
+        value: searchService.outputs.endpoint
+      }
+      {
+        name: 'AzureSearchIndex'
+        value: searchIndexName
+      }
+      {
+        name: 'AzureStorageAccountEndpoint'
+        value: 'https://${storage.name}.blob.${environment().suffixes.storage}'
+      }
+      {
+        name: 'AzureStorageContainer'
+        value: storageContainerName
+      }
+    ]
   }
 }
 
