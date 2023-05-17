@@ -9,6 +9,8 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+param principalType string = 'User'
+
 param resourceGroupName string = ''
 param keyVaultName string = ''
 param containerRegistryName string = ''
@@ -99,9 +101,49 @@ module keyVault './core/security/keyvault.bicep' = {
   }
 }
 
-// The AKS cluster to host applications
-module aks './core/host/aks.bicep' = {
-  name: 'aks'
+module keyVaultSecrets './core/security/keyvault-secrets.bicep' = {
+  scope: resourceGroup
+  name: 'keyvault-secrets'
+  dependsOn: [keyVault]
+  params: {
+    keyVaultName: keyVault.outputs.name
+    tags: updatedTags
+    secrets: [
+      {
+        name: 'AzureOpenAiServiceEndpoint'
+        value: openAi.outputs.endpoint
+      }
+      {
+        name: 'AzureOpenAiGptDeployment'
+        value: gptDeploymentName
+      }
+      {
+        name: 'AzureOpenAiChatGptDeployment'
+        value: chatGptDeploymentName
+      }
+      {
+        name: 'AzureSearchServiceEndpoint'
+        value: searchService.outputs.endpoint
+      }
+      {
+        name: 'AzureSearchIndex'
+        value: searchIndexName
+      }
+      {
+        name: 'AzureStorageAccountEndpoint'
+        value: 'https://${storage.name}.blob.${environment().suffixes.storage}'
+      }
+      {
+        name: 'AzureStorageContainer'
+        value: storageContainerName
+      }
+    ]
+  }
+}
+
+// Container apps host (including container registry)
+module containerApps './core/host/container-apps.bicep' = {
+  name: 'container-apps'
   scope: resourceGroup
   params: {
     location: location
@@ -125,7 +167,7 @@ module redis 'core/cache/redis.bicep' = {
 }
 
 // Monitor application with Azure Monitor
-module monitoring './core/monitor/monitoring.bicep' = {
+module monitoring 'core/monitor/monitoring.bicep' = {
   name: 'monitoring'
   scope: resourceGroup
   params: {
@@ -144,9 +186,6 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     location: openAiResourceGroupLocation
     tags: updatedTags
-    keyVaultName: keyVault.outputs.name
-    gptDeploymentName: gptDeploymentName
-    chatGptDeploymentName: chatGptDeploymentName
     sku: {
       name: openAiSkuName
     }
@@ -197,8 +236,6 @@ module searchService 'core/search/search-services.bicep' = {
   params: {
     name: !empty(searchServiceName) ? searchServiceName : 'gptkb-${resourceToken}'
     location: searchServiceResourceGroupLocation
-    searchIndexName: searchIndexName
-    keyVaultName: keyVault.outputs.name
     tags: updatedTags
     authOptions: {
       aadOrApiKey: {
@@ -220,8 +257,6 @@ module storage 'core/storage/storage-account.bicep' = {
     location: storageResourceGroupLocation
     tags: updatedTags
     publicNetworkAccess: 'Enabled'
-    keyVaultName: keyVault.outputs.name
-    storageContainerName: storageContainerName
     sku: {
       name: 'Standard_ZRS'
     }
@@ -245,7 +280,7 @@ module openAiRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-    principalType: 'User'
+    principalType: principalType
   }
 }
 
@@ -255,7 +290,7 @@ module formRecognizerRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: 'a97b65f3-24c7-4388-baec-2e87135dc908'
-    principalType: 'User'
+    principalType: principalType
   }
 }
 
@@ -265,7 +300,7 @@ module storageRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
-    principalType: 'User'
+    principalType: principalType
   }
 }
 
@@ -275,7 +310,7 @@ module storageContribRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-    principalType: 'User'
+    principalType: principalType
   }
 }
 
@@ -285,7 +320,7 @@ module searchRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
-    principalType: 'User'
+    principalType: principalType
   }
 }
 
@@ -295,7 +330,7 @@ module searchContribRoleUser 'core/security/role.bicep' = {
   params: {
     principalId: principalId
     roleDefinitionId: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
-    principalType: 'User'
+    principalType: principalType
   }
 }
 

@@ -3,7 +3,7 @@ on:
     inputs:
       reason:
         description: The reason for running the workflow
-        required: true
+        required: false
         default: Manual run
   push:
     branches:
@@ -22,12 +22,13 @@ env:
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCEGROUPNAME }}
   AZURE_DEV_USER_AGENT: ${{ secrets.AZURE_DEV_USER_AGENT }}
   # Existing resources, when applicable
-  AZURE_OPENAI_SERVICE: ${{ secrets.AZURE_OPENAI_SERVICE }}
-  AZURE_OPENAI_RESOURCE_GROUP: ${{ secrets.AZURE_OPENAI_RESOURCE_GROUP }}
-  AZURE_SEARCH_SERVICE: ${{ secrets.AZURE_SEARCH_SERVICE }}
-  AZURE_SEARCH_SERVICE_RESOURCE_GROUP: ${{ secrets.AZURE_SEARCH_SERVICE_RESOURCE_GROUP }}
-  AZURE_REDIS_CACHE: ${{ secrets.AZURE_REDIS_CACHE }}
-  AZURE_REDIS_CACHE_RESOURCE_GROUP: ${{ secrets.AZURE_REDIS_CACHE_RESOURCE_GROUP }}
+  AZURE_OPENAI_SERVICE: ${{ vars.AZURE_OPENAI_SERVICE }}
+  AZURE_OPENAI_RESOURCE_GROUP: ${{ vars.AZURE_OPENAI_RESOURCE_GROUP }}
+  AZURE_SEARCH_SERVICE: ${{ vars.AZURE_SEARCH_SERVICE }}
+  AZURE_SEARCH_SERVICE_RESOURCE_GROUP: ${{ vars.AZURE_SEARCH_SERVICE_RESOURCE_GROUP }}
+  AZURE_REDIS_CACHE: ${{ vars.AZURE_REDIS_CACHE }}
+  AZURE_REDIS_CACHE_RESOURCE_GROUP: ${{ vars.AZURE_REDIS_CACHE_RESOURCE_GROUP }}
+  AZURE_PRINCIPAL_TYPE: 'ServicePrincipal'
 
 jobs:
   build:
@@ -73,7 +74,7 @@ jobs:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Azure Dev Provision
-        run: azd provision --no-prompt
+        run: azd provision --no-prompt --debug
         env:
           AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
@@ -81,7 +82,7 @@ jobs:
           AZURE_TAGS: ${{ secrets.AZURE_TAGS }}
 
       - name: Azure Dev Deploy
-        run: azd deploy --no-prompt
+        run: azd deploy --no-prompt --debug
         env:
           AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
