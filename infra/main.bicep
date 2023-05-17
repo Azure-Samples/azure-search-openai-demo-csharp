@@ -230,10 +230,10 @@ module web './app/web.bicep' = {
 
 // this launches a redis instance inside of the ACA env
 module redis './core/host/springboard-service.bicep' = {
-  name: 'springboard-dev-service'
+  name: 'redis'
   scope: resourceGroup
   params: {
-    name: !empty(redisContainerAppName) ? redisContainerAppName : '${abbrs.cacheRedis}${resourceToken}'
+    name: 'redis'
     location: location
     tags: updatedTags
     managedEnvironmentId: containerApps.outputs.environmentId
