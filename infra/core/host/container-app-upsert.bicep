@@ -19,7 +19,7 @@ param external bool = true
 param imageName string = ''
 param targetPort int = 80
 param exists bool = false
-param serviceBinds array = []
+// param serviceBinds array = []
 
 @allowed([ 'None', 'SystemAssigned', 'UserAssigned' ])
 param identityType string = 'None'
@@ -73,7 +73,7 @@ module app 'container-app.bicep' = {
     env: env
     imageName: !empty(imageName) ? imageName : exists ? existingApp.properties.template.containers[0].image : ''
     targetPort: targetPort
-    serviceBinds: serviceBinds
+    // serviceBinds: serviceBinds
   }
 }
 

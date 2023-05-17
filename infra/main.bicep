@@ -32,11 +32,11 @@ param storageResourceGroupName string = ''
 param storageResourceGroupLocation string = location
 param storageContainerName string = 'content'
 
-// param redisCacheName string = ''
+param redisCacheName string = ''
 param redisCacheResourceGroupName string = ''
-// param redisCacheResourceGroupLocation string = location
+param redisCacheResourceGroupLocation string = location
 
-param redisContainerAppName string = ''
+// param redisContainerAppName string = ''
 
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
@@ -213,36 +213,36 @@ module web './app/web.bicep' = {
     openAiEndpoint: openAi.outputs.endpoint
     openAiGptDeployment: gptDeploymentName
     openAiChatGptDeployment: chatGptDeploymentName
-    serviceBinds: [ redis.outputs.serviceBind ]
+    // serviceBinds: [ redis.outputs.serviceBind ]
   }
 }
 
-// module redis 'core/cache/redis.bicep' = {
+module redis 'core/cache/redis.bicep' = {
+  name: 'redis'
+  scope: redisCacheResourceGroup
+  params: {
+    name: !empty(redisCacheName) ? redisCacheName : '${abbrs.cacheRedis}${resourceToken}'
+    location: redisCacheResourceGroupLocation
+    tags: updatedTags
+    keyVaultName: keyVault.outputs.name
+  }
+}
+
+// this launches a redis instance inside of the ACA env
+// module redis './core/host/springboard-service.bicep' = {
 //   name: 'redis'
-//   scope: redisCacheResourceGroup
+//   scope: resourceGroup
 //   params: {
-//     name: !empty(redisCacheName) ? redisCacheName : '${abbrs.cacheRedis}${resourceToken}'
-//     location: redisCacheResourceGroupLocation
+//     name: 'redis'
+//     location: location
 //     tags: updatedTags
-//     keyVaultName: keyVault.outputs.name
+//     managedEnvironmentId: containerApps.outputs.environmentId
+//     serviceType: 'redis'
 //   }
 // }
 
-// this launches a redis instance inside of the ACA env
-module redis './core/host/springboard-service.bicep' = {
-  name: 'redis'
-  scope: resourceGroup
-  params: {
-    name: 'redis'
-    location: location
-    tags: updatedTags
-    managedEnvironmentId: containerApps.outputs.environmentId
-    serviceType: 'redis'
-  }
-}
-
 // Monitor application with Azure Monitor
-module monitoring './core/monitor/monitoring.bicep' = {
+module monitoring 'core/monitor/monitoring.bicep' = {
   name: 'monitoring'
   scope: resourceGroup
   params: {

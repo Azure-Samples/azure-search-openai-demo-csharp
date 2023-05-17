@@ -105,7 +105,7 @@ resource app 'Microsoft.App/containerApps@2022-11-01-preview' = {
       ] : []
     }
     template: {
-      serviceBinds: serviceBinds
+      // serviceBinds: serviceBinds
       containers: [
         {
           image: !empty(imageName) ? imageName : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
