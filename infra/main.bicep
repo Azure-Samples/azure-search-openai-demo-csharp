@@ -106,7 +106,7 @@ module keyVault './core/security/keyvault.bicep' = {
 module keyVaultSecrets './core/security/keyvault-secrets.bicep' = {
   scope: resourceGroup
   name: 'keyvault-secrets'
-  
+  dependsOn: [keyVault]
   params: {
     keyVaultName: keyVault.outputs.name
     tags: updatedTags

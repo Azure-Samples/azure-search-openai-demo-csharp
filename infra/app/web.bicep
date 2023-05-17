@@ -31,6 +31,7 @@ module webKeyVaultAccess '../core/security/keyvault-access.bicep' = {
     principalId: webIdentity.properties.principalId
     keyVaultName: keyVault.name
   }
+  dependsOn: [keyVault]
 }
 
 module app '../core/host/container-app-upsert.bicep' = {
