@@ -37,10 +37,14 @@ public class ReadRetrieveReadChatService
 
     public ReadRetrieveReadChatService(
         SearchClient searchClient,
-        IKernel kernel,
+        OpenAIClient openAIClient,
         IConfiguration configuration)
     {
         _searchClient = searchClient;
+        var deployModelName = configuration["AzureOpenAiChatGptDeployment"]!;
+        var completionService = new AzureOpenAITextCompletionService(openAIClient, deployModelName);
+        var kernel = Kernel.Builder.Build();
+        kernel.Config.AddTextCompletionService(deployModelName, _ => completionService);
         _kernel = kernel;
         _configuration = configuration;
     }

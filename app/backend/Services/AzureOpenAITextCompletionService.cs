@@ -11,9 +11,15 @@ public sealed class AzureOpenAITextCompletionService : ITextCompletion
     {
         _openAIClient = openAIClient;
 
-        var deployedModelName = config["AzureOpenAiChatGptDeployment"];
+        var deployedModelName = config["AZURE_OPENAI_GPT_DEPLOYMENT"];
         ArgumentNullException.ThrowIfNullOrEmpty(deployedModelName);
         _deployedModelName = deployedModelName;
+    }
+
+    public AzureOpenAITextCompletionService(OpenAIClient openAIClient, string deployModel)
+    {
+        _openAIClient = openAIClient;
+        _deployedModelName = deployModel;
     }
 
     public async Task<string> CompleteAsync(
