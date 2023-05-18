@@ -28,7 +28,8 @@
                 "ms-dotnettools.vscode-dotnet-runtime",
                 "ms-azuretools.vscode-azurefunctions",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",
-                "ms-kubernetes-tools.vscode-aks-tools"
+                "ms-kubernetes-tools.vscode-aks-tools",
+                "ms-kubernetes-tools.aks-devx-tools"
             ]
         }
     },

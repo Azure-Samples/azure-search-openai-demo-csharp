@@ -60,7 +60,7 @@
       "value": "${AZURE_TAGS}"
     },
     "principalType": {
-      "value": "${AZURE_PRINCIPAL_TYPE}"
+      "value": "${AZURE_PRINCIPAL_TYPE=User}"
     }
   }
 }

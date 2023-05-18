@@ -141,9 +141,9 @@ module keyVaultSecrets './core/security/keyvault-secrets.bicep' = {
   }
 }
 
-// Container apps host (including container registry)
-module containerApps './core/host/container-apps.bicep' = {
-  name: 'container-apps'
+// The AKS cluster to host applications
+module aks './core/host/aks.bicep' = {
+  name: 'aks'
   scope: resourceGroup
   params: {
     location: location
