@@ -7,6 +7,8 @@ public class ReadRetrieveReadChatService
     private readonly SearchClient _searchClient;
     private readonly IKernel _kernel;
     private readonly IConfiguration _configuration;
+    private readonly OpenAIClient _embeddingClient;
+    private readonly string _embeddingModelName;
 
     private const string FollowUpQuestionsPrompt = """
         Generate three very brief follow-up questions that the user would likely ask next about their healthcare plan and employee handbook.
@@ -43,6 +45,8 @@ public class ReadRetrieveReadChatService
         _searchClient = searchClient;
         _kernel = kernel;
         _configuration = configuration;
+        _embeddingClient = new OpenAIClient(new Uri(configuration["AzureOpenAiServiceEndpoint"]!), new DefaultAzureCredential());
+        _embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"]!;
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -75,7 +79,12 @@ public class ReadRetrieveReadChatService
 
         // step 2
         // use query to search related docs
-        var documentContents = await _searchClient.QueryDocumentsAsync(query.Result, embedding: null, overrides: overrides, cancellationToken);
+        var questionEmbeddingResponse = await _embeddingClient!.GetEmbeddingsAsync(_embeddingModelName, new EmbeddingsOptions(query.Result)
+        {
+            InputType = "query",
+        }, cancellationToken);
+        var embedding = questionEmbeddingResponse.Value.Data.First().Embedding.ToArray();
+        var documentContents = await _searchClient.QueryDocumentsAsync(query.Result, embedding, overrides: overrides, cancellationToken);
 
         // step 3
         // use llm to get answer

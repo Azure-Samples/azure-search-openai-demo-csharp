@@ -10,6 +10,8 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
     private readonly ILogger<ReadDecomposeAskApproachService> _logger;
     private readonly IConfiguration _configuration;
     private readonly AzureOpenAITextCompletionService _completionService;
+    private readonly OpenAIClient _embeddingClient;
+    private readonly string _embeddingModelName;
 
     private const string AnswerPromptPrefix = """
         Answer questions using the given knowledge ONLY. For tabular information return it as an HTML table. Do not return markdown format.
@@ -183,6 +185,8 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
         _completionService = completionService;
         _logger = logger;
         _configuration = configuration;
+        _embeddingClient = new OpenAIClient(new Uri(configuration["AzureOpenAiServiceEndpoint"]!), new DefaultAzureCredential());
+        _embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"]!;
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -192,7 +196,7 @@ internal sealed class ReadDecomposeAskApproachService : IApproachBasedService
     {
         var kernel = Kernel.Builder.Build();
         kernel.Config.AddTextCompletionService("openai", (kernel) => _completionService);
-        kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
+        kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, _embeddingClient, _embeddingModelName, overrides));
         kernel.ImportSkill(new LookupSkill(_searchClient, overrides));
         kernel.CreateSemanticFunction(ReadDecomposeAskApproachService.AnswerPromptPrefix, functionName: "Answer", description: "answer question with given knowledge",
             maxTokens: 1024, temperature: overrides?.Temperature ?? 0.7);

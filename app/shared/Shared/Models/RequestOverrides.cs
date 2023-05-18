@@ -5,6 +5,13 @@ namespace Shared.Models;
 public record RequestOverrides
 {
     public bool SemanticRanker { get; set; } = false;
+
+    public bool UseVectorSearch { get; set; } = false;
+
+    // TODO
+    // In UI, if UseTextSearch is false, SemanticRanker should always be false
+    public bool UseTextSearch { get; set; } = true;
+
     public bool? SemanticCaptions { get; set; }
     public string? ExcludeCategory { get; set; }
     public int? Top { get; set; } = 3;

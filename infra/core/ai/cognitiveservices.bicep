@@ -12,6 +12,7 @@ param sku object = {
 param keyVaultName string = ''
 param gptDeploymentName string = ''
 param chatGptDeploymentName string = ''
+param embeddingDeploymentName string = ''
 
 resource account 'Microsoft.CognitiveServices/accounts@2022-10-01' = {
   name: name
@@ -70,7 +71,7 @@ module openAiEmbeddingDeploymentSecret '../security/keyvault-secret.bicep' = if 
   params: {
     keyVaultName: keyVaultName
     name: 'AzureOpenAiEmbeddingDeployment'
-    secretValue: chatGptDeploymentName
+    secretValue: embeddingDeploymentName
   }
 }
 

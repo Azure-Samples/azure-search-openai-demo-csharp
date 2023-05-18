@@ -38,7 +38,7 @@ internal sealed class RetrieveThenReadApproachService : IApproachBasedService
     private readonly IKernel _kernel;
     private readonly IConfiguration _configuration;
     private readonly ISKFunction _function;
-    private readonly OpenAIClient? _embeddingClient;
+    private readonly OpenAIClient _embeddingClient;
     private readonly string _embeddingModelName;
 
     public Approach Approach => Approach.RetrieveThenRead;

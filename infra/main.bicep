@@ -175,6 +175,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     keyVaultName: keyVault.outputs.name
     gptDeploymentName: gptDeploymentName
     chatGptDeploymentName: chatGptDeploymentName
+    embeddingDeploymentName: embeddingDeploymentName
     sku: {
       name: openAiSkuName
     }
