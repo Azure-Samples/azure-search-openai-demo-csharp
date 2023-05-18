@@ -7,11 +7,12 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
+COPY ["Nuget.Config", "."]
 COPY ["Directory.Build.props", "."]
 COPY ["backend/", "backend/"]
 COPY ["frontend/", "frontend/"]
 COPY ["shared/", "shared/"]
-RUN dotnet restore "backend/MinimalApi.csproj"
+RUN dotnet restore "backend/MinimalApi.csproj" --configfile Nuget.Config
 COPY . .
 WORKDIR "/src/backend"
 RUN dotnet build "MinimalApi.csproj" -c Release -o /app/build
