@@ -70,7 +70,7 @@ It will look like the following:
 !['Output from running azd up'](assets/endpoint.png)
 
 > **Note**<br>
-> It may take a minute for the application to be fully deployed.
+> It may take a few minutes for the application to be fully deployed.
 
 #### Use existing resources
 
@@ -84,7 +84,7 @@ It will look like the following:
 
 #### Deploying or re-deploying a local clone of the repo
 
-* Simply run `azd up`
+* Run `azd up`
 
 #### Deploying your repo using App Spaces
 
@@ -121,12 +121,12 @@ It will look like the following:
 #### Running locally
 
 1. Run `azd auth login`
+1. After the application deploys, set the environment variable `AZURE_KEY_VAULT_ENDPOINT`. You can find the value in the *.azure/<YOUR-ENVIRONMENT-NAME>/.env* file. 
 1. Run the following .NET CLI command to start the ASP.NET Core Minimal API server (client host):
 
     ```dotnetcli
     dotnet run --project ./app/backend/MinimalApi.csproj --urls=https://localhost:7181/
     ```
-
 Navigate to <https://localhost:7181>, and test out the app.
 
 #### Sharing Environments
