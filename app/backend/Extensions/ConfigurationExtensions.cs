@@ -6,12 +6,12 @@ internal static class ConfigurationExtensions
 {
     internal static string ToCitationBaseUrl(this IConfiguration config)
     {
-        var endpoint = config["AZURE_STORAGE_BLOB_ENDPOINT"];
+        var endpoint = config["AzureStorageAccountEndpoint"];
         ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
 
         var builder = new UriBuilder(endpoint)
         {
-            Path = config["AZURE_STORAGE_CONTAINER"]
+            Path = config["AzureStorageContainer"]
         };
 
         return builder.Uri.AbsoluteUri;

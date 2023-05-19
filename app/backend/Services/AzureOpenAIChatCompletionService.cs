@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 
 namespace MinimalApi.Services;
 
@@ -11,7 +11,7 @@ public sealed class AzureOpenAIChatCompletionService : ITextCompletion
     {
         _openAIClient = openAIClient;
 
-        var deployedModelName = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
+        var deployedModelName = config["AzureOpenAiChatGptDeployment"];
         ArgumentNullException.ThrowIfNullOrEmpty(deployedModelName);
         _deployedModelName = deployedModelName;
     }
