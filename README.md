@@ -129,6 +129,10 @@ It will look like the following:
     ```
 Navigate to <https://localhost:7181>, and test out the app.
 
+#### Clean up resources
+
+Run `azd down`
+
 #### Sharing Environments
 
 Run the following if you want to give someone else access to the deployed and existing environment.
