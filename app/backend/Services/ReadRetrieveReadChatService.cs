@@ -19,23 +19,30 @@ public class ReadRetrieveReadChatService
     private const string AnswerPromptTemplate = """
         <|im_start|>system
         You are a system assistant who helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers.
-        Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
+        Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below.
         {{$follow_up_questions_prompt}}
         For tabular information return it as an html table. Do not return markdown format.
-        Each source has a name followed by colon and the actual information, always include the full path of source file for each fact you use in the response. Use square brakets to reference the source. Don't combine sources, list each source separately.
+        Each source has a name followed by colon and the actual information, ALWAYS reference source for each fact you use in the response. Use square brakets to reference the source. List each source separately.
         {{$injected_prompt}}
 
-        Here're a few good examples:
-        ### Good Example 1 ###
-        Apple is a fruit. [reference1.pdf].
-        ### Good Example 2 ###
+        Here're a few examples:
+        ### Good Example 1 (include source) ###
+        Apple is a fruit[reference1.pdf].
+        ### Good Example 2 (include multiple source) ###
+        Apple is a fruit[reference1.pdf][reference2.pdf].
+        ### Good Example 2 (include source and use double angle brackets to reference question) ###
         Microsoft is a software company[reference1.pdf].  <<followup question 1>> <<followup question 2>> <<followup question 3>>
         ### END ###
-
         Sources:
         {{$sources}}
-        <|im_end|>
+
+        Chat history:
         {{$chat_history}}
+        <|im_end|>
+        <|im_start|>user
+        {{$question}}
+        <|im_end|>
+        <|im_start|>assistant
         """;
 
     public ReadRetrieveReadChatService(
@@ -67,7 +74,7 @@ public class ReadRetrieveReadChatService
         // use llm to get query
         var queryFunction = CreateQueryPromptFunction(history);
         var context = new ContextVariables();
-        var historyText = history.GetChatHistoryAsText(includeLastTurn: false);
+        var historyText = history.GetChatHistoryAsText(includeLastTurn: true);
         context["chat_history"] = historyText;
         if (history.LastOrDefault()?.User is { } userQuestion)
         {
@@ -79,7 +86,6 @@ public class ReadRetrieveReadChatService
         }
 
         var query = await _kernel.RunAsync(context, cancellationToken, queryFunction);
-
         // step 2
         // use query to search related docs
         var documentContents = await _searchClient.QueryDocumentsAsync(query.Result, overrides, cancellationToken);
@@ -135,30 +141,34 @@ public class ReadRetrieveReadChatService
     private ISKFunction CreateQueryPromptFunction(ChatTurn[] history)
     {
         var queryPromptTemplate = """
-            Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base about employee healthcare plans and the employee handbook.
-            Generate a search query based on the conversation and the new question.
-            Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
-            Do not include any text inside [] or <<>> in the search query terms.
-            If the question is not in English, translate the question to English before generating the search query.
-
-            Chat History:
+            <|im_start|>system
+            Chat history:
             {{$chat_history}}
+            
+            Here's a few examples of good search queries:
+            ### Good example 1 ###
+            Northwind Health Plus AND standard plan
+            ### Good example 2 ###
+            standard plan AND dental AND employee benefit
+            ###
 
-            Question:
+            <|im_end|>
+            <|im_start|>system
+            Generate search query for followup question. You can refer to chat history for context information. Just return search query and don't include any other information.
             {{$question}}
-
-            Search query:
+            <|im_end|>
+            <|im_start|>assistant
             """;
 
         return _kernel.CreateSemanticFunction(queryPromptTemplate,
             temperature: 0,
             maxTokens: 32,
-            stopSequences: new[] { "\n" });
+            stopSequences: new[] { "<|im_end|>" });
     }
 
     private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides) =>
         _kernel.CreateSemanticFunction(answerTemplate,
             temperature: overrides?.Temperature ?? 0.7,
             maxTokens: 1024,
-            stopSequences: new[] { "<|im_end|>", "<|im_start|>" });
+            stopSequences: new[] { "<|im_end|>" });
 }
