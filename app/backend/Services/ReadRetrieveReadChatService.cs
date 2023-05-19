@@ -130,7 +130,6 @@ public class ReadRetrieveReadChatService
 
         var ans = await _kernel.RunAsync(answerContext, cancellationToken, answerFunction);
         prompt = await _kernel.PromptTemplateEngine.RenderAsync(prompt, ans);
-        Console.WriteLine(ans.Result);
         return new ApproachResponse(
             DataPoints: documentContents.Split('\r'),
             Answer: ans.Result,
