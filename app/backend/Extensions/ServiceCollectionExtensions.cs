@@ -72,14 +72,15 @@ internal static class ServiceCollectionExtensions
             var config = sp.GetRequiredService<IConfiguration>();
             var azureOpenAiGptDeployment = config["AzureOpenAiGptDeployment"];
 
-            var openAIService = sp.GetRequiredService<AzureOpenAITextCompletionService>();
+            var openAITextService = sp.GetRequiredService<AzureOpenAITextCompletionService>();
             var kernel = Kernel.Builder.Build();
-            kernel.Config.AddTextCompletionService(azureOpenAiGptDeployment!, _ => openAIService);
+            kernel.Config.AddTextCompletionService(azureOpenAiGptDeployment!, _ => openAITextService);
 
             return kernel;
         });
 
         services.AddSingleton<AzureOpenAITextCompletionService>();
+        services.AddSingleton<AzureOpenAIChatCompletionService>();
         services.AddSingleton<ReadRetrieveReadChatService>();
 
         services.AddSingleton<IApproachBasedService, RetrieveThenReadApproachService>();

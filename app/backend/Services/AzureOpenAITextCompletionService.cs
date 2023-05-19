@@ -16,12 +16,6 @@ public sealed class AzureOpenAITextCompletionService : ITextCompletion
         _deployedModelName = deployedModelName;
     }
 
-    public AzureOpenAITextCompletionService(OpenAIClient openAIClient, string deployModel)
-    {
-        _openAIClient = openAIClient;
-        _deployedModelName = deployModel;
-    }
-
     public async Task<string> CompleteAsync(
         string text, CompleteRequestSettings requestSettings, CancellationToken cancellationToken = default)
     {
@@ -39,7 +33,6 @@ public sealed class AzureOpenAITextCompletionService : ITextCompletion
             option.StopSequences.Add(stopSequence);
         }
 
-        // TODO: use the turn-based API, per Pablo 🤓
         var response =
             await _openAIClient.GetCompletionsAsync(
                 _deployedModelName, option, cancellationToken);

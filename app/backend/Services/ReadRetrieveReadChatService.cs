@@ -5,6 +5,7 @@ namespace MinimalApi.Services;
 public class ReadRetrieveReadChatService
 {
     private readonly SearchClient _searchClient;
+    private readonly AzureOpenAIChatCompletionService _completionService;
     private readonly IKernel _kernel;
     private readonly IConfiguration _configuration;
 
@@ -37,14 +38,14 @@ public class ReadRetrieveReadChatService
 
     public ReadRetrieveReadChatService(
         SearchClient searchClient,
-        OpenAIClient openAIClient,
+        AzureOpenAIChatCompletionService completionService,
         IConfiguration configuration)
     {
         _searchClient = searchClient;
-        var deployModelName = configuration["AzureOpenAiChatGptDeployment"]!;
-        var completionService = new AzureOpenAITextCompletionService(openAIClient, deployModelName);
+        _completionService = completionService;
+        var deployedModelName = configuration["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
         var kernel = Kernel.Builder.Build();
-        kernel.Config.AddTextCompletionService(deployModelName, _ => completionService);
+        kernel.Config.AddTextCompletionService(deployedModelName!, _ => completionService);
         _kernel = kernel;
         _configuration = configuration;
     }
