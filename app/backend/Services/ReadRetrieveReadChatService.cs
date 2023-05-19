@@ -27,17 +27,10 @@ public class ReadRetrieveReadChatService
 
         Here're a few good examples:
         ### Good Example 1 ###
-        Apple is a fruit[reference1.pdf].
+        Apple is a fruit. [reference1.pdf].
         ### Good Example 2 ###
         Microsoft is a software company[reference1.pdf].  <<followup question 1>> <<followup question 2>> <<followup question 3>>
         ### END ###
-
-        Here're a few bad examples:
-        ### Bad Example 1 ###
-        Apple is a fruit. (because it doesn't reference the source)
-        ### Bad Example 2 ###
-        Apple is a fruit[reference1.pdf]. follow up question: what is apple? (because it generates extra text before question and didn't use double angle brackets to reference the questions)
-        ### End ###
 
         Sources:
         {{$sources}}
@@ -131,6 +124,7 @@ public class ReadRetrieveReadChatService
 
         var ans = await _kernel.RunAsync(answerContext, cancellationToken, answerFunction);
         prompt = await _kernel.PromptTemplateEngine.RenderAsync(prompt, ans);
+        Console.WriteLine(ans.Result);
         return new ApproachResponse(
             DataPoints: documentContents.Split('\r'),
             Answer: ans.Result,
