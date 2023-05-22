@@ -11,7 +11,7 @@ public sealed class AzureOpenAITextCompletionService : ITextCompletion
     {
         _openAIClient = openAIClient;
 
-        var deployedModelName = config["AzureOpenAiGptDeployment"];
+        var deployedModelName = config["AZURE_OPENAI_GPT_DEPLOYMENT"];
         ArgumentNullException.ThrowIfNullOrEmpty(deployedModelName);
         _deployedModelName = deployedModelName;
     }

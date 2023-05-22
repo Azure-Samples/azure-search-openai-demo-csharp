@@ -16,7 +16,8 @@
             "minikube": "none"
         },
         "ghcr.io/devcontainers/features/powershell:1.1.0": {},
-        "ghcr.io/devcontainers/features/azure-cli:1.0.8": {}
+        "ghcr.io/devcontainers/features/azure-cli:1.0.8": {},
+        "ghcr.io/devcontainers/features/github-cli:1.0.10": {}
     },
     "customizations": {
         "vscode": {
@@ -24,11 +25,21 @@
                 "ms-azuretools.azure-dev",
                 "ms-azuretools.vscode-bicep",
                 "ms-azuretools.vscode-docker",
+                "ms-vscode.vscode-node-azure-pack",
                 "ms-dotnettools.csharp",
                 "ms-dotnettools.vscode-dotnet-runtime",
                 "ms-azuretools.vscode-azurefunctions",
+                "ms-azuretools.vscode-cosmosdb",
+                "ms-azuretools.vscode-azurestorage",
+                "ms-vscode.azurecli",
+                "ms-kubernetes-tools.vscode-aks-tools",
+                "ms-kubernetes-tools.aks-devx-tools",
+                "ms-azuretools.vscode-azurecontainerapps",
+                "ms-azuretools.vscode-azureeventgrid",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",
-                "ms-kubernetes-tools.vscode-aks-tools"
+                "ipedrazas.kubernetes-snippets",
+                "redhat.vscode-yaml",
+                "GitHub.vscode-github-actions"
             ]
         }
     },

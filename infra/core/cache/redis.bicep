@@ -36,10 +36,14 @@ resource redis 'Microsoft.Cache/Redis@2021-06-01' = {
 module redisPrimaryKeySecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
   name: 'redis-cache-connection-string'
   params: {
-    keyVaultName: keyVaultName
+    keyVaultName: keyVault.name
     name: 'AzureRedisCacheConnectionString'
     secretValue: '${redis.name}.redis.cache.windows.net,password=${redis.listKeys().primaryKey},ssl=True,abortConnect=False'
   }
+}
+
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: keyVaultName
 }
 
 output name string = redis.name
