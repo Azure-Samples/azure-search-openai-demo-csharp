@@ -600,7 +600,7 @@ static int FindPage(IReadOnlyList<PageDetail> pageMap, int offset)
     var length = pageMap.Count;
     for (var i = 0; i < length - 1; i++)
     {
-        if (offset >= pageMap[i].Index && offset < pageMap[i + 1].Index)
+        if (offset >= pageMap[i].Offset && offset < pageMap[i + 1].Offset)
         {
             return i;
         }
