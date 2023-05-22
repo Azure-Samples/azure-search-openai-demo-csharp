@@ -1,7 +1,7 @@
 # ChatGPT + Enterprise data with Azure OpenAI and Cognitive Search
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Azure-Samples/azure-search-openai-demo-csharp/dotnet-build.yml?label=BUILD%20%26%20TEST&logo=github&style=for-the-badge)
-[![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=599293758&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&location=WestUs2)
+[![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=624102171&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=UsWest)
 [![Open in Remote - Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/azure-search-openai-demo-csharp)
 
 This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data using the Retrieval Augmented Generation pattern. It uses Azure OpenAI Service to access the ChatGPT model (`gpt-35-turbo`), and Azure Cognitive Search for data indexing and retrieval.
@@ -46,7 +46,7 @@ The repo includes sample data so it's ready to try end-to-end. In this sample ap
 
 You can run this repo virtually by using GitHub Codespaces or VS Code Remote Containers.  Click on one of the buttons below to open this repo in one of those options.
 
-[![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=599293758&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&location=WestUs2)
+[![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=624102171&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=UsWest)
 [![Open in Remote - Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/azure-search-openai-demo-csharp)
 
 ### Installation
@@ -70,7 +70,7 @@ It will look like the following:
 !['Output from running azd up'](assets/endpoint.png)
 
 > **Note**<br>
-> It may take a minute for the application to be fully deployed.
+> It may take a few minutes for the application to be fully deployed.
 
 #### Use existing resources
 
@@ -84,7 +84,7 @@ It will look like the following:
 
 #### Deploying or re-deploying a local clone of the repo
 
-* Simply run `azd up`
+* Run `azd up`
 
 #### Deploying your repo using App Spaces
 
@@ -121,13 +121,17 @@ It will look like the following:
 #### Running locally
 
 1. Run `azd auth login`
+1. After the application deploys, set the environment variable `AZURE_KEY_VAULT_ENDPOINT`. You can find the value in the *.azure/<YOUR-ENVIRONMENT-NAME>/.env* file. 
 1. Run the following .NET CLI command to start the ASP.NET Core Minimal API server (client host):
 
     ```dotnetcli
     dotnet run --project ./app/backend/MinimalApi.csproj --urls=https://localhost:7181/
     ```
-
 Navigate to <https://localhost:7181>, and test out the app.
+
+#### Clean up resources
+
+Run `azd down`
 
 #### Sharing Environments
 
