@@ -44,20 +44,26 @@
     "storageResourceGroupName": {
       "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
     },
-    "redisCacheName": {
-      "value": "${AZURE_REDIS_CACHE}"
+    "keyVaultName": {
+      "value": "${AZURE_KEY_VAULT_NAME}"
     },
-    "redisCacheResourceGroupName": {
-      "value": "${AZURE_REDIS_CACHE_RESOURCE_GROUP}"
-    },
+    "keyVaultResourceGroupName": {
+      "value": "${AZURE_KEY_VAULT_RESOURCE_GROUP}"
+    },    
     "webAppExists": {
       "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}"
+    },
+    "webIdentityName": {
+      "value": "${SERVICE_WEB_IDENTITY_NAME}"
     },
     "resourceGroupName": {
       "value": "${AZURE_RESOURCE_GROUP}"
     },
     "tags": {
       "value": "${AZURE_TAGS}"
+    },
+    "principalType": {
+      "value": "${AZURE_PRINCIPAL_TYPE=User}"
     }
   }
 }

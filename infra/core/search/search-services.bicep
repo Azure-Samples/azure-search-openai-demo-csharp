@@ -1,8 +1,6 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
-param searchIndexName string
-param keyVaultName string = ''
 
 param sku object = {
   name: 'standard'
@@ -59,26 +57,6 @@ resource search 'Microsoft.Search/searchServices@2021-04-01-preview' = {
   sku: sku
 }
 
-var url = 'https://${name}.search.windows.net'
-
-module searchServiceSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
-  name: 'search-service-secret'
-  params: {
-    keyVaultName: keyVaultName
-    name: 'AzureSearchServiceEndpoint'
-    secretValue: url
-  }
-}
-
-module searchIndexSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
-  name: 'search-index-secret'
-  params: {
-    keyVaultName: keyVaultName
-    name: 'AzureSearchIndex'
-    secretValue: searchIndexName
-  }
-}
-
 output id string = search.id
-output endpoint string = url
+output endpoint string = 'https://${name}.search.windows.net/'
 output name string = search.name

@@ -12,16 +12,12 @@ internal static class ChatTurnExtensions
 
         foreach (var turn in history.SkipLast(skip).Reverse())
         {
-            var historyText = $"""
-                <|im_start|>user
-                {turn.User}
-                <|im_end|>
-                <|im_start|>assistant
-                """;
+            var historyText = $"user: {turn.User}";
 
             if (turn.Bot is not null)
             {
                 historyText += $"""
+                    <|im_start|>assistant
                     {turn.Bot}
                     <|im_end|>
                     """;

@@ -37,8 +37,6 @@ resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2022-10-01
   }
 }]
 
-var url = account.properties.endpoint
-
 module openAiServiceEndpointSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
   name: 'openai-service-endpoint-secret'
   params: {
@@ -75,6 +73,6 @@ module openAiEmbeddingDeploymentSecret '../security/keyvault-secret.bicep' = if 
   }
 }
 
-output endpoint string = url
+output endpoint string = account.properties.endpoint
 output id string = account.id
 output name string = account.name
