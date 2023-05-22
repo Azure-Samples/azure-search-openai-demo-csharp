@@ -7,7 +7,7 @@ on:
         default: Manual run
   push:
     branches:
-      - 'releases/**'
+      - main
 
 # https://learn.microsoft.com/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux#set-up-azure-login-with-openid-connect-authentication
 permissions:
@@ -15,19 +15,26 @@ permissions:
   contents: read
 
 env:
-  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCEGROUPNAME }}
+  AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
   AZURE_DEV_USER_AGENT: ${{ secrets.AZURE_DEV_USER_AGENT }}
   # Existing resources, when applicable
-  AZURE_OPENAI_SERVICE: ${{ secrets.AZURE_OPENAI_SERVICE }}
-  AZURE_OPENAI_RESOURCE_GROUP: ${{ secrets.AZURE_OPENAI_RESOURCE_GROUP }}
-  AZURE_SEARCH_SERVICE: ${{ secrets.AZURE_SEARCH_SERVICE }}
-  AZURE_SEARCH_SERVICE_RESOURCE_GROUP: ${{ secrets.AZURE_SEARCH_SERVICE_RESOURCE_GROUP }}
-  AZURE_REDIS_CACHE: ${{ secrets.AZURE_REDIS_CACHE }}
-  AZURE_REDIS_CACHE_RESOURCE_GROUP: ${{ secrets.AZURE_REDIS_CACHE_RESOURCE_GROUP }}
+  AZURE_OPENAI_SERVICE: ${{ vars.AZURE_OPENAI_SERVICE }}
+  AZURE_OPENAI_RESOURCE_GROUP: ${{ vars.AZURE_OPENAI_RESOURCE_GROUP }}
+  AZURE_FORMRECOGNIZER_SERVICE: ${{ vars.AZURE_FORMRECOGNIZER_SERVICE }}
+  AZURE_FORMRECOGNIZER_RESOURCE_GROUP: ${{ vars.AZURE_FORMRECOGNIZER_RESOURCE_GROUP }}
+  AZURE_SEARCH_SERVICE: ${{ vars.AZURE_SEARCH_SERVICE }}
+  AZURE_SEARCH_SERVICE_RESOURCE_GROUP: ${{ vars.AZURE_SEARCH_SERVICE_RESOURCE_GROUP }}
+  AZURE_STORAGE_ACCOUNT: ${{ vars.AZURE_STORAGE_ACCOUNT }}
+  AZURE_STORAGE_RESOURCE_GROUP: ${{ vars.AZURE_STORAGE_RESOURCE_GROUP }}
+  AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
+  AZURE_KEY_VAULT_RESOURCE_GROUP: ${{ vars.AZURE_KEY_VAULT_RESOURCE_GROUP }}
+  AZURE_REDIS_CACHE: ${{ vars.AZURE_REDIS_CACHE }}
+  AZURE_REDIS_CACHE_RESOURCE_GROUP: ${{ vars.AZURE_REDIS_CACHE_RESOURCE_GROUP }}
+  AZURE_PRINCIPAL_TYPE: 'ServicePrincipal'
 
 jobs:
   build:
@@ -72,17 +79,17 @@ jobs:
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Azure Dev Provision
-        run: azd provision --no-prompt
+      - name: Provision Infrastructure
+        run: azd provision --no-prompt --debug
         env:
-          AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
-          AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           AZURE_TAGS: ${{ secrets.AZURE_TAGS }}
 
-      - name: Azure Dev Deploy
-        run: azd deploy --no-prompt
+      - name: Deploy Application
+        run: azd deploy --no-prompt --debug
         env:
-          AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
-          AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}

@@ -7,8 +7,10 @@ param applicationInsightsName string
 param containerAppsEnvironmentName string
 param containerRegistryName string
 param serviceName string = 'web'
+param imageName string = ''
 param exists bool
 param keyVaultName string
+param keyVaultResourceGroupName string = resourceGroup().name
 param storageBlobEndpoint string
 param storageContainerName string
 param searchServiceEndpoint string
@@ -18,6 +20,8 @@ param openAiEndpoint string
 param openAiGptDeployment string
 param openAiChatGptDeployment string
 
+param serviceBinds array
+
 resource webIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
   location: location
@@ -25,20 +29,24 @@ resource webIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-3
 
 module webKeyVaultAccess '../core/security/keyvault-access.bicep' = {
   name: 'web-keyvault-access'
+  scope: resourceGroup(keyVaultResourceGroupName)
   params: {
     principalId: webIdentity.properties.principalId
-    keyVaultName: keyVaultName
+    keyVaultName: keyVault.name
   }
 }
 
 module app '../core/host/container-app-upsert.bicep' = {
   name: '${serviceName}-container-app'
+  dependsOn: [webKeyVaultAccess]
   params: {
     name: name
     location: location
     tags: union(tags, { 'azd-service-name': serviceName })
-    identityName: identityName
+    identityName: webIdentity.name
+    imageName: imageName
     exists: exists
+    serviceBinds: serviceBinds
     containerAppsEnvironmentName: containerAppsEnvironmentName
     containerRegistryName: containerRegistryName
     env: [
@@ -97,9 +105,11 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: keyVaultName
+  scope: resourceGroup(keyVaultResourceGroupName)
 }
 
 output SERVICE_WEB_IDENTITY_PRINCIPAL_ID string = webIdentity.properties.principalId
 output SERVICE_WEB_NAME string = app.outputs.name
 output SERVICE_WEB_URI string = app.outputs.uri
 output SERVICE_WEB_IMAGE_NAME string = app.outputs.imageName
+output SERVICE_WEB_IDENTITY_NAME string = identityName
