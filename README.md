@@ -79,7 +79,7 @@ It will look like the following:
 !['Output from running azd up'](assets/endpoint.png)
 
 > **Note**<br>
-> It may take a minute for the application to be fully deployed.
+> It may take a few minutes for the application to be fully deployed.
 
 #### Use existing resources
 
