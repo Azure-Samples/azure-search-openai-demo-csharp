@@ -72,6 +72,10 @@ You can run this repo virtually by using GitHub Codespaces or VS Code Remote Con
 Execute the following command, if you don't have any pre-existing Azure services and want to start from a fresh deployment.
 
 1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
+
+> **Note**<br>
+> This application uses the `text-davinci-003` and `gpt-35-turbo` models. When choosing which region to deploy to, make sure they're available in that region (i.e. EastUS). For more information, see the [Azure OpenAI Service documentation](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#gpt-3-models-1).  
+
 1. After the application has been successfully deployed you will see a URL printed to the console.  Click that URL to interact with the application in your browser.  
 
 It will look like the following:
@@ -93,7 +97,7 @@ It will look like the following:
 
 #### Deploying or re-deploying a local clone of the repo
 
-* Simply run `azd up`
+* Run `azd up`
 
 #### Deploying your repo using App Spaces
 
@@ -130,6 +134,7 @@ It will look like the following:
 #### Running locally
 
 1. Run `azd auth login`
+1. After the application deploys, set the environment variable `AZURE_KEY_VAULT_ENDPOINT`. You can find the value in the *.azure/YOUR-ENVIRONMENT-NAME/.env* file or the Azure portal.
 1. Run the following .NET CLI command to start the ASP.NET Core Minimal API server (client host):
 
     ```dotnetcli
@@ -146,6 +151,10 @@ Run the following if you want to give someone else access to the deployed and ex
 1. Run `azd init -t azure-search-openai-demo-csharp`
 1. Run `azd env refresh -e {environment name}` - Note that they will need the azd environment name, subscription Id, and location to run this command - you can find those values in your `./azure/{env name}/.env` file.  This will populate their azd environment's .env file with all the settings needed to run the app locally.
 1. Run `pwsh ./scripts/roles.ps1` - This will assign all of the necessary roles to the user so they can run the app locally.  If they do not have the necessary permission to create roles in the subscription, then you may need to run this script for them. Just be sure to set the `AZURE_PRINCIPAL_ID` environment variable in the azd .env file or in the active shell to their Azure Id, which they can get with `az account show`.
+
+#### Clean up resources
+
+Run `azd down`
 
 ### Quickstart
 
