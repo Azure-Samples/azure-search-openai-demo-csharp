@@ -130,7 +130,7 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
       }
       {
         name: 'AzureStorageAccountEndpoint'
-        value: 'https://${storage.name}.blob.${environment().suffixes.storage}'
+        value: storage.outputs.primaryEndpoints.blob
       }
       {
         name: 'AzureStorageContainer'
