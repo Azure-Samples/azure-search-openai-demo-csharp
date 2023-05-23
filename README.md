@@ -10,6 +10,15 @@ The repo includes sample data so it's ready to try end-to-end. In this sample ap
 
 ![RAG Architecture](docs/appcomponents-version-3.png)
 
+For more details on how this application was built, check out:
+
+- [Transform your business with smart .NET apps powered by Azure and ChatGPT blog post](https://aka.ms/build-dotnet-ai-blog)
+- [Build Intelligent Apps with .NET and Azure - Build Session](https://build.microsoft.com/sessions/f8f953f3-2e58-4535-92ae-5cb30ef2b9b0)
+
+We want to hear from you! Are you interested in building or currently building intelligent apps? Take a few minutes to complete this survey.
+
+[**Take the survey**](https://aka.ms/dotnet-build-oai-survey)
+
 ## Features
 
 * Voice Chat, Chat and Q&A interfaces
