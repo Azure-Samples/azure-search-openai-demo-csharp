@@ -17,7 +17,7 @@ For more details on how this application was built, check out:
 
 We want to hear from you! Are you interested in building or currently building intelligent apps? Take a few minutes to complete this survey.
 
-<button style='background-color:#5c33b8;color:white'>Take the survey<a href="https://aka.ms/dotnet-build-oai-survey"></a></button>
+[**Take the survey**](https://aka.ms/dotnet-build-oai-survey)
 
 ## Features
 
