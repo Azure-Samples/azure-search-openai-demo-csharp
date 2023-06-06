@@ -1,64 +1,128 @@
 targetScope = 'subscription'
 
+@description('Name of the environment used to generate a short unique hash for resources.')
 @minLength(1)
 @maxLength(64)
-@description('Name of the the environment which is used to generate a short unique hash used in all resources.')
 param environmentName string
 
-@minLength(1)
 @description('Primary location for all resources')
 param location string
+param tags string = ''
 
-param principalType string = 'User'
-
-param resourceGroupName string = ''
-param containerAppsEnvironmentName string = ''
-param containerRegistryName string = ''
-param containerRegistryResourceGroupName string = ''
-param webContainerAppName string = ''
-param webImageName string = ''
-param webIdentityName string = ''
+@description('Name of the Azure Application Insights dashboard')
 param applicationInsightsDashboardName string = ''
+
+@description('Name of the Azure Application Insights resource')
 param applicationInsightsName string = ''
-param logAnalyticsName string = ''
 
-param searchServiceName string = ''
-param searchServiceResourceGroupName string = ''
-param searchServiceResourceGroupLocation string = location
-param searchServiceSkuName string = 'standard'
-param searchIndexName string = 'gptkbindex'
-
-param keyVaultName string = ''
-param keyVaultResourceGroupName string = ''
-param keyVaultResourceGroupLocation string = location
-
-param storageAccountName string = ''
-param storageResourceGroupName string = ''
-param storageResourceGroupLocation string = location
-param storageContainerName string = 'content'
-
-param openAiServiceName string = ''
-param openAiResourceGroupName string = ''
-param openAiResourceGroupLocation string = location
-param webAppExists bool = false
-param openAiSkuName string = 'S0'
-
-param formRecognizerServiceName string = ''
-param formRecognizerResourceGroupName string = ''
-param formRecognizerResourceGroupLocation string = location
-param formRecognizerSkuName string = 'S0'
-
-param gptDeploymentName string = 'davinci'
-param gptModelName string = 'text-davinci-003'
+@description('Name of the chat GPT deployment')
 param chatGptDeploymentName string = 'chat'
+
+@description('Name of the chat GPT model. Default: gpt-35-turbo')
 param chatGptModelName string = 'gpt-35-turbo'
 
-@description('Id of the user or app to assign application roles')
+@description('Name of the container apps environment')
+param containerAppsEnvironmentName string = ''
+
+@description('Name of the Azure container registry')
+param containerRegistryName string = ''
+
+@description('Name of the resource group for the Azure container registry')
+param containerRegistryResourceGroupName string = ''
+
+@description('Location of the resource group for the Form Recognizer service')
+param formRecognizerResourceGroupLocation string = location
+
+@description('Name of the resource group for the Form Recognizer service')
+param formRecognizerResourceGroupName string = ''
+
+@description('Name of the Form Recognizer service')
+param formRecognizerServiceName string = ''
+
+@description('SKU name for the Form Recognizer service. Default: S0')
+param formRecognizerSkuName string = 'S0'
+
+@description('Name of the GPT deployment. Default: davinci')
+param gptDeploymentName string = 'davinci'
+
+@description('Name of the GPT model. Default: text-davinci-003')
+param gptModelName string = 'text-davinci-003'
+
+@description('Name of the Azure Key Vault')
+param keyVaultName string = ''
+
+@description('Location of the resource group for the Azure Key Vault')
+param keyVaultResourceGroupLocation string = location
+
+@description('Name of the resource group for the Azure Key Vault')
+param keyVaultResourceGroupName string = ''
+
+@description('Name of the Azure Log Analytics workspace')
+param logAnalyticsName string = ''
+
+@description('Location of the resource group for the OpenAI resources')
+param openAiResourceGroupLocation string = location
+
+@description('Name of the resource group for the OpenAI resources')
+param openAiResourceGroupName string = ''
+
+@description('Name of the OpenAI service')
+param openAiServiceName string = ''
+
+@description('SKU name for the OpenAI service. Default: S0')
+param openAiSkuName string = 'S0'
+
+@description('ID of the principal')
 param principalId string = ''
+
+@description('Type of the principal. Valid values: User,ServicePrincipal')
+param principalType string = 'User'
+
+@description('Name of the resource group')
+param resourceGroupName string = ''
+
+@description('Name of the search index. Default: gptkbindex')
+param searchIndexName string = 'gptkbindex'
+
+@description('Name of the Azure Cognitive Search service')
+param searchServiceName string = ''
+
+@description('Location of the resource group for the Azure Cognitive Search service')
+param searchServiceResourceGroupLocation string = location
+
+@description('Name of the resource group for the Azure Cognitive Search service')
+param searchServiceResourceGroupName string = ''
+
+@description('SKU name for the Azure Cognitive Search service. Default: standard')
+param searchServiceSkuName string = 'standard'
+
+@description('Name of the storage account')
+param storageAccountName string = ''
+
+@description('Name of the storage container. Default: content')
+param storageContainerName string = 'content'
+
+@description('Location of the resource group for the storage account')
+param storageResourceGroupLocation string = location
+
+@description('Name of the resource group for the storage account')
+param storageResourceGroupName string = ''
+
+@description('Specifies if the web app exists')
+param webAppExists bool = false
+
+@description('Name of the web app container')
+param webContainerAppName string = ''
+
+@description('Name of the web app identity')
+param webIdentityName string = ''
+
+@description('Name of the web app image')
+param webImageName string = ''
 
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
-param tags string = ''
+
 var baseTags = { 'azd-env-name': environmentName }
 var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
 
@@ -148,7 +212,7 @@ module containerApps 'core/host/container-apps.bicep' = {
     name: 'app'
     containerAppsEnvironmentName: !empty(containerAppsEnvironmentName) ? containerAppsEnvironmentName : '${abbrs.appManagedEnvironments}${resourceToken}'
     containerRegistryName: !empty(containerRegistryName) ? containerRegistryName : '${abbrs.containerRegistryRegistries}${resourceToken}'
-    containerRegistryResourceGroupName: !empty(containerRegistryResourceGroupName) ? containerRegistryResourceGroupName: resourceGroup.name
+    containerRegistryResourceGroupName: !empty(containerRegistryResourceGroupName) ? containerRegistryResourceGroupName : resourceGroup.name
     location: location
     logAnalyticsWorkspaceName: monitoring.outputs.logAnalyticsWorkspaceName
   }
@@ -183,14 +247,15 @@ module web './app/web.bicep' = {
 }
 
 // this launches a redis instance inside of the ACA env
-module redis 'core/host/springboard-service.bicep' = {
+module redis 'core/host/container-app.bicep' = {
   name: 'redis'
   scope: resourceGroup
   params: {
     name: 'redis'
     location: location
     tags: updatedTags
-    managedEnvironmentId: containerApps.outputs.environmentId
+    containerAppsEnvironmentName: containerApps.outputs.environmentName
+    containerRegistryName: containerApps.outputs.registryName
     serviceType: 'redis'
   }
 }
@@ -405,41 +470,34 @@ module searchRoleBackend 'core/security/role.bicep' = {
   }
 }
 
-output AZURE_LOCATION string = location
-output AZURE_TENANT_ID string = tenant().tenantId
-output AZURE_RESOURCE_GROUP string = resourceGroup.name
-
-output AZURE_OPENAI_SERVICE string = openAi.outputs.name
-output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
-output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
-output AZURE_OPENAI_GPT_DEPLOYMENT string = gptDeploymentName
-output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
-
-output AZURE_FORMRECOGNIZER_SERVICE string = formRecognizer.outputs.name
-output AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT string = formRecognizer.outputs.endpoint
-output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = formRecognizerResourceGroup.name
-
-output AZURE_SEARCH_INDEX string = searchIndexName
-output AZURE_SEARCH_SERVICE string = searchService.outputs.name
-output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
-output AZURE_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.endpoint
-
-output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
-output AZURE_STORAGE_CONTAINER string = storageContainerName
-output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
-output AZURE_STORAGE_BLOB_ENDPOINT string = storage.outputs.primaryEndpoints.blob
-
-output AZURE_REDIS_CACHE string = redis.outputs.name
-
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
 output APPLICATIONINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName
 output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerApps.outputs.environmentName
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerApps.outputs.registryLoginServer
 output AZURE_CONTAINER_REGISTRY_NAME string = containerApps.outputs.registryName
 output AZURE_CONTAINER_REGISTRY_RESOURCE_GROUP string = containerApps.outputs.registryName
-
+output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = formRecognizerResourceGroup.name
+output AZURE_FORMRECOGNIZER_SERVICE string = formRecognizer.outputs.name
+output AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT string = formRecognizer.outputs.endpoint
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_RESOURCE_GROUP string = keyVaultResourceGroup.name
-output SERVICE_WEB_NAME string = web.outputs.SERVICE_WEB_NAME
+output AZURE_LOCATION string = location
+output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
+output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
+output AZURE_OPENAI_GPT_DEPLOYMENT string = gptDeploymentName
+output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
+output AZURE_OPENAI_SERVICE string = openAi.outputs.name
+output AZURE_REDIS_CACHE string = redis.outputs.name
+output AZURE_RESOURCE_GROUP string = resourceGroup.name
+output AZURE_SEARCH_INDEX string = searchIndexName
+output AZURE_SEARCH_SERVICE string = searchService.outputs.name
+output AZURE_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.endpoint
+output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
+output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
+output AZURE_STORAGE_BLOB_ENDPOINT string = storage.outputs.primaryEndpoints.blob
+output AZURE_STORAGE_CONTAINER string = storageContainerName
+output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
+output AZURE_TENANT_ID string = tenant().tenantId
 output SERVICE_WEB_IDENTITY_NAME string = web.outputs.SERVICE_WEB_IDENTITY_NAME
+output SERVICE_WEB_NAME string = web.outputs.SERVICE_WEB_NAME

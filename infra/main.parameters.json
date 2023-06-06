@@ -8,26 +8,41 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
-    "principalId": {
-      "value": "${AZURE_PRINCIPAL_ID}"
-    },
-    "openAiServiceName": {
-      "value": "${AZURE_OPENAI_SERVICE}"
-    },
-    "openAiResourceGroupName": {
-      "value": "${AZURE_OPENAI_RESOURCE_GROUP}"
-    },
-    "openAiSkuName": {
-      "value": "S0"
-    },
-    "formRecognizerServiceName": {
-      "value": "${AZURE_FORMRECOGNIZER_SERVICE}"
+    "tags": {
+      "value": "${AZURE_TAGS}"
     },
     "formRecognizerResourceGroupName": {
       "value": "${AZURE_FORMRECOGNIZER_RESOURCE_GROUP}"
     },
+    "formRecognizerServiceName": {
+      "value": "${AZURE_FORMRECOGNIZER_SERVICE}"
+    },
     "formRecognizerSkuName": {
       "value": "S0"
+    },
+    "keyVaultName": {
+      "value": "${AZURE_KEY_VAULT_NAME}"
+    },
+    "keyVaultResourceGroupName": {
+      "value": "${AZURE_KEY_VAULT_RESOURCE_GROUP}"
+    },
+    "openAiResourceGroupName": {
+      "value": "${AZURE_OPENAI_RESOURCE_GROUP}"
+    },
+    "openAiServiceName": {
+      "value": "${AZURE_OPENAI_SERVICE}"
+    },
+    "openAiSkuName": {
+      "value": "S0"
+    },
+    "principalId": {
+      "value": "${AZURE_PRINCIPAL_ID}"
+    },
+    "principalType": {
+      "value": "${AZURE_PRINCIPAL_TYPE=User}"
+    },
+    "resourceGroupName": {
+      "value": "${AZURE_RESOURCE_GROUP}"
     },
     "searchServiceName": {
       "value": "${AZURE_SEARCH_SERVICE}"
@@ -44,26 +59,11 @@
     "storageResourceGroupName": {
       "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
     },
-    "keyVaultName": {
-      "value": "${AZURE_KEY_VAULT_NAME}"
-    },
-    "keyVaultResourceGroupName": {
-      "value": "${AZURE_KEY_VAULT_RESOURCE_GROUP}"
-    },    
     "webAppExists": {
       "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}"
     },
     "webIdentityName": {
       "value": "${SERVICE_WEB_IDENTITY_NAME}"
-    },
-    "resourceGroupName": {
-      "value": "${AZURE_RESOURCE_GROUP}"
-    },
-    "tags": {
-      "value": "${AZURE_TAGS}"
-    },
-    "principalType": {
-      "value": "${AZURE_PRINCIPAL_TYPE=User}"
     }
   }
 }
