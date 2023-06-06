@@ -2,11 +2,16 @@ param name string
 param location string = resourceGroup().location
 param tags object = {}
 
-param daprEnabled bool = false
-param logAnalyticsWorkspaceName string
+@description('Name of the Application Insights resource')
 param applicationInsightsName string = ''
 
-resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-11-01-preview' = {
+@description('Specifies if Dapr is enabled')
+param daprEnabled bool = false
+
+@description('Name of the Log Analytics workspace')
+param logAnalyticsWorkspaceName string
+
+resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-04-01-preview' = {
   name: name
   location: location
   tags: tags
@@ -31,5 +36,5 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing
 }
 
 output defaultDomain string = containerAppsEnvironment.properties.defaultDomain
-output name string = containerAppsEnvironment.name
 output id string = containerAppsEnvironment.id
+output name string = containerAppsEnvironment.name
