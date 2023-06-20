@@ -9,6 +9,10 @@ param publicNetworkAccess string = 'Enabled'
 param sku object = {
   name: 'S0'
 }
+param keyVaultName string = ''
+param gptDeploymentName string = ''
+param chatGptDeploymentName string = ''
+param embeddingDeploymentName string = ''
 
 resource account 'Microsoft.CognitiveServices/accounts@2022-10-01' = {
   name: name
@@ -32,6 +36,42 @@ resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2022-10-01
     scaleSettings: deployment.scaleSettings
   }
 }]
+
+module openAiServiceEndpointSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'openai-service-endpoint-secret'
+  params: {
+    keyVaultName: keyVaultName
+    name: 'AzureOpenAiServiceEndpoint'
+    secretValue: url
+  }
+}
+
+module openAiGptDeploymentSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'openai-gpt-deployment-secret'
+  params: {
+    keyVaultName: keyVaultName
+    name: 'AzureOpenAiGptDeployment'
+    secretValue: gptDeploymentName
+  }
+}
+
+module openAiChatGptDeploymentSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'openai-chatgpt-deployment-secret'
+  params: {
+    keyVaultName: keyVaultName
+    name: 'AzureOpenAiChatGptDeployment'
+    secretValue: chatGptDeploymentName
+  }
+}
+
+module openAiEmbeddingDeploymentSecret '../security/keyvault-secret.bicep' = if (keyVaultName != '') {
+  name: 'openai-embedding-deployment-secret'
+  params: {
+    keyVaultName: keyVaultName
+    name: 'AzureOpenAiEmbeddingDeployment'
+    secretValue: embeddingDeploymentName
+  }
+}
 
 output endpoint string = account.properties.endpoint
 output id string = account.id

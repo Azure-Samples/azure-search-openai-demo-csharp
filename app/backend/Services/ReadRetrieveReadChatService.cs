@@ -8,6 +8,8 @@ public class ReadRetrieveReadChatService
     private readonly AzureOpenAIChatCompletionService _completionService;
     private readonly IKernel _kernel;
     private readonly IConfiguration _configuration;
+    private readonly OpenAIClient _embeddingClient;
+    private readonly string _embeddingModelName;
 
     private const string FollowUpQuestionsPrompt = """
         After answering question, also generate three very brief follow-up questions that the user would likely ask next.
@@ -57,6 +59,8 @@ public class ReadRetrieveReadChatService
         kernel.Config.AddTextCompletionService(deployedModelName!, _ => completionService);
         _kernel = kernel;
         _configuration = configuration;
+        _embeddingClient = new OpenAIClient(new Uri(configuration["AzureOpenAiServiceEndpoint"]!), new DefaultAzureCredential());
+        _embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"]!;
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -88,7 +92,12 @@ public class ReadRetrieveReadChatService
         var query = await _kernel.RunAsync(context, cancellationToken, queryFunction);
         // step 2
         // use query to search related docs
-        var documentContents = await _searchClient.QueryDocumentsAsync(query.Result, overrides, cancellationToken);
+        var questionEmbeddingResponse = await _embeddingClient!.GetEmbeddingsAsync(_embeddingModelName, new EmbeddingsOptions(query.Result)
+        {
+            InputType = "query",
+        }, cancellationToken);
+        var embedding = questionEmbeddingResponse.Value.Data.First().Embedding.ToArray();
+        var documentContents = await _searchClient.QueryDocumentsAsync(query.Result, embedding, overrides: overrides, cancellationToken);
 
         // step 3
         // use llm to get answer

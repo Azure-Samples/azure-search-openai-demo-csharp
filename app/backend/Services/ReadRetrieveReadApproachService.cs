@@ -10,6 +10,8 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
     private readonly AzureOpenAITextCompletionService _completionService;
     private readonly ILogger<ReadRetrieveReadApproachService> _logger;
     private readonly IConfiguration _configuration;
+    private readonly OpenAIClient _embeddingClient;
+    private readonly string _embeddingModelName;
 
     private const string PlanPrompt = """
         Do the following steps:
@@ -59,6 +61,8 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
         _completionService = service;
         _logger = logger;
         _configuration = configuration;
+        _embeddingClient = new OpenAIClient(new Uri(configuration["AzureOpenAiServiceEndpoint"]!), new DefaultAzureCredential());
+        _embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"]!;
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -68,7 +72,7 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
     {
         var kernel = Kernel.Builder.Build();
         kernel.Config.AddTextCompletionService("openai", _ => _completionService);
-        kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, overrides));
+        kernel.ImportSkill(new RetrieveRelatedDocumentSkill(_searchClient, _embeddingClient, _embeddingModelName, overrides));
         kernel.CreateSemanticFunction(ReadRetrieveReadApproachService.Prefix, functionName: "Answer", description: "answer question",
             maxTokens: 1_024, temperature: overrides?.Temperature ?? 0.7);
         var planner = new SequentialPlanner(kernel, new PlannerConfig

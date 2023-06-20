@@ -52,6 +52,8 @@ param gptDeploymentName string = 'davinci'
 param gptModelName string = 'text-davinci-003'
 param chatGptDeploymentName string = 'chat'
 param chatGptModelName string = 'gpt-35-turbo'
+param embeddingModelName string = 'text-embedding-ada-002'
+param embeddingDeploymentName string = 'embedding'
 
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
@@ -216,6 +218,10 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     location: openAiResourceGroupLocation
     tags: updatedTags
+    keyVaultName: keyVault.outputs.name
+    gptDeploymentName: gptDeploymentName
+    chatGptDeploymentName: chatGptDeploymentName
+    embeddingDeploymentName: embeddingDeploymentName
     sku: {
       name: openAiSkuName
     }
@@ -237,6 +243,17 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
           format: 'OpenAI'
           name: chatGptModelName
           version: '0301'
+        }
+        scaleSettings: {
+          scaleType: 'Standard'
+        }
+      }
+      {
+        name: embeddingDeploymentName
+        model: {
+          format: 'OpenAI'
+          name: embeddingModelName
+          version: '2'
         }
         scaleSettings: {
           scaleType: 'Standard'
@@ -414,6 +431,7 @@ output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
 output AZURE_OPENAI_GPT_DEPLOYMENT string = gptDeploymentName
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
+output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingDeploymentName
 
 output AZURE_FORMRECOGNIZER_SERVICE string = formRecognizer.outputs.name
 output AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT string = formRecognizer.outputs.endpoint

@@ -176,15 +176,30 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
         }
     }
 
+    string vectorSearchConfigName = "my-vector-config";
+
     var index = new SearchIndex(options.SearchIndexName)
     {
+        VectorSearch = new()
+        {
+            AlgorithmConfigurations =
+                {
+                    new VectorSearchAlgorithmConfiguration(vectorSearchConfigName, "hnsw")
+                }
+        },
         Fields =
         {
             new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
             new SearchableField("content") { AnalyzerName = "en.microsoft" },
             new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
             new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
-            new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true }
+            new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
+            new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
+            {
+                IsSearchable = true,
+                Dimensions = 1536,
+                VectorSearchConfiguration = vectorSearchConfigName,
+            }
         },
         SemanticSettings = new SemanticSettings
         {
@@ -502,11 +517,18 @@ static async ValueTask IndexSectionsAsync(
     }
 
     var searchClient = await GetSearchClientAsync(options);
+    var openAIClient = await GetAzureOpenAIClientAsync(options);
 
     var iteration = 0;
     var batch = new IndexDocumentsBatch<SearchDocument>();
     foreach (var section in sections)
     {
+        var embeddings = await openAIClient.GetEmbeddingsAsync(options.EmbeddingModelName, new Azure.AI.OpenAI.EmbeddingsOptions(section.Content.Replace('\r', ' '))
+        {
+            InputType = "doc",
+        });
+        var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? new float[0];
+        Console.WriteLine($"embedding length: {embedding.Length}");
         batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
             IndexActionType.MergeOrUpload,
             new SearchDocument
@@ -515,7 +537,8 @@ static async ValueTask IndexSectionsAsync(
                 ["content"] = section.Content,
                 ["category"] = section.Category,
                 ["sourcepage"] = section.SourcePage,
-                ["sourcefile"] = section.SourceFile
+                ["sourcefile"] = section.SourceFile,
+                ["embedding"] = embedding,
             }));
 
         iteration++;

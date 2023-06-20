@@ -6,7 +6,8 @@ internal static class SearchClientExtensions
 {
     internal static async Task<string> QueryDocumentsAsync(
         this SearchClient searchClient,
-        string query,
+        string? query = null,
+        float[]? embedding = null,
         RequestOverrides? overrides = null,
         CancellationToken cancellationToken = default)
     {
@@ -34,7 +35,25 @@ internal static class SearchClientExtensions
                 Size = top,
             };
 
-        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption, cancellationToken);
+        if (embedding != null && overrides?.UseVectorSearch is true)
+        {
+            var vectorQuery = new SearchQueryVector
+            {
+                // if semantic ranker is enabled, we need to set the rank to a large number to get more
+                // candidates for semantic reranking
+                K = useSemanticRanker ? 50 : top,
+                Value = embedding,
+                Fields = "embedding",
+            };
+
+            searchOption.Vector = vectorQuery;
+        }
+
+
+        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(
+            searchText: overrides?.UseTextSearch is true ? query : null,
+            searchOption,
+            cancellationToken);
         if (searchResultResponse.Value is null)
         {
             throw new InvalidOperationException("fail to get search result");
