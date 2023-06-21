@@ -12,7 +12,7 @@ COPY ["backend/", "backend/"]
 COPY ["frontend/", "frontend/"]
 COPY ["shared/", "shared/"]
 RUN dotnet restore "backend/MinimalApi.csproj"
-#COPY . .
+
 WORKDIR "/src/backend"
 RUN dotnet build "MinimalApi.csproj" -c Release -o /app/build
 
