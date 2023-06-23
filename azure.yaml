@@ -9,7 +9,7 @@ services:
     host: containerapp
     language: dotnet
     docker:
-      path: ./Dockerfile
+      path: ../Dockerfile
       context: ../
 hooks:
   postprovision:
