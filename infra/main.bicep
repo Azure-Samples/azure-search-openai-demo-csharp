@@ -15,6 +15,9 @@ param applicationInsightsDashboardName string = ''
 @description('Name of the Azure Application Insights resource')
 param applicationInsightsName string = ''
 
+@description('Capacity of the chat GPT deployment. Default: 30')
+param chatGptDeploymentCapacity int = 30
+
 @description('Name of the chat GPT deployment')
 param chatGptDeploymentName string = 'chat'
 
@@ -41,6 +44,9 @@ param formRecognizerServiceName string = ''
 
 @description('SKU name for the Form Recognizer service. Default: S0')
 param formRecognizerSkuName string = 'S0'
+
+@description('Capacity of the GPT deployment. Default: 30')
+param gptDeploymentCapacity int = 30
 
 @description('Name of the GPT deployment. Default: davinci')
 param gptDeploymentName string = 'davinci'
@@ -292,8 +298,9 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
           name: gptModelName
           version: '1'
         }
-        scaleSettings: {
-          scaleType: 'Standard'
+        sku: {
+          name: 'Standard'
+          capacity: gptDeploymentCapacity
         }
       }
       {
@@ -303,8 +310,9 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
           name: chatGptModelName
           version: '0301'
         }
-        scaleSettings: {
-          scaleType: 'Standard'
+        sku: {
+          name: 'Standard'
+          capacity: chatGptDeploymentCapacity
         }
       }
     ]
