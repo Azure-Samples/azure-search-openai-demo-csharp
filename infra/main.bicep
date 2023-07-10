@@ -51,7 +51,7 @@ param gptDeploymentCapacity int = 30
 @description('Name of the GPT deployment. Default: turbo')
 param gptDeploymentName string = 'turbo'
 
-@description('Name of the GPT model. Default: text-davinci-003')
+@description('Name of the GPT model. Default: gpt-35-turbo')
 param gptModelName string = 'gpt-35-turbo'
 
 @description('Name of the Azure Key Vault')
