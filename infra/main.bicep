@@ -48,11 +48,11 @@ param formRecognizerSkuName string = 'S0'
 @description('Capacity of the GPT deployment. Default: 30')
 param gptDeploymentCapacity int = 30
 
-@description('Name of the GPT deployment. Default: davinci')
-param gptDeploymentName string = 'davinci'
+@description('Name of the GPT deployment. Default: turbo')
+param gptDeploymentName string = 'turbo'
 
-@description('Name of the GPT model. Default: text-davinci-003')
-param gptModelName string = 'text-davinci-003'
+@description('Name of the GPT model. Default: gpt-35-turbo')
+param gptModelName string = 'gpt-35-turbo'
 
 @description('Name of the Azure Key Vault')
 param keyVaultName string = ''
@@ -296,7 +296,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
         model: {
           format: 'OpenAI'
           name: gptModelName
-          version: '1'
+          version: '0301'
         }
         sku: {
           name: 'Standard'
