@@ -65,7 +65,7 @@ You can run this repo virtually by using GitHub Codespaces or VS Code Remote Con
 1. Create a new folder and switch to it in the terminal
 1. Run `azd auth login`
 1. Run `azd init -t azure-search-openai-demo-csharp`
-    * For the target location, the regions that currently support the models used in this sample are **East US** or **South Central US**. For an up-to-date list of regions and models, check [here](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models)
+    * For the target location, the regions that currently support the model used in this sample are **East US** or **South Central US**. For an up-to-date list of regions and models, check [here](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models)
 
 #### Starting from scratch
 
@@ -74,7 +74,7 @@ Execute the following command, if you don't have any pre-existing Azure services
 1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
 
 > **Note**<br>
-> This application uses the `text-davinci-003` and `gpt-35-turbo` models. When choosing which region to deploy to, make sure they're available in that region (i.e. EastUS). For more information, see the [Azure OpenAI Service documentation](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#gpt-3-models-1).  
+> This application uses the `gpt-35-turbo` model. When choosing which region to deploy to, make sure they're available in that region (i.e. EastUS). For more information, see the [Azure OpenAI Service documentation](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#gpt-3-models-1).  
 
 1. After the application has been successfully deployed you will see a URL printed to the console.  Click that URL to interact with the application in your browser.  
 
@@ -138,10 +138,10 @@ It will look like the following:
 1. Run the following .NET CLI command to start the ASP.NET Core Minimal API server (client host):
 
     ```dotnetcli
-    dotnet run --project ./app/backend/MinimalApi.csproj --urls=https://localhost:7181/
+    dotnet run --project ./app/backend/MinimalApi.csproj --urls=http://localhost:7181/
     ```
 
-Navigate to <https://localhost:7181>, and test out the app.
+Navigate to <http://localhost:7181>, and test out the app.
 
 #### Sharing Environments
 
@@ -159,7 +159,7 @@ Run `azd down`
 ### Quickstart
 
 * In Azure: navigate to the Azure Static Web App deployed by `azd`. The URL is printed out when `azd` completes (as "Endpoint"), or you can find it in the Azure portal.
-* When running locally, navigate to <https://localhost:7181> for the client app and <https://localhost:7181/swagger> for the Open API server page.
+* When running locally, navigate to <http://localhost:7181> for the client app and <http://localhost:7181/swagger> for the Open API server page.
 
 Once in the web app:
 
