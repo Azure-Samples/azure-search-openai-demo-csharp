@@ -55,6 +55,7 @@ s_rootCommand.SetHandler(
                 }
 
                 await UploadBlobsAsync(options, fileName);
+
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
                 var pageMap = await GetDocumentTextAsync(options, fileName);
 
