@@ -17,6 +17,11 @@ internal static class WebApplicationExtensions
         // Single Q&A endpoint
         api.MapPost("ask", OnPostAskAsync);
 
+        // Upload a document
+        api.MapPost("documents", OnPostDocumentAsync);
+
+        api.MapGet("documents", OnGetDocumentsAsync);
+
         return app;
     }
 
@@ -92,5 +97,38 @@ internal static class WebApplicationExtensions
         }
 
         return Results.BadRequest();
+    }
+
+    private static async Task<IResult> OnPostDocumentAsync(
+        [FromForm] IFormFileCollection files,
+        [FromServices] AzureBlobStorageService service,
+        CancellationToken cancellationToken)
+    {
+        var response = await service.UploadFilesAsync(files, cancellationToken);
+
+        return TypedResults.Ok(response);
+    }
+
+    private static async IAsyncEnumerable<DocumentResponse> OnGetDocumentsAsync(
+        BlobContainerClient client,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach (var blob in client.GetBlobsAsync(cancellationToken: cancellationToken))
+        {
+            if (blob is not null and { Deleted: false })
+            {
+                var props = blob.Properties;
+                var baseUri = client.Uri;
+                var builder = new UriBuilder(baseUri);
+                builder.Path += $"/{blob.Name}";
+
+                yield return new(
+                    blob.Name,
+                    props.ContentType,
+                    props.ContentLength ?? 0,
+                    props.LastModified,
+                    builder.Uri);
+            }
+        }
     }
 }

@@ -8,6 +8,30 @@ public sealed class ApiClient
 
     public ApiClient(HttpClient httpClient) => _httpClient = httpClient;
 
+    public async IAsyncEnumerable<DocumentResponse> GetDocumentsAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var response = await _httpClient.GetAsync("api/documents", cancellationToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var options = SerializerOptions.Default;
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+            await foreach (var document in
+                JsonSerializer.DeserializeAsyncEnumerable<DocumentResponse>(stream, options, cancellationToken))
+            {
+                if (document is null)
+                {
+                    continue;
+                }
+
+                yield return document;
+            }
+        }
+    }
+
     public Task<AnswerResult<AskRequest>> AskQuestionAsync(AskRequest request) =>
         PostRequestAsync(request, "api/ask");
 

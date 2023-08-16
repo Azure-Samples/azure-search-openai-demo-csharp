@@ -36,10 +36,10 @@
             }
             <MudToggleIconButton Toggled="@_isDarkTheme" ToggledChanged=@OnThemeChanged Size="Size.Large"
                                 ToggledSize="Size.Large"
-                                Title="Switch to Dark theme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Info"
+                                 Title="Switch to Dark theme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Inherit"
                                 ToggledTitle="Switch to Light theme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Warning />
             <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Size="Size.Large"
-                        Title="Visit the Azure Sampls: GitHub repository for this app."
+                        Title="Visit the Azure Samples: GitHub repository for this app."
                         Href="https://github.com/Azure-Samples/azure-search-openai-demo-csharp" Target="_blank" />
         </MudAppBar>
         <MudDrawer @bind-Open="_drawerOpen" Elevation="5" id="drawer">
