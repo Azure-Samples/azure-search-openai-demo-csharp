@@ -8,6 +8,16 @@ public sealed class ApiClient
 
     public ApiClient(HttpClient httpClient) => _httpClient = httpClient;
 
+    public async Task<ImageResponse?> RequestImageAsync(PromptRequest request)
+    {
+        var response = await _httpClient.PostAsJsonAsync(
+            "api/images", request, SerializerOptions.Default);
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<ImageResponse>();
+    }
+
     public async IAsyncEnumerable<DocumentResponse> GetDocumentsAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -32,9 +42,6 @@ public sealed class ApiClient
         }
     }
 
-    public Task<AnswerResult<AskRequest>> AskQuestionAsync(AskRequest request) =>
-        PostRequestAsync(request, "api/ask");
-
     public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request) =>
         PostRequestAsync(request, "api/chat");
 
@@ -49,7 +56,7 @@ public sealed class ApiClient
 
         var json = JsonSerializer.Serialize(
             request,
-            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            SerializerOptions.Default);
 
         using var body = new StringContent(
             json, Encoding.UTF8, "application/json");

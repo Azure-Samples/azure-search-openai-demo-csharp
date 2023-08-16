@@ -14,19 +14,20 @@ internal static class WebApplicationExtensions
         // Long-form chat w/ contextual history endpoint
         api.MapPost("chat", OnPostChatAsync);
 
-        // Single Q&A endpoint
-        api.MapPost("ask", OnPostAskAsync);
-
         // Upload a document
         api.MapPost("documents", OnPostDocumentAsync);
 
+        // Get all documents
         api.MapGet("documents", OnGetDocumentsAsync);
+
+        // Get DALL-E image result from prompt
+        api.MapPost("images", OnPostImagePromptAsync);
 
         return app;
     }
 
     private static async IAsyncEnumerable<ChatChunkResponse> OnPostChatPromptAsync(
-        ChatPromptRequest prompt,
+        PromptRequest prompt,
         OpenAIClient client,
         IConfiguration config,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -83,22 +84,6 @@ internal static class WebApplicationExtensions
         return Results.BadRequest();
     }
 
-    private static async Task<IResult> OnPostAskAsync(
-        AskRequest request,
-        ApproachServiceResponseFactory factory,
-        CancellationToken cancellationToken)
-    {
-        if (request is { Question.Length: > 0 })
-        {
-            var approachResponse = await factory.GetApproachResponseAsync(
-                request.Approach, request.Question, request.Overrides, cancellationToken);
-
-            return TypedResults.Ok(approachResponse);
-        }
-
-        return Results.BadRequest();
-    }
-
     private static async Task<IResult> OnPostDocumentAsync(
         [FromForm] IFormFileCollection files,
         [FromServices] AzureBlobStorageService service,
@@ -130,5 +115,24 @@ internal static class WebApplicationExtensions
                     builder.Uri);
             }
         }
+    }
+
+    private static async Task<IResult> OnPostImagePromptAsync(
+        PromptRequest prompt,
+        OpenAIClient client,
+        IConfiguration config,
+        CancellationToken cancellationToken)
+    {
+        var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
+        var result = await client.GetImageGenerationsAsync(new ImageGenerationOptions
+        {
+            Prompt = prompt.Prompt,
+        },
+        cancellationToken);
+
+        var imageUrls = result.Value.Data.Select(i => i.Url).ToList();
+        var response = new ImageResponse(result.Value.Created, imageUrls);
+
+        return TypedResults.Ok(response);
     }
 }
