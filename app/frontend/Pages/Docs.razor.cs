@@ -71,7 +71,8 @@ public sealed partial class Docs : IDisposable
         {
             foreach (var file in _fileUpload.Files)
             {
-
+                // TODO: implement this at as part of the Azure Function work.
+                // We will call our Minimal API, and it will call our Functions.
             }
         }
     }

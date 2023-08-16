@@ -8,7 +8,7 @@
             <MudForm @ref="@_form">
                 <MudCardHeader>
                     <CardHeaderContent>
-                        <MudText Typo="Typo.h5" Color="Color.Secondary">Upload Documents</MudText>
+                        <MudText Typo="Typo.h5">Upload Documents</MudText>
                     </CardHeaderContent>
                     <CardHeaderActions>
                         <MudIconButton Icon="@Icons.Material.Filled.CloudUpload"
@@ -23,7 +23,6 @@
                         <ButtonTemplate>
                             <MudButton HtmlTag="label"
                                        Variant="Variant.Filled"
-                                       Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.FileOpen"
                                        Size="Size.Large"
                                        for="@context">
@@ -78,7 +77,7 @@
                     </MudButton>
                     <MudButton StartIcon="@Icons.Material.Filled.Upload"
                                Variant="Variant.Filled"
-                               Color="Color.Secondary"
+                               Color="Color.Primary"
                                Disabled=@(!FilesSelected)
                                Size="Size.Large" Class="ml-auto mr-2 mb-2"
                                OnClick="@(async () => await SubmitFilesForUploadAsync())">
@@ -94,22 +93,22 @@
             <ToolBarContent>
                 @if (_isLoadingDocuments)
                 {
-                    <MudText Typo="Typo.h5" Color="Color.Secondary">
+                    <MudText Typo="Typo.h5">
                         Loading Documents
                     </MudText>
-                    <MudProgressCircular Color="Color.Secondary" Indeterminate="true"
+                    <MudProgressCircular Indeterminate="true"
                                          Size="Size.Small" Class="ml-2" />
                 }
                 else
                 {
-                    <MudText Typo="Typo.h5" Color="Color.Secondary">
+                    <MudText Typo="Typo.h5">
                         Existing Documents
                     </MudText>
                 }
                 <MudSpacer />
                 <MudTextField @bind-Value="@_filter" Placeholder="Filter" Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
-                              Class="mt-0">
+                              DebounceInterval="500" Class="mt-0">
                 </MudTextField>
             </ToolBarContent>
             <HeaderContent>
