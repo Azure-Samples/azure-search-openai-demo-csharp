@@ -4,9 +4,11 @@ namespace EmbedFunctions.Services;
 
 public sealed class EmbedServiceFactory
 {
-    private readonly IEnumerable<IEmbedService> _embedServices = Array.Empty<IEmbedService>();
+    private readonly IEnumerable<IEmbedService> _embedServices =
+        Array.Empty<IEmbedService>();
 
-    public EmbedServiceFactory(IEnumerable<IEmbedService> embedServices) => _embedServices = embedServices;
+    public EmbedServiceFactory(IEnumerable<IEmbedService> embedServices) =>
+        _embedServices = embedServices;
 
     public IEmbedService GetEmbedService(EmbeddingType embeddingType) =>
         embeddingType switch

@@ -20,7 +20,6 @@ public sealed class EmbeddingFunction
         [BlobTrigger(
             blobPath: "content/{name}",
             Connection = "AzureStorageAccountEndpoint")] Stream blobStream,
-        string name,
-        BlobClient client) =>
-        _embeddingAggregateService.EmbedBlobAsync(client, blobStream, blobName: name);
+        string name) =>
+        _embeddingAggregateService.EmbedBlobAsync(blobStream, blobName: name);
 }

@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure.Identity;
-using Microsoft.Extensions.Azure;
-
 var host = new HostBuilder()
     .ConfigureServices(services =>
     {

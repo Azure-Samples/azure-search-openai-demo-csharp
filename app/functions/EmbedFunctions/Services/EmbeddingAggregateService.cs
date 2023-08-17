@@ -15,14 +15,14 @@ public sealed class EmbeddingAggregateService
         _logger = logger;
     }
 
-    internal async Task EmbedBlobAsync(BlobClient client, Stream blobStream, string blobName)
+    internal async Task EmbedBlobAsync(Stream blobStream, string blobName)
     {
         try
         {
             var embeddingType = GetEmbeddingType();
             var embedService = _embedServiceFactory.GetEmbedService(embeddingType);
 
-            var result = await embedService.EmbedBlobAsync(client, blobStream, blobName);
+            var result = await embedService.EmbedBlobAsync(blobStream, blobName);
 
             // When successfully embedded, update the blobs metadata:
             // key: "Processed", value: embeddingType
@@ -30,7 +30,7 @@ public sealed class EmbeddingAggregateService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{Name} failed to embed: {Message}", client.Name, ex.Message);
+            _logger.LogError(ex, "Failed to embed: {Name}, error: {Message}", blobName, ex.Message);
         }
     }
 

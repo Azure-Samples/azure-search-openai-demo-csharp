@@ -27,7 +27,7 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
         _logger = logger;
     }
 
-    public async Task<bool> EmbedBlobAsync(BlobClient client, Stream blobStream, string blobName)
+    public async Task<bool> EmbedBlobAsync(Stream blobStream, string blobName)
     {
         try
         {
@@ -45,7 +45,7 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
             foreach (var page in pageMap)
             {
                 var corpusName = $"{fileNameWithoutExtension}-{page.Index}.txt";
-                await UploadCorpusAsync(client, corpusName, page.Text);
+                await UploadCorpusAsync(corpusName, page.Text);
             }
 
             var sections = CreateSections(pageMap, blobName);
@@ -212,7 +212,7 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
         return tableHtml.ToString();
     }
 
-    private async Task UploadCorpusAsync(BlobClient client, string corpusBlobName, string text)
+    private async Task UploadCorpusAsync(string corpusBlobName, string text)
     {
         var blobClient = _corpusContainerClient.GetBlobClient(corpusBlobName);
         if (await blobClient.ExistsAsync())
