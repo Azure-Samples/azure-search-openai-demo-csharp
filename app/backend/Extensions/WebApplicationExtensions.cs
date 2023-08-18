@@ -14,14 +14,20 @@ internal static class WebApplicationExtensions
         // Long-form chat w/ contextual history endpoint
         api.MapPost("chat", OnPostChatAsync);
 
-        // Single Q&A endpoint
-        api.MapPost("ask", OnPostAskAsync);
+        // Upload a document
+        api.MapPost("documents", OnPostDocumentAsync);
+
+        // Get all documents
+        api.MapGet("documents", OnGetDocumentsAsync);
+
+        // Get DALL-E image result from prompt
+        api.MapPost("images", OnPostImagePromptAsync);
 
         return app;
     }
 
     private static async IAsyncEnumerable<ChatChunkResponse> OnPostChatPromptAsync(
-        ChatPromptRequest prompt,
+        PromptRequest prompt,
         OpenAIClient client,
         IConfiguration config,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -78,19 +84,62 @@ internal static class WebApplicationExtensions
         return Results.BadRequest();
     }
 
-    private static async Task<IResult> OnPostAskAsync(
-        AskRequest request,
-        ApproachServiceResponseFactory factory,
+    private static async Task<IResult> OnPostDocumentAsync(
+        [FromForm] IFormFileCollection files,
+        [FromServices] AzureBlobStorageService service,
         CancellationToken cancellationToken)
     {
-        if (request is { Question.Length: > 0 })
+        var response = await service.UploadFilesAsync(files, cancellationToken);
+
+        return TypedResults.Ok(response);
+    }
+
+    private static async IAsyncEnumerable<DocumentResponse> OnGetDocumentsAsync(
+        BlobContainerClient client,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach (var blob in client.GetBlobsAsync(cancellationToken: cancellationToken))
         {
-            var approachResponse = await factory.GetApproachResponseAsync(
-                request.Approach, request.Question, request.Overrides, cancellationToken);
+            if (blob is not null and { Deleted: false })
+            {
+                var props = blob.Properties;
+                var baseUri = client.Uri;
+                var builder = new UriBuilder(baseUri);
+                builder.Path += $"/{blob.Name}";
 
-            return TypedResults.Ok(approachResponse);
+                var metadata = blob.Metadata;
+                var documentProcessingStatus = metadata.TryGetValue(
+                    nameof(DocumentProcessingStatus), out var value) &&
+                    Enum.TryParse<DocumentProcessingStatus>(value, out var status)
+                        ? status
+                        : DocumentProcessingStatus.NotProcessed;
+
+                yield return new(
+                    blob.Name,
+                    props.ContentType,
+                    props.ContentLength ?? 0,
+                    props.LastModified,
+                    builder.Uri,
+                    documentProcessingStatus);
+            }
         }
+    }
 
-        return Results.BadRequest();
+    private static async Task<IResult> OnPostImagePromptAsync(
+        PromptRequest prompt,
+        OpenAIClient client,
+        IConfiguration config,
+        CancellationToken cancellationToken)
+    {
+        var result = await client.GetImageGenerationsAsync(new ImageGenerationOptions
+        {
+            Prompt = prompt.Prompt,
+        },
+        cancellationToken);
+
+        var imageUrls = result.Value.Data.Select(i => i.Url).ToList();
+        var response = new ImageResponse(result.Value.Created, imageUrls);
+
+        return TypedResults.Ok(response);
     }
 }

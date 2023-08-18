@@ -23,9 +23,9 @@ public sealed class OpenAIPromptQueue
         {
             try
             {
-                var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+                var options = SerializerOptions.Default;
                 var json = JsonSerializer.Serialize(
-                    new ChatPromptRequest { Prompt = prompt }, options);
+                    new PromptRequest { Prompt = prompt }, options);
 
                 using var body = new StringContent(json, Encoding.UTF8, "application/json");
                 using var scope = _provider.CreateScope();

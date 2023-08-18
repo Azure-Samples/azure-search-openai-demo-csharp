@@ -213,7 +213,7 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
 }
 
 static async ValueTask UploadCorpusAsync(
-       AppOptions options, string corpusName, string content)
+    AppOptions options, string corpusName, string content)
 {
     var container = await GetCorpusBlobContainerClientAsync(options);
     var blobClient = container.GetBlobClient(corpusName);

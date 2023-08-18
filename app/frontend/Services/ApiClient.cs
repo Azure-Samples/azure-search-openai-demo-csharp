@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.Net.Http.Headers;
+
 namespace ClientApp.Services;
 
 public sealed class ApiClient
@@ -8,8 +10,72 @@ public sealed class ApiClient
 
     public ApiClient(HttpClient httpClient) => _httpClient = httpClient;
 
-    public Task<AnswerResult<AskRequest>> AskQuestionAsync(AskRequest request) =>
-        PostRequestAsync(request, "api/ask");
+    public async Task<ImageResponse?> RequestImageAsync(PromptRequest request)
+    {
+        var response = await _httpClient.PostAsJsonAsync(
+            "api/images", request, SerializerOptions.Default);
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<ImageResponse>();
+    }
+
+    public async Task<UploadDocumentsResponse> UploadDocumentsAsync(IReadOnlyList<IBrowserFile> files)
+    {
+        try
+        {
+            using var content = new MultipartFormDataContent();
+
+            foreach (var file in files)
+            {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                var fileContent = new StreamContent(file.OpenReadStream());
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+
+                content.Add(fileContent, file.Name, file.Name);
+            }
+
+            var response = await _httpClient.PostAsync("api/documents", content);
+
+            response.EnsureSuccessStatusCode();
+
+            var result =
+                await response.Content.ReadFromJsonAsync<UploadDocumentsResponse>();
+
+            return result
+                ?? UploadDocumentsResponse.FromError(
+                    "Unable to upload files, unknown error.");
+        }
+        catch (Exception ex)
+        {
+            return UploadDocumentsResponse.FromError(ex.ToString());
+        }
+    }
+
+    public async IAsyncEnumerable<DocumentResponse> GetDocumentsAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var response = await _httpClient.GetAsync("api/documents", cancellationToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var options = SerializerOptions.Default;
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+            await foreach (var document in
+                JsonSerializer.DeserializeAsyncEnumerable<DocumentResponse>(stream, options, cancellationToken))
+            {
+                if (document is null)
+                {
+                    continue;
+                }
+
+                yield return document;
+            }
+        }
+    }
 
     public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request) =>
         PostRequestAsync(request, "api/chat");
@@ -25,7 +91,7 @@ public sealed class ApiClient
 
         var json = JsonSerializer.Serialize(
             request,
-            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            SerializerOptions.Default);
 
         using var body = new StringContent(
             json, Encoding.UTF8, "application/json");
