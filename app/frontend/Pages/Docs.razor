@@ -55,7 +55,8 @@
                                         <MudList>
                                             @foreach (var file in context ?? new List<IBrowserFile>())
                                             {
-                                                <MudListItem Icon="@Icons.Material.Filled.PictureAsPdf" @key="@file">
+                                                <MudListItem IconColor="Color.Error" @key="@file"
+                                                             Icon="@Icons.Material.Filled.PictureAsPdf">
                                                     @file.Name <MudChip Size="Size.Small">@file.Size.ToHumanReadableSize()</MudChip>
                                                 </MudListItem>
                                             }
