@@ -15,7 +15,7 @@ public sealed class EmbeddingAggregateService
         _logger = logger;
     }
 
-    internal async Task EmbedBlobAsync(Stream blobStream, string blobName)
+    internal async Task EmbedBlobAsync(BlobClient client, Stream blobStream, string blobName)
     {
         try
         {
@@ -24,9 +24,17 @@ public sealed class EmbeddingAggregateService
 
             var result = await embedService.EmbedBlobAsync(blobStream, blobName);
 
-            // When successfully embedded, update the blobs metadata:
-            // key: "Processed", value: embeddingType
-            
+            var status = result switch
+            {
+                true => DocumentProcessingStatus.Succeeded,
+                _ => DocumentProcessingStatus.Failed
+            };
+
+            await client.SetMetadataAsync(new Dictionary<string, string>
+            {
+                [nameof(DocumentProcessingStatus)] = status.ToString(),
+                [nameof(EmbeddingType)] = embeddingType.ToString()
+            });
         }
         catch (Exception ex)
         {

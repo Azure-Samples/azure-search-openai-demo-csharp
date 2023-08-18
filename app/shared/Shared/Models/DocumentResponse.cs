@@ -8,4 +8,5 @@ public record class DocumentResponse(
     long Size,
     DateTimeOffset? LastModified,
     Uri Url,
-    DocumentProcessingStatus Status);
+    DocumentProcessingStatus Status,
+    EmbeddingType EmbeddingType);
