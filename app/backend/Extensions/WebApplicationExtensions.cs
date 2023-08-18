@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Shared;
-
 namespace MinimalApi.Extensions;
 
 internal static class WebApplicationExtensions
@@ -129,10 +127,10 @@ internal static class WebApplicationExtensions
                     string key,
                     TEnum @default) where TEnum : struct
                 {
-                    return metadata.TryGetValue(key, out var value) &&
-                    Enum.TryParse<TEnum>(value, out var status)
-                        ? status
-                        : @default;
+                    return metadata.TryGetValue(key, out var value)
+                        && Enum.TryParse<TEnum>(value, out var status)
+                            ? status
+                            : @default;
                 }
             }
         }
