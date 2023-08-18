@@ -107,12 +107,20 @@ internal static class WebApplicationExtensions
                 var builder = new UriBuilder(baseUri);
                 builder.Path += $"/{blob.Name}";
 
+                var metadata = blob.Metadata;
+                var documentProcessingStatus = metadata.TryGetValue(
+                    nameof(DocumentProcessingStatus), out var value) &&
+                    Enum.TryParse<DocumentProcessingStatus>(value, out var status)
+                        ? status
+                        : DocumentProcessingStatus.NotProcessed;
+
                 yield return new(
                     blob.Name,
                     props.ContentType,
                     props.ContentLength ?? 0,
                     props.LastModified,
-                    builder.Uri);
+                    builder.Uri,
+                    documentProcessingStatus);
             }
         }
     }
@@ -123,7 +131,6 @@ internal static class WebApplicationExtensions
         IConfiguration config,
         CancellationToken cancellationToken)
     {
-        var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
         var result = await client.GetImageGenerationsAsync(new ImageGenerationOptions
         {
             Prompt = prompt.Prompt,

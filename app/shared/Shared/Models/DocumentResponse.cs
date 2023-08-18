@@ -7,4 +7,5 @@ public record class DocumentResponse(
     string ContentType,
     long Size,
     DateTimeOffset? LastModified,
-    Uri Url);
+    Uri Url,
+    DocumentProcessingStatus Status);

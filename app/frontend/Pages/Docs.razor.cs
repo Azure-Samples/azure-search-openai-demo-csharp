@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.Xml.Linq;
+using static MudBlazor.CategoryTypes;
+
 namespace ClientApp.Pages;
 
 public sealed partial class Docs : IDisposable
@@ -16,6 +19,9 @@ public sealed partial class Docs : IDisposable
 
     [Inject]
     public required ApiClient Client { get; set; }
+
+    [Inject]
+    public required IDialogService Dialog { get; set; }
 
     private bool FilesSelected => _fileUpload is { Files.Count: > 0 };
 
@@ -67,15 +73,28 @@ public sealed partial class Docs : IDisposable
     {
         await _form.Validate();
 
-        if (_form.IsValid)
+        if (_form.IsValid && _fileUpload is { Files.Count: > 0 })
         {
-            foreach (var file in _fileUpload.Files)
-            {
-                // TODO: implement this at as part of the Azure Function work.
-                // We will call our Minimal API, and it will call our Functions.
-            }
+            await Client.UploadDocumentsAsync(_fileUpload.Files);
         }
     }
+
+    private void OnShowDocument(DocumentResponse document) =>
+        Dialog.Show<PdfViewerDialog>(
+            $"📄 {document.Name}",
+            new DialogParameters
+            {
+                [nameof(PdfViewerDialog.FileName)] = document.Name,
+                [nameof(PdfViewerDialog.BaseUrl)] =
+                    document.Url.ToString().Replace($"/{document.Name}", ""),
+            },
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Large,
+                FullWidth = true,
+                CloseButton = true,
+                CloseOnEscapeKey = true
+            });
 
     public void Dispose() => _cancellationTokenSource.Cancel();
 }

@@ -17,7 +17,9 @@ internal sealed class AzureBlobStorageService
         {
             var fileName = file.FileName;
 
-            using var documents = PdfReader.Open(fileName, PdfDocumentOpenMode.Import);
+            await using var stream = file.OpenReadStream();
+
+            using var documents = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
             for (int i = 0; i < documents.PageCount; i++)
             {
                 var documentName = BlobNameFromFilePage(fileName, i);
@@ -35,8 +37,8 @@ internal sealed class AzureBlobStorageService
                     document.AddPage(documents.Pages[i]);
                     document.Save(tempFileName);
 
-                    await using var stream = File.OpenRead(tempFileName);
-                    await blobClient.UploadAsync(stream, new BlobHttpHeaders
+                    await using var tempStream = File.OpenRead(tempFileName);
+                    await blobClient.UploadAsync(tempStream, new BlobHttpHeaders
                     {
                         ContentType = "application/pdf"
                     }, cancellationToken: cancellationToken);

@@ -13,5 +13,6 @@
     },
     "search.exclude": {
         "static": true
-    }
+    },
+    "dotnet.defaultSolution": "app/app.sln"
 }

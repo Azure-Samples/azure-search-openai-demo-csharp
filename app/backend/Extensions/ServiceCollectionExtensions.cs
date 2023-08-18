@@ -79,6 +79,8 @@ internal static class ServiceCollectionExtensions
             return kernel;
         });
 
+        services.AddSingleton<AzureBlobStorageService>();
+
         services.AddSingleton<AzureOpenAITextCompletionService>();
         services.AddSingleton<AzureOpenAIChatCompletionService>();
         services.AddSingleton<ReadRetrieveReadChatService>();

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.Net.Http.Headers;
+
 namespace ClientApp.Services;
 
 public sealed class ApiClient
@@ -16,6 +18,39 @@ public sealed class ApiClient
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<ImageResponse>();
+    }
+
+    public async Task<UploadDocumentsResponse> UploadDocumentsAsync(IReadOnlyList<IBrowserFile> files)
+    {
+        try
+        {
+            using var content = new MultipartFormDataContent();
+
+            foreach (var file in files)
+            {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                var fileContent = new StreamContent(file.OpenReadStream());
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+
+                content.Add(fileContent, file.Name, file.Name);
+            }
+
+            var response = await _httpClient.PostAsync("api/documents", content);
+
+            response.EnsureSuccessStatusCode();
+
+            var result =
+                await response.Content.ReadFromJsonAsync<UploadDocumentsResponse>();
+
+            return result
+                ?? UploadDocumentsResponse.FromError(
+                    "Unable to upload files, unknown error.");
+        }
+        catch (Exception ex)
+        {
+            return UploadDocumentsResponse.FromError(ex.ToString());
+        }
     }
 
     public async IAsyncEnumerable<DocumentResponse> GetDocumentsAsync(

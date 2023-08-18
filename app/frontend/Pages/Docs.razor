@@ -112,6 +112,14 @@
                 </MudTextField>
             </ToolBarContent>
             <HeaderContent>
+                <MudTh Style="text-align:center">
+                    Preview
+                </MudTh>
+                <MudTh Style="text-align:center">
+                    <MudTableSortLabel SortBy="new Func<DocumentResponse, object>(d => d.Status)">
+                        Status
+                    </MudTableSortLabel>
+                </MudTh>
                 <MudTh>
                     <MudTableSortLabel SortBy="new Func<DocumentResponse, object>(d => d.Name)">
                         Name
@@ -130,6 +138,26 @@
                 </MudTh>
             </HeaderContent>
             <RowTemplate>
+                <MudTd DataLabel="Preview" Style="text-align:center">
+                    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Pageview"
+                            Size="Size.Small" OnClick="@(() => OnShowDocument(context))" />
+                </MudTd>
+                <MudTd DataLabel="Status" Style="text-align:center">
+                @{
+                    switch (context.Status)
+                    {
+                        case DocumentProcessingStatus.Failed:
+                            <MudIcon Color="Color.Error" Icon="@Icons.Material.Filled.Close" />
+                            break;
+                        case DocumentProcessingStatus.Succeeded:
+                            <MudIcon Color="Color.Success" Icon="@Icons.Material.Filled.Check" />
+                            break;
+                        default:
+                            <MudIcon Color="Color.Warning" Icon="@Icons.Material.Filled.QuestionMark" />
+                            break;
+                    }
+                }
+                </MudTd>
                 <MudTd DataLabel="Name">
                     <strong>@context.Name</strong>
                 </MudTd>
