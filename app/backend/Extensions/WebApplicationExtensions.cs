@@ -108,11 +108,10 @@ internal static class WebApplicationExtensions
                 builder.Path += $"/{blob.Name}";
 
                 var metadata = blob.Metadata;
-                var documentProcessingStatus = metadata.TryGetValue(
-                    nameof(DocumentProcessingStatus), out var value) &&
-                    Enum.TryParse<DocumentProcessingStatus>(value, out var status)
-                        ? status
-                        : DocumentProcessingStatus.NotProcessed;
+                var documentProcessingStatus = GetMetadataEnumOrDefault<DocumentProcessingStatus>(
+                    metadata, nameof(DocumentProcessingStatus), DocumentProcessingStatus.NotProcessed);
+                var embeddingType = GetMetadataEnumOrDefault<EmbeddingType>(
+                    metadata, nameof(EmbeddingType), EmbeddingType.AzureSearch);
 
                 yield return new(
                     blob.Name,
@@ -120,7 +119,19 @@ internal static class WebApplicationExtensions
                     props.ContentLength ?? 0,
                     props.LastModified,
                     builder.Uri,
-                    documentProcessingStatus);
+                    documentProcessingStatus,
+                    embeddingType);
+
+                static TEnum GetMetadataEnumOrDefault<TEnum>(
+                    IDictionary<string, string> metadata,
+                    string key,
+                    TEnum @default) where TEnum : struct
+                {
+                    return metadata.TryGetValue(key, out var value)
+                        && Enum.TryParse<TEnum>(value, out var status)
+                            ? status
+                            : @default;
+                }
             }
         }
     }
