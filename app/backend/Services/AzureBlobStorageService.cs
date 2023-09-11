@@ -8,10 +8,7 @@ internal sealed class AzureBlobStorageService
 
     private readonly BlobContainerClient _container;
 
-    public AzureBlobStorageService(BlobContainerClient container)
-    {
-        _container = container;
-    }
+    public AzureBlobStorageService(BlobContainerClient container) => _container = container;
 
     internal async Task<UploadDocumentsResponse> UploadFilesAsync(IEnumerable<IFormFile> files, CancellationToken cancellationToken)
     {
@@ -58,10 +55,7 @@ internal sealed class AzureBlobStorageService
         return new UploadDocumentsResponse(uploadedFiles.ToArray());
     }
 
-    private static string BlobNameFromFilePage(string filename, int page = 0)
-    {
-        return Path.GetExtension(filename).ToLower() is ".pdf"
+    private static string BlobNameFromFilePage(string filename, int page = 0) => Path.GetExtension(filename).ToLower() is ".pdf"
             ? $"{Path.GetFileNameWithoutExtension(filename)}-{page}.pdf"
             : Path.GetFileName(filename);
-    }
 }

@@ -104,10 +104,7 @@ public sealed partial class VoiceChat : IDisposable
         }
     }
 
-    protected override void OnAfterRender(bool firstRender)
-    {
-        JavaScript.InvokeVoid("highlight");
-    }
+    protected override void OnAfterRender(bool firstRender) => JavaScript.InvokeVoid("highlight");
 
     private void StopTalking()
     {
@@ -176,8 +173,5 @@ public sealed partial class VoiceChat : IDisposable
         StateHasChanged();
     }
 
-    public void Dispose()
-    {
-        _recognitionSubscription?.Dispose();
-    }
+    public void Dispose() => _recognitionSubscription?.Dispose();
 }

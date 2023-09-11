@@ -22,18 +22,13 @@ public sealed partial class Docs : IDisposable
 
     private bool FilesSelected => _fileUpload is { Files.Count: > 0 };
 
-    protected override void OnInitialized()
-    {
+    protected override void OnInitialized() =>
         // Instead of awaiting this async enumerable here, let's capture it in a task
         // and start it in the background. This way, we can await it in the UI.
         _getDocumentsTask = GetDocumentsAsync();
-    }
 
-    private bool OnFilter(DocumentResponse document)
-    {
-        return document is not null
+    private bool OnFilter(DocumentResponse document) => document is not null
 && (string.IsNullOrWhiteSpace(_filter) || document.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase));
-    }
 
     private async Task GetDocumentsAsync()
     {
@@ -67,9 +62,7 @@ public sealed partial class Docs : IDisposable
         }
     }
 
-    private void OnShowDocument(DocumentResponse document)
-    {
-        Dialog.Show<PdfViewerDialog>(
+    private void OnShowDocument(DocumentResponse document) => Dialog.Show<PdfViewerDialog>(
             $"📄 {document.Name}",
             new DialogParameters
             {
@@ -84,10 +77,6 @@ public sealed partial class Docs : IDisposable
                 CloseButton = true,
                 CloseOnEscapeKey = true
             });
-    }
 
-    public void Dispose()
-    {
-        _cancellationTokenSource.Cancel();
-    }
+    public void Dispose() => _cancellationTokenSource.Cancel();
 }

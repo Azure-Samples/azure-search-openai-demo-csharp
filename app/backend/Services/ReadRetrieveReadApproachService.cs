@@ -96,11 +96,8 @@ internal sealed class ReadRetrieveReadApproachService : IApproachBasedService
             CitationBaseUrl: _configuration.ToCitationBaseUrl());
     }
 
-    private static string PlanToString(Plan originalPlan)
-    {
-        return $"Goal: {originalPlan.Description}\n\nSteps:\n" + string.Join("\n", originalPlan.Steps.Select(
+    private static string PlanToString(Plan originalPlan) => $"Goal: {originalPlan.Description}\n\nSteps:\n" + string.Join("\n", originalPlan.Steps.Select(
             s =>
                 $"- {s.SkillName}.{s.Name} {string.Join(" ", s.NamedParameters.Select(p => $"{p.Key}='{p.Value}'"))}{" => " + string.Join(" ", s.NamedOutputs.Where(s => s.Key.ToUpper(System.Globalization.CultureInfo.CurrentCulture) != "INPUT").Select(p => $"{p.Key}"))}"
         ));
-    }
 }

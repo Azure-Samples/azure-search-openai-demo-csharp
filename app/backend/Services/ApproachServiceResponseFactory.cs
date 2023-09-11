@@ -10,10 +10,7 @@ internal sealed class ApproachServiceResponseFactory
 
     public ApproachServiceResponseFactory(
         ILogger<ApproachServiceResponseFactory> logger,
-        IEnumerable<IApproachBasedService> services, IDistributedCache cache)
-    {
-        (_logger, _approachBasedServices, _cache) = (logger, services, cache);
-    }
+        IEnumerable<IApproachBasedService> services, IDistributedCache cache) => (_logger, _approachBasedServices, _cache) = (logger, services, cache);
 
     internal async Task<ApproachResponse> GetApproachResponseAsync(
         Approach approach,
@@ -82,10 +79,7 @@ internal readonly record struct CacheKey(
         string? overridesString = null;
         if (overrides is { } o)
         {
-            static string Bit(bool value)
-            {
-                return value ? "1" : "0";
-            }
+            static string Bit(bool value) => value ? "1" : "0";
 
             var bits = $"""
                 {Bit(o.SemanticCaptions.GetValueOrDefault())}.{Bit(o.SemanticRanker)}.{Bit(o.SuggestFollowupQuestions)}

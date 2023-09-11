@@ -21,8 +21,5 @@ public sealed class EmbeddingFunction
             blobPath: "content/{name}",
             Connection = "AzureStorageAccountEndpoint")] Stream blobStream,
         string name,
-        BlobClient client)
-    {
-        return _embeddingAggregateService.EmbedBlobAsync(client, blobStream, blobName: name);
-    }
+        BlobClient client) => _embeddingAggregateService.EmbedBlobAsync(client, blobStream, blobName: name);
 }

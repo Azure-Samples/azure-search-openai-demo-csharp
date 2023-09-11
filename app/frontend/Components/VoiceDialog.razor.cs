@@ -46,28 +46,16 @@ public sealed partial class VoiceDialog : IDisposable
         }
     }
 
-    private void OnValueChanged(string selectedVoice)
+    private void OnValueChanged(string selectedVoice) => _voicePreferences = _voicePreferences! with
     {
-        _voicePreferences = _voicePreferences! with
-        {
-            Voice = selectedVoice
-        };
-    }
+        Voice = selectedVoice
+    };
 
-    private void OnSaveVoiceSelection()
-    {
-        Dialog.Close(DialogResult.Ok(_voicePreferences));
-    }
+    private void OnSaveVoiceSelection() => Dialog.Close(DialogResult.Ok(_voicePreferences));
 
-    private void OnCancel()
-    {
-        Dialog.Close(DialogResult.Ok(_voicePreferences));
-    }
+    private void OnCancel() => Dialog.Close(DialogResult.Ok(_voicePreferences));
 
-    public void Dispose()
-    {
-        SpeechSynthesis.UnsubscribeFromVoicesChanged();
-    }
+    public void Dispose() => SpeechSynthesis.UnsubscribeFromVoicesChanged();
 }
 
 internal enum RequestVoiceState

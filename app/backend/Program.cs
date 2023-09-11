@@ -26,10 +26,7 @@ else
         var key = builder.Configuration["AzureRedisCachePrimaryKey"];
         var ssl = "true";
 
-        static string? GetEnvVar(string key)
-        {
-            return Environment.GetEnvironmentVariable(key);
-        }
+        static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
 
         if (GetEnvVar("REDIS_HOST") is string redisHost)
         {

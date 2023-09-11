@@ -4,8 +4,5 @@ namespace EmbedFunctions.Services;
 
 internal sealed class QdrantEmbedService : IEmbedService
 {
-    public Task<bool> EmbedBlobAsync(Stream blobStream, string blobName)
-    {
-        throw new NotImplementedException();
-    }
+    public Task<bool> EmbedBlobAsync(Stream blobStream, string blobName) => throw new NotImplementedException();
 }

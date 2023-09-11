@@ -109,8 +109,5 @@ public sealed partial class VoiceTextInput : IDisposable
         StateHasChanged();
     }
 
-    public void Dispose()
-    {
-        _recognitionSubscription?.Dispose();
-    }
+    public void Dispose() => _recognitionSubscription?.Dispose();
 }

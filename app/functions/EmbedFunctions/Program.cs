@@ -5,15 +5,12 @@ var host = new HostBuilder()
     {
         var credential = new DefaultAzureCredential();
 
-        static Uri GetUriFromEnvironment(string variable)
-        {
-            return Environment.GetEnvironmentVariable(variable) is string value &&
+        static Uri GetUriFromEnvironment(string variable) => Environment.GetEnvironmentVariable(variable) is string value &&
                 Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) &&
                 uri is not null
                 ? uri
                 : throw new ArgumentException(
                 $"Unable to parse URI from environment variable: {variable}");
-        }
 
         services.AddAzureClients(builder =>
         {

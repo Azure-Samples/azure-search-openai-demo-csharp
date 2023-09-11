@@ -14,120 +14,105 @@ internal static partial class Program
     private static readonly SemaphoreSlim s_searchIndexLock = new(1);
     private static readonly SemaphoreSlim s_searchLock = new(1);
 
-    private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options)
-    {
-        return GetLazyClientAsync<BlobContainerClient>(options, s_corpusContainerLock, async o =>
-        {
-            if (s_corpusContainerClient is null)
-            {
-                var endpoint = options.StorageServiceBlobEndpoint;
-                ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+    private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options) => GetLazyClientAsync<BlobContainerClient>(options, s_corpusContainerLock, async o =>
+                                                                                                           {
+                                                                                                               if (s_corpusContainerClient is null)
+                                                                                                               {
+                                                                                                                   var endpoint = options.StorageServiceBlobEndpoint;
+                                                                                                                   ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
 
-                var blobService = new BlobServiceClient(
-                    new Uri(endpoint),
-                    DefaultCredential);
+                                                                                                                   var blobService = new BlobServiceClient(
+                                                                                                                       new Uri(endpoint),
+                                                                                                                       DefaultCredential);
 
-                s_corpusContainerClient = blobService.GetBlobContainerClient("corpus");
+                                                                                                                   s_corpusContainerClient = blobService.GetBlobContainerClient("corpus");
 
-                await s_corpusContainerClient.CreateIfNotExistsAsync();
-            }
+                                                                                                                   await s_corpusContainerClient.CreateIfNotExistsAsync();
+                                                                                                               }
 
-            return s_corpusContainerClient;
-        });
-    }
+                                                                                                               return s_corpusContainerClient;
+                                                                                                           });
 
-    private static Task<BlobContainerClient> GetBlobContainerClientAsync(AppOptions options)
-    {
-        return GetLazyClientAsync<BlobContainerClient>(options, s_containerLock, async o =>
-        {
-            if (s_containerClient is null)
-            {
-                var endpoint = o.StorageServiceBlobEndpoint;
-                ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+    private static Task<BlobContainerClient> GetBlobContainerClientAsync(AppOptions options) => GetLazyClientAsync<BlobContainerClient>(options, s_containerLock, async o =>
+                                                                                                     {
+                                                                                                         if (s_containerClient is null)
+                                                                                                         {
+                                                                                                             var endpoint = o.StorageServiceBlobEndpoint;
+                                                                                                             ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
 
-                var blobService = new BlobServiceClient(
-                    new Uri(endpoint),
-                    DefaultCredential);
+                                                                                                             var blobService = new BlobServiceClient(
+                                                                                                                 new Uri(endpoint),
+                                                                                                                 DefaultCredential);
 
-                var blobContainerName = o.Container;
-                ArgumentNullException.ThrowIfNullOrEmpty(blobContainerName);
+                                                                                                             var blobContainerName = o.Container;
+                                                                                                             ArgumentNullException.ThrowIfNullOrEmpty(blobContainerName);
 
-                s_containerClient = blobService.GetBlobContainerClient(blobContainerName);
+                                                                                                             s_containerClient = blobService.GetBlobContainerClient(blobContainerName);
 
-                await s_containerClient.CreateIfNotExistsAsync();
-            }
+                                                                                                             await s_containerClient.CreateIfNotExistsAsync();
+                                                                                                         }
 
-            return s_containerClient;
-        });
-    }
+                                                                                                         return s_containerClient;
+                                                                                                     });
 
-    private static Task<DocumentAnalysisClient> GetFormRecognizerClientAsync(AppOptions options)
-    {
-        return GetLazyClientAsync<DocumentAnalysisClient>(options, s_documentLock, async o =>
-        {
-            if (s_documentClient is null)
-            {
-                var endpoint = o.FormRecognizerServiceEndpoint;
-                ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+    private static Task<DocumentAnalysisClient> GetFormRecognizerClientAsync(AppOptions options) => GetLazyClientAsync<DocumentAnalysisClient>(options, s_documentLock, async o =>
+                                                                                                         {
+                                                                                                             if (s_documentClient is null)
+                                                                                                             {
+                                                                                                                 var endpoint = o.FormRecognizerServiceEndpoint;
+                                                                                                                 ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
 
-                s_documentClient = new DocumentAnalysisClient(
-                    new Uri(endpoint),
-                    DefaultCredential,
-                    new DocumentAnalysisClientOptions
-                    {
-                        Diagnostics =
-                        {
+                                                                                                                 s_documentClient = new DocumentAnalysisClient(
+                                                                                                                     new Uri(endpoint),
+                                                                                                                     DefaultCredential,
+                                                                                                                     new DocumentAnalysisClientOptions
+                                                                                                                     {
+                                                                                                                         Diagnostics =
+                                                                                                                         {
                             IsLoggingContentEnabled = true
-                        }
-                    });
-            }
+                                                                                                                         }
+                                                                                                                     });
+                                                                                                             }
 
-            await Task.CompletedTask;
+                                                                                                             await Task.CompletedTask;
 
-            return s_documentClient;
-        });
-    }
+                                                                                                             return s_documentClient;
+                                                                                                         });
 
-    private static Task<SearchIndexClient> GetSearchIndexClientAsync(AppOptions options)
-    {
-        return GetLazyClientAsync<SearchIndexClient>(options, s_searchIndexLock, async o =>
-        {
-            if (s_searchIndexClient is null)
-            {
-                var endpoint = o.SearchServiceEndpoint;
-                ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+    private static Task<SearchIndexClient> GetSearchIndexClientAsync(AppOptions options) => GetLazyClientAsync<SearchIndexClient>(options, s_searchIndexLock, async o =>
+                                                                                                 {
+                                                                                                     if (s_searchIndexClient is null)
+                                                                                                     {
+                                                                                                         var endpoint = o.SearchServiceEndpoint;
+                                                                                                         ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
 
-                s_searchIndexClient = new SearchIndexClient(
-                    new Uri(endpoint),
-                    DefaultCredential);
-            }
+                                                                                                         s_searchIndexClient = new SearchIndexClient(
+                                                                                                             new Uri(endpoint),
+                                                                                                             DefaultCredential);
+                                                                                                     }
 
-            await Task.CompletedTask;
+                                                                                                     await Task.CompletedTask;
 
-            return s_searchIndexClient;
-        });
-    }
+                                                                                                     return s_searchIndexClient;
+                                                                                                 });
 
-    private static Task<SearchClient> GetSearchClientAsync(AppOptions options)
-    {
-        return GetLazyClientAsync<SearchClient>(options, s_searchLock, async o =>
-        {
-            if (s_searchClient is null)
-            {
-                var endpoint = o.SearchServiceEndpoint;
-                ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+    private static Task<SearchClient> GetSearchClientAsync(AppOptions options) => GetLazyClientAsync<SearchClient>(options, s_searchLock, async o =>
+                                                                                       {
+                                                                                           if (s_searchClient is null)
+                                                                                           {
+                                                                                               var endpoint = o.SearchServiceEndpoint;
+                                                                                               ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
 
-                s_searchClient = new SearchClient(
-                    new Uri(endpoint),
-                    o.SearchIndexName,
-                    DefaultCredential);
-            }
+                                                                                               s_searchClient = new SearchClient(
+                                                                                                   new Uri(endpoint),
+                                                                                                   o.SearchIndexName,
+                                                                                                   DefaultCredential);
+                                                                                           }
 
-            await Task.CompletedTask;
+                                                                                           await Task.CompletedTask;
 
-            return s_searchClient;
-        });
-    }
+                                                                                           return s_searchClient;
+                                                                                       });
 
     private static async Task<TClient> GetLazyClientAsync<TClient>(
         AppOptions options,
