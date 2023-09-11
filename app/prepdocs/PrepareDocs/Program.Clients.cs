@@ -14,8 +14,9 @@ internal static partial class Program
     private static readonly SemaphoreSlim s_searchIndexLock = new(1);
     private static readonly SemaphoreSlim s_searchLock = new(1);
 
-    private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options) =>
-        GetLazyClientAsync<BlobContainerClient>(options, s_corpusContainerLock, async o =>
+    private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options)
+    {
+        return GetLazyClientAsync<BlobContainerClient>(options, s_corpusContainerLock, async o =>
         {
             if (s_corpusContainerClient is null)
             {
@@ -33,9 +34,11 @@ internal static partial class Program
 
             return s_corpusContainerClient;
         });
+    }
 
-    private static Task<BlobContainerClient> GetBlobContainerClientAsync(AppOptions options) =>
-        GetLazyClientAsync<BlobContainerClient>(options, s_containerLock, async o =>
+    private static Task<BlobContainerClient> GetBlobContainerClientAsync(AppOptions options)
+    {
+        return GetLazyClientAsync<BlobContainerClient>(options, s_containerLock, async o =>
         {
             if (s_containerClient is null)
             {
@@ -56,9 +59,11 @@ internal static partial class Program
 
             return s_containerClient;
         });
+    }
 
-    private static Task<DocumentAnalysisClient> GetFormRecognizerClientAsync(AppOptions options) =>
-        GetLazyClientAsync<DocumentAnalysisClient>(options, s_documentLock, async o =>
+    private static Task<DocumentAnalysisClient> GetFormRecognizerClientAsync(AppOptions options)
+    {
+        return GetLazyClientAsync<DocumentAnalysisClient>(options, s_documentLock, async o =>
         {
             if (s_documentClient is null)
             {
@@ -81,9 +86,11 @@ internal static partial class Program
 
             return s_documentClient;
         });
+    }
 
-    private static Task<SearchIndexClient> GetSearchIndexClientAsync(AppOptions options) =>
-        GetLazyClientAsync<SearchIndexClient>(options, s_searchIndexLock, async o =>
+    private static Task<SearchIndexClient> GetSearchIndexClientAsync(AppOptions options)
+    {
+        return GetLazyClientAsync<SearchIndexClient>(options, s_searchIndexLock, async o =>
         {
             if (s_searchIndexClient is null)
             {
@@ -99,9 +106,11 @@ internal static partial class Program
 
             return s_searchIndexClient;
         });
+    }
 
-    private static Task<SearchClient> GetSearchClientAsync(AppOptions options) =>
-        GetLazyClientAsync<SearchClient>(options, s_searchLock, async o =>
+    private static Task<SearchClient> GetSearchClientAsync(AppOptions options)
+    {
+        return GetLazyClientAsync<SearchClient>(options, s_searchLock, async o =>
         {
             if (s_searchClient is null)
             {
@@ -118,6 +127,7 @@ internal static partial class Program
 
             return s_searchClient;
         });
+    }
 
     private static async Task<TClient> GetLazyClientAsync<TClient>(
         AppOptions options,

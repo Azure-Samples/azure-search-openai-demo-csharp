@@ -7,11 +7,14 @@ public sealed class EmbedServiceFactory
     private readonly IEnumerable<IEmbedService> _embedServices =
         Array.Empty<IEmbedService>();
 
-    public EmbedServiceFactory(IEnumerable<IEmbedService> embedServices) =>
+    public EmbedServiceFactory(IEnumerable<IEmbedService> embedServices)
+    {
         _embedServices = embedServices;
+    }
 
-    public IEmbedService GetEmbedService(EmbeddingType embeddingType) =>
-        embeddingType switch
+    public IEmbedService GetEmbedService(EmbeddingType embeddingType)
+    {
+        return embeddingType switch
         {
             EmbeddingType.AzureSearch =>
                 _embedServices.OfType<AzureSearchEmbedService>().Single(),
@@ -28,4 +31,5 @@ public sealed class EmbedServiceFactory
             _ => throw new ArgumentException(
                 $"Unsupported embedding type: {embeddingType}", nameof(embeddingType))
         };
+    }
 }

@@ -7,14 +7,11 @@ var host = new HostBuilder()
 
         static Uri GetUriFromEnvironment(string variable)
         {
-            if (Environment.GetEnvironmentVariable(variable) is string value &&
+            return Environment.GetEnvironmentVariable(variable) is string value &&
                 Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) &&
-                uri is not null)
-            {
-                return uri;
-            }
-
-            throw new ArgumentException(
+                uri is not null
+                ? uri
+                : throw new ArgumentException(
                 $"Unable to parse URI from environment variable: {variable}");
         }
 

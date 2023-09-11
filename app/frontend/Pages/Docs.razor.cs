@@ -31,17 +31,8 @@ public sealed partial class Docs : IDisposable
 
     private bool OnFilter(DocumentResponse document)
     {
-        if (document is null)
-        {
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(_filter))
-        {
-            return true;
-        }
-
-        return document.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase);
+        return document is not null
+&& (string.IsNullOrWhiteSpace(_filter) || document.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task GetDocumentsAsync()
@@ -76,7 +67,8 @@ public sealed partial class Docs : IDisposable
         }
     }
 
-    private void OnShowDocument(DocumentResponse document) =>
+    private void OnShowDocument(DocumentResponse document)
+    {
         Dialog.Show<PdfViewerDialog>(
             $"📄 {document.Name}",
             new DialogParameters
@@ -92,6 +84,10 @@ public sealed partial class Docs : IDisposable
                 CloseButton = true,
                 CloseOnEscapeKey = true
             });
+    }
 
-    public void Dispose() => _cancellationTokenSource.Cancel();
+    public void Dispose()
+    {
+        _cancellationTokenSource.Cancel();
+    }
 }

@@ -17,9 +17,9 @@
     <PackageReference Include="Blazor.SessionStorage.WebAssembly" Version="7.0.3" />
     <PackageReference Include="Blazor.SpeechRecognition.WebAssembly" Version="7.0.3" />
     <PackageReference Include="Blazor.SpeechSynthesis.WebAssembly" Version="7.0.3" />
-    <PackageReference Include="Markdig" Version="0.32.0" />
+    <PackageReference Include="Markdig" Version="0.33.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
-    <PackageReference Include="MudBlazor" Version="6.8.0" />
+    <PackageReference Include="MudBlazor" Version="6.9.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 

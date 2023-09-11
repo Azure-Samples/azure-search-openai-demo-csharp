@@ -31,7 +31,10 @@ public sealed partial class SettingsPanel : IDisposable
 
     [Parameter] public EventCallback<bool> OpenChanged { get; set; }
 
-    protected override void OnInitialized() => Nav.LocationChanged += HandleLocationChanged;
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += HandleLocationChanged;
+    }
 
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
@@ -45,7 +48,10 @@ public sealed partial class SettingsPanel : IDisposable
         };
     }
 
-    public void Dispose() => Nav.LocationChanged -= HandleLocationChanged;
+    public void Dispose()
+    {
+        Nav.LocationChanged -= HandleLocationChanged;
+    }
 }
 
 public enum SupportedSettings

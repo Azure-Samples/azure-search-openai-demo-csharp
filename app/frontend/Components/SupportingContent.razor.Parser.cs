@@ -11,12 +11,7 @@ public sealed partial class SupportingContent
         var parts = item.Split(":");
         var title = parts[0];
 
-        if (parts is { Length: 2 })
-        {
-            return new ParsedSupportingContentItem(title, parts[1].Trim());
-        }
-
-        return new ParsedSupportingContentItem(title);
+        return parts is { Length: 2 } ? new ParsedSupportingContentItem(title, parts[1].Trim()) : new ParsedSupportingContentItem(title);
     }
 }
 

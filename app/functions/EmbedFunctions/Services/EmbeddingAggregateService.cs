@@ -44,12 +44,9 @@ public sealed class EmbeddingAggregateService
 
     private static EmbeddingType GetEmbeddingType()
     {
-        if (Environment.GetEnvironmentVariable("EMBEDDING_TYPE") is string type &&
-            Enum.TryParse<EmbeddingType>(type, out EmbeddingType embeddingType))
-        {
-            return embeddingType;
-        }
-
-        return EmbeddingType.AzureSearch;
+        return Environment.GetEnvironmentVariable("EMBEDDING_TYPE") is string type &&
+            Enum.TryParse<EmbeddingType>(type, out EmbeddingType embeddingType)
+            ? embeddingType
+            : EmbeddingType.AzureSearch;
     }
 }

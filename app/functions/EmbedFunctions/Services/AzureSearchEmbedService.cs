@@ -101,7 +101,7 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
                         }
                     })
                     }
-                }
+            }
         };
 
         _logger.LogInformation(
@@ -355,10 +355,12 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
         return length - 1;
     }
 
-    private static string BlobNameFromFilePage(string blobName, int page = 0) =>
-        Path.GetExtension(blobName).ToLower() is ".pdf"
+    private static string BlobNameFromFilePage(string blobName, int page = 0)
+    {
+        return Path.GetExtension(blobName).ToLower() is ".pdf"
             ? $"{Path.GetFileNameWithoutExtension(blobName)}-{page}.pdf"
             : Path.GetFileName(blobName);
+    }
 
     private async Task IndexSectionsAsync(string searchIndexName, IEnumerable<Section> sections, string blobName)
     {

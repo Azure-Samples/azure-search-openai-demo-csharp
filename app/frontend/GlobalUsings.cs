@@ -2,6 +2,7 @@
 
 global using System.Globalization;
 global using System.Net.Http.Json;
+global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices.JavaScript;
 global using System.Text;
 global using System.Text.Json;
@@ -11,7 +12,6 @@ global using ClientApp;
 global using ClientApp.Components;
 global using ClientApp.Extensions;
 global using ClientApp.Interop;
-global using System.Runtime.CompilerServices;
 global using ClientApp.Models;
 global using ClientApp.Options;
 global using ClientApp.Services;

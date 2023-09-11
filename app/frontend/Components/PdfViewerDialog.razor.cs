@@ -24,5 +24,8 @@ public sealed partial class PdfViewerDialog
             });
     }
 
-    private void OnCloseClick() => Dialog.Close(DialogResult.Ok(true));
+    private void OnCloseClick()
+    {
+        Dialog.Close(DialogResult.Ok(true));
+    }
 }

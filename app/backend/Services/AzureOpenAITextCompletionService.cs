@@ -36,13 +36,8 @@ public sealed class AzureOpenAITextCompletionService : ITextCompletion
         var response =
             await _openAIClient.GetCompletionsAsync(
                 _deployedModelName, option, cancellationToken);
-        if (response.Value is Completions completions && completions.Choices.Count > 0)
-        {
-            return completions.Choices[0].Text;
-        }
-        else
-        {
-            throw new AIException(AIException.ErrorCodes.InvalidConfiguration, "completion not found");
-        }
+        return response.Value is Completions completions && completions.Choices.Count > 0
+            ? completions.Choices[0].Text
+            : throw new AIException(AIException.ErrorCodes.InvalidConfiguration, "completion not found");
     }
 }
