@@ -10,48 +10,40 @@ public sealed class CorpusMemoryStore : IMemoryStore
 
     // TODO: Consider using the StringBuilderObjectPool approach for reusing builders in tight loops.
     // https://learn.microsoft.com/aspnet/core/performance/objectpool?view=aspnetcore-7.0
-    public CorpusMemoryStore(BlobServiceClient blobServiceClient, ILogger<CorpusMemoryStore> logger) =>
-        (_blobServiceClient, _logger) = (blobServiceClient, logger);
+    public CorpusMemoryStore(BlobServiceClient blobServiceClient, ILogger<CorpusMemoryStore> logger) => (_blobServiceClient, _logger) = (blobServiceClient, logger);
 
     public Task CreateCollectionAsync(
         string collectionName,
-        CancellationToken cancel = default) =>
-        _store.CreateCollectionAsync(collectionName, cancel);
+        CancellationToken cancel = default) => _store.CreateCollectionAsync(collectionName, cancel);
 
     public Task DeleteCollectionAsync(
         string collectionName,
-        CancellationToken cancel = default) =>
-        _store.DeleteCollectionAsync(collectionName, cancel);
+        CancellationToken cancel = default) => _store.DeleteCollectionAsync(collectionName, cancel);
 
     public Task<bool> DoesCollectionExistAsync(
         string collectionName,
-        CancellationToken cancel = default) =>
-        _store.DoesCollectionExistAsync(collectionName, cancel);
+        CancellationToken cancel = default) => _store.DoesCollectionExistAsync(collectionName, cancel);
 
     public Task<MemoryRecord?> GetAsync(
         string collectionName,
         string key,
         bool withEmbedding = false,
-        CancellationToken cancel = default) =>
-        _store.GetAsync(collectionName, key, withEmbedding, cancel);
+        CancellationToken cancel = default) => _store.GetAsync(collectionName, key, withEmbedding, cancel);
 
     public IAsyncEnumerable<MemoryRecord> GetBatchAsync(
         string collectionName,
         IEnumerable<string> keys,
         bool withEmbeddings = false,
-        CancellationToken cancel = default) =>
-        _store.GetBatchAsync(collectionName, keys, withEmbeddings, cancel);
+        CancellationToken cancel = default) => _store.GetBatchAsync(collectionName, keys, withEmbeddings, cancel);
 
-    public IAsyncEnumerable<string> GetCollectionsAsync(CancellationToken cancel = default) =>
-        _store.GetCollectionsAsync(cancel);
+    public IAsyncEnumerable<string> GetCollectionsAsync(CancellationToken cancel = default) => _store.GetCollectionsAsync(cancel);
 
     public Task<(MemoryRecord, double)?> GetNearestMatchAsync(
         string collectionName,
         Embedding<float> embedding,
         double minRelevanceScore = 0,
         bool withEmbedding = false,
-        CancellationToken cancel = default) =>
-        _store.GetNearestMatchAsync(collectionName, embedding, minRelevanceScore, withEmbedding, cancel);
+        CancellationToken cancel = default) => _store.GetNearestMatchAsync(collectionName, embedding, minRelevanceScore, withEmbedding, cancel);
 
     public IAsyncEnumerable<(MemoryRecord, double)> GetNearestMatchesAsync(
         string collectionName,
@@ -59,8 +51,7 @@ public sealed class CorpusMemoryStore : IMemoryStore
         int limit,
         double minRelevanceScore = 0,
         bool withEmbeddings = false,
-        CancellationToken cancel = default) =>
-        _store.GetNearestMatchesAsync(collectionName, embedding, limit, minRelevanceScore, withEmbeddings, cancel);
+        CancellationToken cancel = default) => _store.GetNearestMatchesAsync(collectionName, embedding, limit, minRelevanceScore, withEmbeddings, cancel);
 
     public async Task InitializeAsync()
     {
@@ -119,24 +110,20 @@ public sealed class CorpusMemoryStore : IMemoryStore
     public Task RemoveAsync(
         string collectionName,
         string key,
-        CancellationToken cancel = default) =>
-        _store.RemoveAsync(collectionName, key, cancel);
+        CancellationToken cancel = default) => _store.RemoveAsync(collectionName, key, cancel);
 
     public Task RemoveBatchAsync(
         string collectionName,
         IEnumerable<string> keys,
-        CancellationToken cancel = default) =>
-        _store.RemoveBatchAsync(collectionName, keys, cancel);
+        CancellationToken cancel = default) => _store.RemoveBatchAsync(collectionName, keys, cancel);
 
     public Task<string> UpsertAsync(
         string collectionName,
         MemoryRecord record,
-        CancellationToken cancel = default) =>
-        _store.UpsertAsync(collectionName, record, cancel);
+        CancellationToken cancel = default) => _store.UpsertAsync(collectionName, record, cancel);
 
     public IAsyncEnumerable<string> UpsertBatchAsync(
         string collectionName,
         IEnumerable<MemoryRecord> records,
-        CancellationToken cancel = default) =>
-        _store.UpsertBatchAsync(collectionName, records, cancel);
+        CancellationToken cancel = default) => _store.UpsertBatchAsync(collectionName, records, cancel);
 }

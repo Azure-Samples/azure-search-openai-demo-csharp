@@ -73,7 +73,7 @@
                                Color="Color.Error"
                                Disabled=@(!FilesSelected)
                                Size="Size.Large" Class="ml-2 mb-2"
-                               OnClick="@_fileUpload.Reset">
+                               OnClick="@(async () => await _fileUpload.ResetAsync())">
                         Clear Selected Documents
                     </MudButton>
                     <MudButton StartIcon="@Icons.Material.Filled.Upload"

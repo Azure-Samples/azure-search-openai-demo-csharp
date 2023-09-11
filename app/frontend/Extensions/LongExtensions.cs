@@ -12,7 +12,7 @@ public static class LongExtensions
 
         while (size >= 1024 && order < s_sizes.Length - 1)
         {
-            order ++;
+            order++;
             size /= 1024;
         }
 

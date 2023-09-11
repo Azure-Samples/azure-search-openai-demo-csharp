@@ -55,8 +55,7 @@ internal sealed class AzureBlobStorageService
         return new UploadDocumentsResponse(uploadedFiles.ToArray());
     }
 
-    private static string BlobNameFromFilePage(string filename, int page = 0) =>
-        Path.GetExtension(filename).ToLower() is ".pdf"
+    private static string BlobNameFromFilePage(string filename, int page = 0) => Path.GetExtension(filename).ToLower() is ".pdf"
             ? $"{Path.GetFileNameWithoutExtension(filename)}-{page}.pdf"
             : Path.GetFileName(filename);
 }

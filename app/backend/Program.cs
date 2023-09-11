@@ -22,26 +22,25 @@ else
     builder.Services.AddStackExchangeRedisCache(options =>
     {
         var name = builder.Configuration["AzureRedisCacheName"] +
-			".redis.cache.windows.net" ;
+            ".redis.cache.windows.net";
         var key = builder.Configuration["AzureRedisCachePrimaryKey"];
-		var ssl = "true";
+        var ssl = "true";
 
-        string? GetEnvVar(string key) =>
-            Environment.GetEnvironmentVariable(key);
+        static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
 
-		if (GetEnvVar("REDIS_HOST") is string redisHost)
-		{
-			name = $"{redisHost}:{GetEnvVar("REDIS_PORT")}";                
-			key = GetEnvVar("REDIS_PASSWORD");
-			ssl = "false";
-		}
+        if (GetEnvVar("REDIS_HOST") is string redisHost)
+        {
+            name = $"{redisHost}:{GetEnvVar("REDIS_PORT")}";
+            key = GetEnvVar("REDIS_PASSWORD");
+            ssl = "false";
+        }
 
-		if (GetEnvVar("AZURE_REDIS_HOST") is string azureRedisHost)
-		{
-			name = $"{azureRedisHost}:{GetEnvVar("AZURE_REDIS_PORT")}";
-			key = GetEnvVar("AZURE_REDIS_PASSWORD");
-			ssl = "false";
-		}
+        if (GetEnvVar("AZURE_REDIS_HOST") is string azureRedisHost)
+        {
+            name = $"{azureRedisHost}:{GetEnvVar("AZURE_REDIS_PORT")}";
+            key = GetEnvVar("AZURE_REDIS_PASSWORD");
+            ssl = "false";
+        }
 
         options.Configuration = $"""
             {name},abortConnect=false,ssl={ssl},allowAdmin=true,password={key}

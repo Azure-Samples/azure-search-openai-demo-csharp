@@ -107,8 +107,5 @@ internal static class ServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection AddMemoryStore(this IServiceCollection services)
-    {
-        return services.AddSingleton<IMemoryStore, CorpusMemoryStore>();
-    }
+    internal static IServiceCollection AddMemoryStore(this IServiceCollection services) => services.AddSingleton<IMemoryStore, CorpusMemoryStore>();
 }

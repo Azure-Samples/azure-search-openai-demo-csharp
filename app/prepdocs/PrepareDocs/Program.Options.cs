@@ -49,8 +49,7 @@ internal static partial class Program
         s_remove, s_removeAll, s_formRecognizerServiceEndpoint, s_verbose
     };
 
-    private static AppOptions GetParsedAppOptions(InvocationContext context) =>
-        new(
+    private static AppOptions GetParsedAppOptions(InvocationContext context) => new(
             Files: context.ParseResult.GetValueForArgument(s_files),
             Category: context.ParseResult.GetValueForOption(s_category),
             SkipBlobs: context.ParseResult.GetValueForOption(s_skipBlobs),
@@ -64,5 +63,4 @@ internal static partial class Program
             FormRecognizerServiceEndpoint: context.ParseResult.GetValueForOption(s_formRecognizerServiceEndpoint),
             Verbose: context.ParseResult.GetValueForOption(s_verbose),
             Console: context.Console);
-
 }

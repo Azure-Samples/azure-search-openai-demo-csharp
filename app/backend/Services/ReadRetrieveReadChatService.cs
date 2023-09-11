@@ -76,14 +76,9 @@ public class ReadRetrieveReadChatService
         var context = new ContextVariables();
         var historyText = history.GetChatHistoryAsText(includeLastTurn: true);
         context["chat_history"] = historyText;
-        if (history.LastOrDefault()?.User is { } userQuestion)
-        {
-            context["question"] = userQuestion;
-        }
-        else
-        {
-            throw new InvalidOperationException("Use question is null");
-        }
+        context["question"] = history.LastOrDefault()?.User is { } userQuestion
+            ? userQuestion
+            : throw new InvalidOperationException("Use question is null");
 
         var query = await _kernel.RunAsync(context, cancellationToken, queryFunction);
         // step 2
@@ -97,14 +92,7 @@ public class ReadRetrieveReadChatService
         string prompt;
         answerContext["chat_history"] = history.GetChatHistoryAsText();
         answerContext["sources"] = documentContents;
-        if (overrides?.SuggestFollowupQuestions is true)
-        {
-            answerContext["follow_up_questions_prompt"] = ReadRetrieveReadChatService.FollowUpQuestionsPrompt;
-        }
-        else
-        {
-            answerContext["follow_up_questions_prompt"] = string.Empty;
-        }
+        answerContext["follow_up_questions_prompt"] = overrides?.SuggestFollowupQuestions is true ? ReadRetrieveReadChatService.FollowUpQuestionsPrompt : string.Empty;
 
         if (overrides is null or { PromptTemplate: null })
         {
@@ -165,8 +153,7 @@ public class ReadRetrieveReadChatService
             stopSequences: new[] { "<|im_end|>" });
     }
 
-    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides) =>
-        _kernel.CreateSemanticFunction(answerTemplate,
+    private ISKFunction CreateAnswerPromptFunction(string answerTemplate, RequestOverrides? overrides) => _kernel.CreateSemanticFunction(answerTemplate,
             temperature: overrides?.Temperature ?? 0.7,
             maxTokens: 1024,
             stopSequences: new[] { "<|im_end|>" });

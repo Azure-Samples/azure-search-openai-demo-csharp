@@ -550,8 +550,7 @@ static async ValueTask IndexSectionsAsync(
     }
 }
 
-static string BlobNameFromFilePage(string filename, int page = 0) =>
-    Path.GetExtension(filename).ToLower() is ".pdf"
+static string BlobNameFromFilePage(string filename, int page = 0) => Path.GetExtension(filename).ToLower() is ".pdf"
         ? $"{Path.GetFileNameWithoutExtension(filename)}-{page}.pdf"
         : Path.GetFileName(filename);
 

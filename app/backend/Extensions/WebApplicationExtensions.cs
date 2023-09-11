@@ -125,13 +125,10 @@ internal static class WebApplicationExtensions
                 static TEnum GetMetadataEnumOrDefault<TEnum>(
                     IDictionary<string, string> metadata,
                     string key,
-                    TEnum @default) where TEnum : struct
-                {
-                    return metadata.TryGetValue(key, out var value)
+                    TEnum @default) where TEnum : struct => metadata.TryGetValue(key, out var value)
                         && Enum.TryParse<TEnum>(value, out var status)
                             ? status
                             : @default;
-                }
             }
         }
     }

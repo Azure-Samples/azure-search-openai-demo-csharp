@@ -10,8 +10,7 @@ internal sealed class ApproachServiceResponseFactory
 
     public ApproachServiceResponseFactory(
         ILogger<ApproachServiceResponseFactory> logger,
-        IEnumerable<IApproachBasedService> services, IDistributedCache cache) =>
-        (_logger, _approachBasedServices, _cache) = (logger, services, cache);
+        IEnumerable<IApproachBasedService> services, IDistributedCache cache) => (_logger, _approachBasedServices, _cache) = (logger, services, cache);
 
     internal async Task<ApproachResponse> GetApproachResponseAsync(
         Approach approach,

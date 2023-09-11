@@ -27,8 +27,7 @@ public sealed partial class Answer
         }
     }
 
-    private void OnShowCitation(CitationDetails citation) =>
-        Dialog.Show<PdfViewerDialog>(
+    private void OnShowCitation(CitationDetails citation) => Dialog.Show<PdfViewerDialog>(
             $"📄 {citation.Name}",
             new DialogParameters
             {
@@ -43,8 +42,7 @@ public sealed partial class Answer
                 CloseOnEscapeKey = true
             });
 
-    private MarkupString RemoveLeadingAndTrailingLineBreaks(string input) =>
-        (MarkupString)HtmlLineBreakRegex().Replace(input, "");
+    private MarkupString RemoveLeadingAndTrailingLineBreaks(string input) => (MarkupString)HtmlLineBreakRegex().Replace(input, "");
 
     [GeneratedRegex("^(\\s*<br\\s*/?>\\s*)+|(\\s*<br\\s*/?>\\s*)+$", RegexOptions.Multiline)]
     private static partial Regex HtmlLineBreakRegex();

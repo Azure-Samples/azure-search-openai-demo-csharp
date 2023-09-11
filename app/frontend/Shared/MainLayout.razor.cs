@@ -41,6 +41,8 @@ public sealed partial class MainLayout
     };
 
     private void OnMenuClicked() => _drawerOpen = !_drawerOpen;
+
     private void OnThemeChanged() => _isDarkTheme = !_isDarkTheme;
+
     private void OnIsReversedChanged() => _isReversed = !_isReversed;
 }

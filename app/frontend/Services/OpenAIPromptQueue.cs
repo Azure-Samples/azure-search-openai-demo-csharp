@@ -9,8 +9,7 @@ public sealed class OpenAIPromptQueue
     private readonly StringBuilder _responseBuffer = new();
     private Task? _processPromptTask = null;
 
-    public OpenAIPromptQueue(IServiceProvider provider, ILogger<OpenAIPromptQueue> logger) =>
-        (_provider, _logger) = (provider, logger);
+    public OpenAIPromptQueue(IServiceProvider provider, ILogger<OpenAIPromptQueue> logger) => (_provider, _logger) = (provider, logger);
 
     public void Enqueue(string prompt, Func<PromptResponse, Task> handler)
     {

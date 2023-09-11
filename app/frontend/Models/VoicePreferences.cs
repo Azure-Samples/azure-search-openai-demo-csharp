@@ -57,6 +57,5 @@ public record class VoicePreferences
         }
     }
 
-    public void Deconstruct(out string? voice, out double rate, out bool isEnabled) =>
-        (voice, rate, isEnabled) = (Voice, Rate, IsEnabled);
+    public void Deconstruct(out string? voice, out double rate, out bool isEnabled) => (voice, rate, isEnabled) = (Voice, Rate, IsEnabled);
 }
