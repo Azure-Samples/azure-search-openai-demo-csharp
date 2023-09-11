@@ -14,24 +14,25 @@ internal static partial class Program
     private static readonly SemaphoreSlim s_searchIndexLock = new(1);
     private static readonly SemaphoreSlim s_searchLock = new(1);
 
-    private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options) => GetLazyClientAsync<BlobContainerClient>(options, s_corpusContainerLock, async o =>
-                                                                                                           {
-                                                                                                               if (s_corpusContainerClient is null)
-                                                                                                               {
-                                                                                                                   var endpoint = options.StorageServiceBlobEndpoint;
-                                                                                                                   ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+    private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options) =>
+        GetLazyClientAsync<BlobContainerClient>(options, s_corpusContainerLock, static async o =>
+        {
+            if (s_corpusContainerClient is null)
+            {
+                var endpoint = o.StorageServiceBlobEndpoint;
+                ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
 
-                                                                                                                   var blobService = new BlobServiceClient(
-                                                                                                                       new Uri(endpoint),
-                                                                                                                       DefaultCredential);
+                var blobService = new BlobServiceClient(
+                    new Uri(endpoint),
+                    DefaultCredential);
 
-                                                                                                                   s_corpusContainerClient = blobService.GetBlobContainerClient("corpus");
+                s_corpusContainerClient = blobService.GetBlobContainerClient("corpus");
 
-                                                                                                                   await s_corpusContainerClient.CreateIfNotExistsAsync();
-                                                                                                               }
+                await s_corpusContainerClient.CreateIfNotExistsAsync();
+            }
 
-                                                                                                               return s_corpusContainerClient;
-                                                                                                           });
+            return s_corpusContainerClient;
+        });
 
     private static Task<BlobContainerClient> GetBlobContainerClientAsync(AppOptions options) =>
         GetLazyClientAsync<BlobContainerClient>(options, s_containerLock, static async o =>
