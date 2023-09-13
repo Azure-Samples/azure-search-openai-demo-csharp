@@ -4,6 +4,8 @@ namespace ClientApp.Pages;
 
 public sealed partial class Docs : IDisposable
 {
+    private const long MaxIndividualFileSize = 1_024L * 1_024;
+
     private MudForm _form = null!;
     private MudFileUpload<IReadOnlyList<IBrowserFile>> _fileUpload = null!;
     private Task _getDocumentsTask = null!;
@@ -62,7 +64,8 @@ public sealed partial class Docs : IDisposable
     {
         if (_fileUpload is { Files.Count: > 0 })
         {
-            var result = await Client.UploadDocumentsAsync(_fileUpload.Files);
+            var result = await Client.UploadDocumentsAsync(
+                _fileUpload.Files, MaxIndividualFileSize);
 
             Logger.LogInformation("Result: {x}", result);
 

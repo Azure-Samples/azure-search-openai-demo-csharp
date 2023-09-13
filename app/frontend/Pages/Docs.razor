@@ -18,7 +18,7 @@
                 <MudCardContent>
                     <MudText Class="pb-4">
                         Select up to ten PDF documents to upload, or explore the existing documents that have already been processed.
-                        Each file cannot exceed a file size of @((500L * 1024).ToHumanReadableSize())
+                        Each file cannot exceed a file size of @(MaxIndividualFileSize.ToHumanReadableSize())
                     </MudText>
                     <MudFileUpload @ref="_fileUpload" T="IReadOnlyList<IBrowserFile>"
                                    Accept=".pdf" MaximumFileCount="10" FilesChanged=@(files => StateHasChanged())
