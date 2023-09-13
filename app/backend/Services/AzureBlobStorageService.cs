@@ -12,50 +12,67 @@ internal sealed class AzureBlobStorageService
 
     internal async Task<UploadDocumentsResponse> UploadFilesAsync(IEnumerable<IFormFile> files, CancellationToken cancellationToken)
     {
-        var uploadedFiles = new List<string>();
-        foreach (var file in files)
+        try
         {
-            var fileName = file.FileName;
-
-            await using var stream = file.OpenReadStream();
-
-            using var documents = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
-            for (int i = 0; i < documents.PageCount; i++)
+            var uploadedFiles = new List<string>();
+            foreach (var file in files)
             {
-                var documentName = BlobNameFromFilePage(fileName, i);
-                var blobClient = _container.GetBlobClient(documentName);
-                if (await blobClient.ExistsAsync(cancellationToken))
+                var fileName = file.FileName;
+
+                await using var stream = file.OpenReadStream();
+
+                using var documents = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
+                for (int i = 0; i < documents.PageCount; i++)
                 {
-                    continue;
-                }
-
-                var tempFileName = Path.GetTempFileName();
-
-                try
-                {
-                    using var document = new PdfDocument();
-                    document.AddPage(documents.Pages[i]);
-                    document.Save(tempFileName);
-
-                    await using var tempStream = File.OpenRead(tempFileName);
-                    await blobClient.UploadAsync(tempStream, new BlobHttpHeaders
+                    var documentName = BlobNameFromFilePage(fileName, i);
+                    var blobClient = _container.GetBlobClient(documentName);
+                    if (await blobClient.ExistsAsync(cancellationToken))
                     {
-                        ContentType = "application/pdf"
-                    }, cancellationToken: cancellationToken);
+                        continue;
+                    }
 
-                    uploadedFiles.Add(documentName);
-                }
-                finally
-                {
-                    File.Delete(tempFileName);
+                    var tempFileName = Path.GetTempFileName();
+
+                    try
+                    {
+                        using var document = new PdfDocument();
+                        document.AddPage(documents.Pages[i]);
+                        document.Save(tempFileName);
+
+                        await using var tempStream = File.OpenRead(tempFileName);
+                        await blobClient.UploadAsync(tempStream, new BlobHttpHeaders
+                        {
+                            ContentType = "application/pdf"
+                        }, cancellationToken: cancellationToken);
+
+                        uploadedFiles.Add(documentName);
+                    }
+                    finally
+                    {
+                        File.Delete(tempFileName);
+                    }
                 }
             }
-        }
 
-        return new UploadDocumentsResponse(uploadedFiles.ToArray());
+            if (uploadedFiles.Count is 0)
+            {
+                return UploadDocumentsResponse.FromError("""
+                    No files were uploaded. Either the files already exist or the files are not PDFs.
+                    """);
+            }
+
+            return new UploadDocumentsResponse(uploadedFiles.ToArray());
+        }
+#pragma warning disable CA1031 // Do not catch general exception types
+        catch (Exception ex)
+        {
+            return UploadDocumentsResponse.FromError(ex.ToString());
+        }
+#pragma warning restore CA1031 // Do not catch general exception types
     }
 
-    private static string BlobNameFromFilePage(string filename, int page = 0) => Path.GetExtension(filename).ToLower() is ".pdf"
+    private static string BlobNameFromFilePage(string filename, int page = 0) =>
+        Path.GetExtension(filename).ToLower() is ".pdf"
             ? $"{Path.GetFileNameWithoutExtension(filename)}-{page}.pdf"
             : Path.GetFileName(filename);
 }
