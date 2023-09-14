@@ -12,5 +12,6 @@ public record class UploadDocumentsResponse(
         UploadedFiles.Length: > 0
     };
 
-    public static UploadDocumentsResponse FromError(string error) => new(Array.Empty<string>(), error);
+    public static UploadDocumentsResponse FromError(string error) =>
+        new(Array.Empty<string>(), error);
 }

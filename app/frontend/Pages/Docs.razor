@@ -16,7 +16,10 @@
                     </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Class="pb-4">Select up to ten PDF documents to upload, or explore the existing documents that have already been processed.</MudText>
+                    <MudText Class="pb-4">
+                        Select up to ten PDF documents to upload, or explore the existing documents that have already been processed.
+                        Each file cannot exceed a file size of @(MaxIndividualFileSize.ToHumanReadableSize())
+                    </MudText>
                     <MudFileUpload @ref="_fileUpload" T="IReadOnlyList<IBrowserFile>"
                                    Accept=".pdf" MaximumFileCount="10" FilesChanged=@(files => StateHasChanged())
                                    Required="true" RequiredError="You must select at least one PDF file to upload.">
@@ -81,7 +84,7 @@
                                Color="Color.Primary"
                                Disabled=@(!FilesSelected)
                                Size="Size.Large" Class="ml-auto mr-2 mb-2"
-                               OnClick="@(async () => await SubmitFilesForUploadAsync())">
+                               OnClick="@(async _ => await SubmitFilesForUploadAsync())">
                         Upload File(s)
                     </MudButton>
                 </MudCardActions>
