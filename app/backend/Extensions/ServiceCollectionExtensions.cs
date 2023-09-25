@@ -65,31 +65,10 @@ internal static class ServiceCollectionExtensions
             return openAIClient;
         });
 
-        services.AddSingleton<IKernel>(sp =>
-        {
-            // Semantic Kernel doesn't support Azure AAD credential for now
-            // so we implement our own text completion backend
-            var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiGptDeployment = config["AzureOpenAiGptDeployment"];
-
-            var openAITextService = sp.GetRequiredService<AzureOpenAITextCompletionService>();
-            var kernel = Kernel.Builder.Build();
-            kernel.Config.AddTextCompletionService(azureOpenAiGptDeployment!, _ => openAITextService);
-
-            return kernel;
-        });
-
         services.AddSingleton<AzureBlobStorageService>();
 
-        services.AddSingleton<AzureOpenAITextCompletionService>();
         services.AddSingleton<AzureOpenAIChatCompletionService>();
         services.AddSingleton<ReadRetrieveReadChatService>();
-
-        services.AddSingleton<IApproachBasedService, RetrieveThenReadApproachService>();
-        services.AddSingleton<IApproachBasedService, ReadRetrieveReadApproachService>();
-        services.AddSingleton<IApproachBasedService, ReadDecomposeAskApproachService>();
-
-        services.AddSingleton<ApproachServiceResponseFactory>();
 
         return services;
     }

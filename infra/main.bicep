@@ -45,15 +45,6 @@ param formRecognizerServiceName string = ''
 @description('SKU name for the Form Recognizer service. Default: S0')
 param formRecognizerSkuName string = 'S0'
 
-@description('Capacity of the GPT deployment. Default: 30')
-param gptDeploymentCapacity int = 30
-
-@description('Name of the GPT deployment. Default: turbo')
-param gptDeploymentName string = 'turbo'
-
-@description('Name of the GPT model. Default: gpt-35-turbo')
-param gptModelName string = 'gpt-35-turbo'
-
 @description('Name of the Azure Key Vault')
 param keyVaultName string = ''
 
@@ -183,10 +174,6 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
         value: openAi.outputs.endpoint
       }
       {
-        name: 'AzureOpenAiGptDeployment'
-        value: gptDeploymentName
-      }
-      {
         name: 'AzureOpenAiChatGptDeployment'
         value: chatGptDeploymentName
       }
@@ -246,7 +233,6 @@ module web './app/web.bicep' = {
     searchIndexName: searchIndexName
     formRecognizerEndpoint: formRecognizer.outputs.endpoint
     openAiEndpoint: openAi.outputs.endpoint
-    openAiGptDeployment: gptDeploymentName
     openAiChatGptDeployment: chatGptDeploymentName
     serviceBinds: [ redis.outputs.serviceBind ]
   }
@@ -291,18 +277,6 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
       name: openAiSkuName
     }
     deployments: [
-      {
-        name: gptDeploymentName
-        model: {
-          format: 'OpenAI'
-          name: gptModelName
-          version: '0613'
-        }
-        sku: {
-          name: 'Standard'
-          capacity: gptDeploymentCapacity
-        }
-      }
       {
         name: chatGptDeploymentName
         model: {
@@ -493,7 +467,6 @@ output AZURE_KEY_VAULT_RESOURCE_GROUP string = keyVaultResourceGroup.name
 output AZURE_LOCATION string = location
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
-output AZURE_OPENAI_GPT_DEPLOYMENT string = gptDeploymentName
 output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
 output AZURE_OPENAI_SERVICE string = openAi.outputs.name
 output AZURE_REDIS_CACHE string = redis.outputs.name
