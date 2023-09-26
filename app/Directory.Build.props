@@ -5,8 +5,8 @@
     <AzureIdentityVersion>1.10.0</AzureIdentityVersion>
     <AzureSearchDocumentsVersion>11.5.0-beta.2</AzureSearchDocumentsVersion>
     <AzureStorageBlobsVersion>12.17.0</AzureStorageBlobsVersion>
-    <SemanticKernelVersion>0.13.277.1-preview</SemanticKernelVersion>
-    <AzureOpenAIVersion>1.0.0-beta.6</AzureOpenAIVersion>
+    <SemanticKernelVersion>0.24.230918.1-preview</SemanticKernelVersion>
+    <AzureOpenAIVersion>1.0.0-beta.7</AzureOpenAIVersion>
     <WebAssemblyVersion>7.0.10</WebAssemblyVersion>
     <WebAssemblyDevServerVersion>7.0.10</WebAssemblyDevServerVersion>
     <MicrosoftMLVersion>2.0.1</MicrosoftMLVersion>
