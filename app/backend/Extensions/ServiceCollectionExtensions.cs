@@ -66,8 +66,6 @@ internal static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<AzureBlobStorageService>();
-
-        services.AddSingleton<AzureOpenAIChatCompletionService>();
         services.AddSingleton<ReadRetrieveReadChatService>();
 
         return services;
@@ -85,6 +83,4 @@ internal static class ServiceCollectionExtensions
 
         return services;
     }
-
-    internal static IServiceCollection AddMemoryStore(this IServiceCollection services) => services.AddSingleton<IMemoryStore, CorpusMemoryStore>();
 }
