@@ -248,23 +248,24 @@ module web './app/web.bicep' = {
     openAiEndpoint: openAi.outputs.endpoint
     openAiChatGptDeployment: chatGptDeploymentName
     openAiEmbeddingDeployment: embeddingDeploymentName
-    serviceBinds: [ redis.outputs.serviceBind ]
+    // serviceBinds: [ redis.outputs.serviceBind ]
+    serviceBinds: []
   }
 }
 
 // this launches a redis instance inside of the ACA env
-module redis 'core/host/container-app.bicep' = {
-  name: 'redis'
-  scope: resourceGroup
-  params: {
-    name: 'redis'
-    location: location
-    tags: updatedTags
-    containerAppsEnvironmentName: containerApps.outputs.environmentName
-    containerRegistryName: containerApps.outputs.registryName
-    serviceType: 'redis'
-  }
-}
+// module redis 'core/host/container-app.bicep' = {
+//   name: 'redis'
+//   scope: resourceGroup
+//   params: {
+//     name: 'redis'
+//     location: location
+//     tags: updatedTags
+//     containerAppsEnvironmentName: containerApps.outputs.environmentName
+//     containerRegistryName: containerApps.outputs.registryName
+//     serviceType: 'redis'
+//   }
+// }
 
 // Monitor application with Azure Monitor
 module monitoring 'core/monitor/monitoring.bicep' = {
@@ -496,7 +497,7 @@ output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingDeploymentName
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
 output AZURE_OPENAI_SERVICE string = openAi.outputs.name
-output AZURE_REDIS_CACHE string = redis.outputs.name
+// output AZURE_REDIS_CACHE string = redis.outputs.name
 output AZURE_RESOURCE_GROUP string = resourceGroup.name
 output AZURE_SEARCH_INDEX string = searchIndexName
 output AZURE_SEARCH_SERVICE string = searchService.outputs.name
