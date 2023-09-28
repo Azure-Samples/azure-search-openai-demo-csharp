@@ -6,7 +6,8 @@ internal static class SearchClientExtensions
 {
     internal static async Task<string> QueryDocumentsAsync(
         this SearchClient searchClient,
-        string query,
+        string? query = null,
+        float[]? embedding = null,
         RequestOverrides? overrides = null,
         CancellationToken cancellationToken = default)
     {
@@ -33,6 +34,20 @@ internal static class SearchClientExtensions
                 Filter = filter,
                 Size = top,
             };
+
+        if (embedding != null && overrides?.RetrievalMode != "Text")
+        {
+            var k = useSemanticRanker ? 50 : top;
+            var vectorQuery = new SearchQueryVector
+            {
+                // if semantic ranker is enabled, we need to set the rank to a large number to get more
+                // candidates for semantic reranking
+                KNearestNeighborsCount = useSemanticRanker ? 50 : top,
+                Value = embedding,
+            };
+            vectorQuery.Fields.Add("embedding");
+            searchOption.Vectors.Add(vectorQuery);
+        }
 
         var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption, cancellationToken);
         if (searchResultResponse.Value is null)
@@ -84,52 +99,5 @@ internal static class SearchClientExtensions
         documentContents = sb.ToString();
 
         return documentContents;
-    }
-
-    internal static async Task<string> LookupAsync(
-        this SearchClient searchClient,
-        string query,
-        RequestOverrides? overrides = null)
-    {
-        var option = new SearchOptions
-        {
-            Size = 1,
-            IncludeTotalCount = true,
-            QueryType = SearchQueryType.Semantic,
-            QueryLanguage = "en-us",
-            QuerySpeller = "lexicon",
-            SemanticConfigurationName = "default",
-            QueryAnswer = "extractive",
-            QueryCaption = "extractive",
-        };
-
-        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, option);
-        if (searchResultResponse.Value is null)
-        {
-            throw new InvalidOperationException("fail to get search result");
-        }
-
-        var searchResult = searchResultResponse.Value;
-        if (searchResult is { Answers.Count: > 0 })
-        {
-            return searchResult.Answers[0].Text;
-        }
-
-        if (searchResult.TotalCount > 0)
-        {
-            var contents = new List<string>();
-            await foreach (var doc in searchResult.GetResultsAsync())
-            {
-                doc.Document.TryGetValue("content", out var contentValue);
-                if (contentValue is string content)
-                {
-                    contents.Add(content);
-                }
-            }
-
-            return string.Join("\n", contents);
-        }
-
-        return string.Empty;
     }
 }

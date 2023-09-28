@@ -23,6 +23,8 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
         --container $env:AZURE_STORAGE_CONTAINER `
         --searchendpoint $env:AZURE_SEARCH_SERVICE_ENDPOINT `
         --searchindex $env:AZURE_SEARCH_INDEX `
+        --openaiendpoint $env:AZURE_OPENAI_ENDPOINT `
+        --embeddingmodel $env:AZURE_OPENAI_EMBEDDING_DEPLOYMENT `
         --formrecognizerendpoint $env:AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT `
         --tenantid $env:AZURE_TENANT_ID `
         -v

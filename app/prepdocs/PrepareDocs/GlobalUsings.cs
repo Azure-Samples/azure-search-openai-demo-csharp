@@ -21,3 +21,4 @@ global using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 global using PdfSharpCore.Pdf;
 global using PdfSharpCore.Pdf.IO;
 global using PrepareDocs;
+global using Azure.AI.OpenAI;

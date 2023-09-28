@@ -47,11 +47,11 @@ param formRecognizerEndpoint string
 @description('The OpenAI endpoint')
 param openAiEndpoint string
 
-@description('The OpenAI GPT deployment name')
-param openAiGptDeployment string
-
 @description('The OpenAI ChatGPT deployment name')
 param openAiChatGptDeployment string
+
+@description('The OpenAI Embedding deployment name')
+param openAiEmbeddingDeployment string
 
 @description('An array of service binds')
 param serviceBinds array
@@ -121,12 +121,12 @@ module app '../core/host/container-app-upsert.bicep' = {
         value: openAiEndpoint
       }
       {
-        name: 'AZURE_OPENAI_GPT_DEPLOYMENT'
-        value: openAiGptDeployment
-      }
-      {
         name: 'AZURE_OPENAI_CHATGPT_DEPLOYMENT'
         value: openAiChatGptDeployment
+      }
+      {
+        name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT'
+        value: openAiEmbeddingDeployment
       }
     ]
     targetPort: 80

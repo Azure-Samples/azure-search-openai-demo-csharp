@@ -41,6 +41,18 @@
         <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticRanker" Size="Size.Large"
                      Color="Color.Primary" Label="Use semantic ranker for retrieval" />
 
+        <MudText Typo="Typo.subtitle1">Retrieval Mode</MudText>
+        <MudRadioGroup Required="true" @bind-SelectedOption="@Settings.Overrides.RetrievalMode" Class="pa-2">
+            <MudRadio T="string" Option="@("Text")" Color="Color.Primary">
+                Text
+            </MudRadio>
+            <MudRadio T="string" Option="@("Hybrid")" Color="Color.Primary">
+                Hybrid
+            </MudRadio>
+            <MudRadio T="string" Option="@("Vector")" Color="Color.Primary">
+                Vector
+            </MudRadio>
+        </MudRadioGroup>
         <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticCaptions" Size="Size.Large"
                      Color="Color.Primary" 
                      Label="Use query-contrextual summaries instead of whole documents" />
