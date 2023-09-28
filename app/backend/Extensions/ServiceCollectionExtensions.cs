@@ -44,8 +44,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<DocumentAnalysisClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"];
-            ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
+            var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"] ?? throw new ArgumentNullException();
 
             var documentAnalysisClient = new DocumentAnalysisClient(
                 new Uri(azureOpenAiServiceEndpoint), s_azureCredential);

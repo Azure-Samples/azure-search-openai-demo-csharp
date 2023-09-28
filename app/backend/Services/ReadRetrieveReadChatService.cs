@@ -19,7 +19,14 @@ public class ReadRetrieveReadChatService
     {
         _searchClient = searchClient;
         var deployedModelName = configuration["AzureOpenAiChatGptDeployment"] ?? throw new ArgumentNullException();
-        _kernel = Kernel.Builder.WithAzureChatCompletionService(deployedModelName, client).Build();
+        var kernelBuilder = Kernel.Builder.WithAzureChatCompletionService(deployedModelName, client);
+        var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
+        if (!string.IsNullOrEmpty(embeddingModelName))
+        {
+            var endpoint = configuration["AzureOpenAiServiceEndpoint"] ?? throw new ArgumentNullException();
+            kernelBuilder = kernelBuilder.WithAzureTextEmbeddingGenerationService(embeddingModelName, endpoint, new DefaultAzureCredential());
+        }
+        _kernel = kernelBuilder.Build();
         _configuration = configuration;
     }
 
@@ -34,37 +41,49 @@ public class ReadRetrieveReadChatService
         var excludeCategory = overrides?.ExcludeCategory ?? null;
         var filter = excludeCategory is null ? null : $"category ne '{excludeCategory}'";
         IChatCompletion chat = _kernel.GetService<IChatCompletion>();
+        ITextEmbeddingGeneration? embedding = _kernel.GetService<ITextEmbeddingGeneration>();
+        float[]? embeddings = null;
+        var question = history.LastOrDefault()?.User is { } userQuestion
+            ? userQuestion
+            : throw new InvalidOperationException("Use question is null");
+        if (overrides?.RetrievalMode != "Text" && embedding is not null)
+        {
+            embeddings = (await embedding.GenerateEmbeddingAsync(question)).ToArray();
+        }
 
         // step 1
-        // use llm to get query
-        var getQueryChat = chat.CreateNewChat(@"You are a helpful AI assistant, generate search query for followup question.
+        // use llm to get query if retrieval mode is not vector
+        string? query = null;
+        if (overrides?.RetrievalMode != "Vector")
+        {
+            var getQueryChat = chat.CreateNewChat(@"You are a helpful AI assistant, generate search query for followup question.
 Make your respond simple and precise. Return the query only, do not return any other text.
 e.g.
 Northwind Health Plus AND standard plan.
 standard plan AND dental AND employee benefit.
 ");
-        var question = history.LastOrDefault()?.User is { } userQuestion
-            ? userQuestion
-            : throw new InvalidOperationException("Use question is null");
-        getQueryChat.AddUserMessage(question);
-        var result = await chat.GetChatCompletionsAsync(
-            getQueryChat,
-            new ChatRequestSettings
+
+            getQueryChat.AddUserMessage(question);
+            var result = await chat.GetChatCompletionsAsync(
+                getQueryChat,
+                new ChatRequestSettings
+                {
+                    Temperature = 0,
+                    MaxTokens = 128,
+                },
+                cancellationToken);
+
+            if (result.Count != 1)
             {
-                Temperature = 0,
-                MaxTokens = 128,
-            },
-            cancellationToken);
+                throw new InvalidOperationException("Failed to get search query");
+            }
 
-        if (result.Count != 1)
-        {
-            throw new InvalidOperationException("Failed to get search query");
+            query = result[0].ModelResult.GetOpenAIChatResult().Choice.Message.Content;
         }
-
-        var query = result[0].ModelResult.GetOpenAIChatResult().Choice.Message.Content;
+        
         // step 2
         // use query to search related docs
-        var documentContents = await _searchClient.QueryDocumentsAsync(query, overrides, cancellationToken);
+        var documentContents = await _searchClient.QueryDocumentsAsync(query, embeddings, overrides, cancellationToken);
 
         if (string.IsNullOrEmpty(documentContents))
         {

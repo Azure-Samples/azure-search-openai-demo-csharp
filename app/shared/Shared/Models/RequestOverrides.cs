@@ -5,6 +5,9 @@ namespace Shared.Models;
 public record RequestOverrides
 {
     public bool SemanticRanker { get; set; } = false;
+
+    public string RetrievalMode { get; set; } = "Vector"; // available option: Text, Vector, Hybrid
+
     public bool? SemanticCaptions { get; set; }
     public string? ExcludeCategory { get; set; }
     public int? Top { get; set; } = 3;

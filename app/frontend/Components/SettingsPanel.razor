@@ -8,22 +8,6 @@
         </MudText>
     </MudDrawerHeader>
     <div class="pa-6">
-        @if (_supportedSettings is not SupportedSettings.Chat)
-        {
-            <MudText Typo="Typo.subtitle1">Approach</MudText>
-            <MudRadioGroup @bind-SelectedOption="@Settings.Approach" Class="pa-2">
-                <MudRadio Option="@Approach.RetrieveThenRead" Color="Color.Primary">
-                    Retrieve-Then-Read
-                </MudRadio>
-                <MudRadio Option="@Approach.ReadRetrieveRead" Color="Color.Primary">
-                    Read-Retrieve-Read
-                </MudRadio>
-                <MudRadio Option="@Approach.ReadDecomposeAsk" Color="Color.Primary">
-                    Read-Decompose-Ask
-                </MudRadio>
-            </MudRadioGroup>
-        }
-
         <MudTextField T="string" Lines="5" Variant="Variant.Outlined"
                       Label="Override prompt template" Placeholder="Override prompt template" Class="pa-2"
                       @bind-Value="Settings.Overrides.PromptTemplate" Clearable="true" />
@@ -41,6 +25,18 @@
         <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticRanker" Size="Size.Large"
                      Color="Color.Primary" Label="Use semantic ranker for retrieval" />
 
+        <MudText Typo="Typo.subtitle1">Retrieval Mode</MudText>
+        <MudRadioGroup Required="true" @bind-SelectedOption="@Settings.Overrides.RetrievalMode" Class="pa-2">
+            <MudRadio T="string" Option="@("Text")" Color="Color.Primary">
+                Text
+            </MudRadio>
+            <MudRadio T="string" Option="@("Hybrid")" Color="Color.Primary">
+                Hybrid
+            </MudRadio>
+            <MudRadio T="string" Option="@("Vector")" Color="Color.Primary">
+                Vector
+            </MudRadio>
+        </MudRadioGroup>
         <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticCaptions" Size="Size.Large"
                      Color="Color.Primary" 
                      Label="Use query-contrextual summaries instead of whole documents" />

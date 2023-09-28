@@ -24,6 +24,15 @@ param chatGptDeploymentName string = 'chat'
 @description('Name of the chat GPT model. Default: gpt-35-turbo')
 param chatGptModelName string = 'gpt-35-turbo'
 
+@description('Name of the embedding deployment. Default: embedding')
+param embeddingDeploymentName string = 'embedding'
+
+@description('Capacity of the embedding deployment. Default: 30')
+param embeddingDeploymentCapacity int = 30
+
+@description('Name of the embedding model. Default: text-embedding-ada-002')
+param embeddingModelName string = 'text-embedding-ada-002'
+
 @description('Name of the container apps environment')
 param containerAppsEnvironmentName string = ''
 
@@ -178,6 +187,10 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
         value: chatGptDeploymentName
       }
       {
+        name: 'AzureOpenAiEmbeddingDeployment'
+        value: embeddingDeploymentName
+      }
+      {
         name: 'AzureSearchServiceEndpoint'
         value: searchService.outputs.endpoint
       }
@@ -234,6 +247,7 @@ module web './app/web.bicep' = {
     formRecognizerEndpoint: formRecognizer.outputs.endpoint
     openAiEndpoint: openAi.outputs.endpoint
     openAiChatGptDeployment: chatGptDeploymentName
+    openAiEmbeddingDeployment: embeddingDeploymentName
     serviceBinds: [ redis.outputs.serviceBind ]
   }
 }
@@ -287,6 +301,18 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
         sku: {
           name: 'Standard'
           capacity: chatGptDeploymentCapacity
+        }
+      }
+      {
+        name: embeddingDeploymentName
+        model: {
+          format: 'OpenAI'
+          name: embeddingModelName
+          version: '2'
+        }
+        sku: {
+          name: 'Standard'
+          capacity: embeddingDeploymentCapacity
         }
       }
     ]
@@ -466,6 +492,7 @@ output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_RESOURCE_GROUP string = keyVaultResourceGroup.name
 output AZURE_LOCATION string = location
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
+output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingDeploymentName
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
 output AZURE_OPENAI_SERVICE string = openAi.outputs.name

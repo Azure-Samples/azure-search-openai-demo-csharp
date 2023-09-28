@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+
 internal static partial class Program
 {
     private static BlobContainerClient? s_corpusContainerClient;
@@ -7,12 +8,14 @@ internal static partial class Program
     private static DocumentAnalysisClient? s_documentClient;
     private static SearchIndexClient? s_searchIndexClient;
     private static SearchClient? s_searchClient;
+    private static OpenAIClient? s_openAIClient;
 
     private static readonly SemaphoreSlim s_corpusContainerLock = new(1);
     private static readonly SemaphoreSlim s_containerLock = new(1);
     private static readonly SemaphoreSlim s_documentLock = new(1);
     private static readonly SemaphoreSlim s_searchIndexLock = new(1);
     private static readonly SemaphoreSlim s_searchLock = new(1);
+    private static readonly SemaphoreSlim s_openAILock = new(1);
 
     private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options) =>
         GetLazyClientAsync<BlobContainerClient>(options, s_corpusContainerLock, static async o =>
@@ -118,6 +121,21 @@ internal static partial class Program
 
             return s_searchClient;
         });
+
+    private static Task<OpenAIClient> GetAzureOpenAIClientAsync(AppOptions options) =>
+       GetLazyClientAsync<OpenAIClient>(options, s_openAILock, async o =>
+       {
+           if (s_openAIClient is null)
+           {
+               var endpoint = o.AzureOpenAIServiceEndpoint;
+               ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+               s_openAIClient = new OpenAIClient(
+                   new Uri(endpoint),
+                   DefaultCredential);
+           }
+           await Task.CompletedTask;
+           return s_openAIClient;
+       });
 
     private static async Task<TClient> GetLazyClientAsync<TClient>(
         AppOptions options,
