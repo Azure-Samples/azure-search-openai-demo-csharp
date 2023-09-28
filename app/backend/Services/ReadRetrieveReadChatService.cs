@@ -46,16 +46,6 @@ public class ReadRetrieveReadChatService
         var question = history.LastOrDefault()?.User is { } userQuestion
             ? userQuestion
             : throw new InvalidOperationException("Use question is null");
-        getQueryChat.AddUserMessage(question);
-        var result = await chat.GetChatCompletionsAsync(
-            getQueryChat,
-            new ChatRequestSettings
-            {
-                Temperature = 0,
-                MaxTokens = 128,
-            },
-            cancellationToken);
-
         if (overrides?.RetrievalMode != "Text" && embedding is not null)
         {
             embeddings = (await embedding.GenerateEmbeddingAsync(question)).ToArray();
