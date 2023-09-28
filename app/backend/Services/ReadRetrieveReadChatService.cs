@@ -87,9 +87,10 @@ standard plan AND dental AND employee benefit.
 
         if (string.IsNullOrEmpty(documentContents))
         {
-            documentContents = "no source available";
+            documentContents = "no source available.";
         }
 
+        Console.WriteLine(documentContents);
         // step 3
         // put together related docs and conversation history to generate answer
         var answerChat = chat.CreateNewChat($@"You are a system assistant who helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers");
@@ -111,7 +112,7 @@ standard plan AND dental AND employee benefit.
 
 You answer needs to be a json object with the following format.
 {{
-    ""answer"": // the answer to the question, remember to reference the source for each fact you use in the response. e.g. Apple is a fruit[reference1.pdf]. If no source is provided, put the answer as I don't know.
+    ""answer"": // the answer to the question, add a source reference to the end of each sentence. e.g. Apple is a fruit [reference1.pdf]. If no source available, put the answer as I don't know.
     ""thoughts"": // brief thoughts on how you came up with the answer, e.g. what sources you used, what you thought about, etc.
 }}");
 
