@@ -170,6 +170,12 @@ Once in the web app:
 * Explore citations and sources
 * Click on the "settings" icon to try different options, tweak prompts, etc.
 
+### Optional: Enabling Authentication
+
+By default, the deployed Azure container app will have no authentication or access restrictions enabled, meaning anyone with routable network access to the container app can chat with your indexed data.  You can require authentication to your Azure Active Directory by following the [Add container app authentication](https://learn.microsoft.com/en-us/azure/container-apps/authentication-azure-active-directory) tutorial and set it up against the deployed container app.
+
+To then limit access to a specific set of users or groups, you can follow the steps from [Restrict your Azure AD app to a set of users](https://learn.microsoft.com/azure/active-directory/develop/howto-restrict-your-app-to-a-set-of-users) by changing "Assignment Required?" option under the Enterprise Application, and then assigning users/groups access.  Users not granted explicit access will receive the error message -AADSTS50105: Your administrator has configured the application <app_name> to block users unless they are specifically granted ('assigned') access to the application.-
+
 ## Resources
 
 * [Revolutionize your Enterprise Data with ChatGPT: Next-gen Apps w/ Azure OpenAI and Cognitive Search](https://aka.ms/entgptsearchblog)
