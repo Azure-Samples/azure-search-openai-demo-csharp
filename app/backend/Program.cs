@@ -4,6 +4,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.ConfigureAzureKeyVault();
 
+var allowMSIdentity = "_myAllowSpecificOrigins";
+
 // See: https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -47,6 +49,20 @@ else
             """;
         options.InstanceName = "content";
     });
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(name: allowMSIdentity,
+                          policy =>
+                          {
+                              // add login.windows.net and login.microsoftonline.com
+                              policy.WithOrigins("https://login.microsoftonline.com",
+                                                 "https://login.windows.net")
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod()
+                                    .AllowCredentials();
+                          });
+    });
 }
 
 var app = builder.Build();
@@ -62,9 +78,11 @@ else
     app.UseHsts();
 }
 
+
+
 app.UseHttpsRedirection();
 app.UseOutputCache();
-app.UseCors();
+app.UseCors(allowMSIdentity);
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();
