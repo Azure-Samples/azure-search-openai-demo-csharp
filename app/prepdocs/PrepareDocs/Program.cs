@@ -636,8 +636,5 @@ internal static partial class Program
     [GeneratedRegex("[^0-9a-zA-Z_-]")]
     private static partial Regex MatchInSetRegex();
 
-    internal static DefaultAzureCredential DefaultCredential { get; } = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-    {
-        ExcludeManagedIdentityCredential = true,
-    });
+    internal static DefaultAzureCredential DefaultCredential { get; } = new();
 }
