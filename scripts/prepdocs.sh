@@ -23,6 +23,8 @@ if [ -z "$AZD_PREPDOCS_RAN" ] || [ "$AZD_PREPDOCS_RAN" = "false" ]; then
       --storageendpoint "$AZURE_STORAGE_BLOB_ENDPOINT" \
       --container "$AZURE_STORAGE_CONTAINER" \
       --searchendpoint "$AZURE_SEARCH_SERVICE_ENDPOINT" \
+      --openaiendpoint "$AZURE_OPENAI_ENDPOINT" \
+      --embeddingmodel "$AZURE_OPENAI_EMBEDDING_DEPLOYMENT" \
       --searchindex "$AZURE_SEARCH_INDEX" \
       --formrecognizerendpoint "$AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT" \
       --tenantid "$AZURE_TENANT_ID" \
