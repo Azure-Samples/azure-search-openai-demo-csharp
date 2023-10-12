@@ -6,6 +6,7 @@ targetScope = 'subscription'
 param environmentName string
 
 @description('Primary location for all resources')
+@allowed([ 'centralus', 'eastus2', 'eastasia', 'westeurope', 'westus2', 'australiaeast', 'eastus', 'francecentral', 'japaneast', 'nortcentralus', 'swedencentral', 'switzerlandnorth', 'uksouth' ])
 param location string
 param tags string = ''
 
