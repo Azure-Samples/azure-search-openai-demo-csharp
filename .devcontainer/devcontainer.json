@@ -8,7 +8,7 @@
         "ghcr.io/devcontainers/features/powershell:1.1.0": {},
         "ghcr.io/azure/azure-dev/azd:latest": {},
         "ghcr.io/devcontainers/features/dotnet:2": {
-            "version": "7.0"
+            "version": "8.0"
         },
         "ghcr.io/devcontainers/features/node:1": {
             "version": "20.6.1"
