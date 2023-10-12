@@ -29,6 +29,15 @@
     "openAiResourceGroupName": {
       "value": "${AZURE_OPENAI_RESOURCE_GROUP}"
     },
+    "openAiResourceLocation":{
+      "value": "${AZURE_OPENAI_RESOURCE_LOCATION}"
+    },
+    "chatGptDeploymentName":{
+      "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT}"
+    },
+    "embeddingDeploymentName":{
+      "value": "${AZURE_OPENAI_EMBEDDING_DEPLOYMENT}"
+    },
     "openAiServiceName": {
       "value": "${AZURE_OPENAI_SERVICE}"
     },
