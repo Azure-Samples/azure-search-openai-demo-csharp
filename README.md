@@ -1,4 +1,4 @@
-# ChatGPT + Enterprise data with Azure OpenAI and Cognitive Search
+# ChatGPT + Enterprise data with Azure OpenAI and Cognitive Search (.NET)
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Azure-Samples/azure-search-openai-demo-csharp/dotnet-build.yml?label=BUILD%20%26%20TEST&logo=github&style=for-the-badge)
 [![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=624102171&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&location=WestUs2)
@@ -28,31 +28,55 @@ We want to hear from you! Are you interested in building or currently building i
 
 ![Chat screen](docs/chatscreen.png)
 
+## Application architecture
+
+- **User interface** - The application’s chat interface is a [Blazor WebAssembly](https://learn.microsoft.com/aspnet/core/blazor/) static web application. This interface is what accepts user queries, routes request to the application backend, and displays generated responses.
+- **Backend** - The application backend is an [ASP.NET Core Minimal API](https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/overview). The backend hosts the Blazor static web application and what orchestrates the interactions among the different services. Services used in this application include:
+   - [**Azure Cognitive Search**](https://learn.microsoft.com/azure/search/search-what-is-azure-search) – indexes documents from the data stored in an Azure Storage Account. This makes the documents searchable using [vector search](https://learn.microsoft.com/azure/search/search-get-started-vector) capabilities. 
+   - [**Azure OpenAI Service**](https://learn.microsoft.com/azure/ai-services/openai/overview) – provides the ChatGPT models to generate responses. The Additionally, [Semantic Kernel](https://learn.microsoft.com/semantic-kernel/whatissk) is used in conjunction with the Azure OpenAI Service to orchestrate the more complex AI workflows.
+
 ## Getting Started
 
-> **Note**<br>
-> In order to deploy and run this example, you'll need an **Azure subscription with access enabled for the Azure OpenAI service**. You can request access [here](https://aka.ms/oaiapply). You can also visit [here](https://azure.microsoft.com/free/cognitive-search/) to get some free Azure credits to get you started.
+### Account Requirements
+
+In order to deploy and run this example, you'll need
+
+- **Azure Account** - If you're new to Azure, get an [Azure account for free](https://aka.ms/free) and you'll get some free Azure credits to get started.
+- **Azure subscription with access enabled for the Azure OpenAI service** - You can request access [here](https://aka.ms/oaiapply). You can also visit [here](https://azure.microsoft.com/free/cognitive-search/) to get some free Azure credits to get you started.
+- **Azure account permissions** - Your Azure Account must have `Microsoft.Authorization/roleAssignments/write` permissions, such as [User Access Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#user-access-administrator) or [Owner](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#owner).
+
 
 > **Warning**<br>
-> By default this sample will create an Azure App Service, Azure Static Web App, and Azure Cognitive Search resource that have a monthly cost, as well as Form Recognizer resource that has cost per document page. You can switch them to free versions of each of them if you want to avoid this cost by changing the parameters file under the infra folder (though there are some limits to consider; for example, you can have up to 1 free Cognitive Search resource per subscription, and the free Form Recognizer resource only analyzes the first 2 pages of each document.)
+> By default this sample will create an Azure Container App, and Azure Cognitive Search resource that have a monthly cost, as well as Form Recognizer resource that has cost per document page. You can switch them to free versions of each of them if you want to avoid this cost by changing the parameters file under the infra folder (though there are some limits to consider; for example, you can have up to 1 free Cognitive Search resource per subscription, and the free Form Recognizer resource only analyzes the first 2 pages of each document.)
 
-### Running the application
+### Cost estimation
 
-#### GitHub Codespaces or VS Code Remote Containers
+Pricing varies per region and usage, so it isn't possible to predict exact costs for your usage. However, you can try the [Azure pricing calculator](https://azure.microsoft.com/en-us/pricing/calculator/) for the resources below:
 
-You can run this repo virtually by using GitHub Codespaces or VS Code Remote Containers. When using GitHub Codespaces or VS Code Remote Containers all the required software will be installed in the container.
+- [**Azure Container Apps**](https://azure.microsoft.com/pricing/details/container-apps/)
+- [**Azure OpenAI Service**](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/)
+- [**Azure Form Recognizer**](https://azure.microsoft.com/pricing/details/form-recognizer/)
+- [**Azure Cognitive Search**](https://azure.microsoft.com/pricing/details/search/)
+- [**Azure Blob Storage**](https://azure.microsoft.com/pricing/details/storage/blobs/)
+- [**Azure Monitor**](https://azure.microsoft.com/pricing/details/monitor/)
 
-Click on one of the buttons below to open this repo in one of those options.
+### Project setup
+
+You have a few options for setting up this project. The easiest way to get started is GitHub Codespaces, since it will setup all the tools for you, but you can also set it up [locally]() if desired.
+
+#### GitHub Codespaces
+
+You can run this repo virtually by using GitHub Codespaces, which will open a web-based VS Code in your browser:
 
 [![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=624102171&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&location=WestUs2)
+
+#### VS Code Remote Containers
+
+A related option is VS Code Remote Containers, which will open the project in your local VS Code using the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension:
+
 [![Open in Remote - Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/azure-search-openai-demo-csharp)
 
-##### Project Initialization
-
-1. Run `azd auth login`
-1. Run `azd env new azure-search-openai-demo-csharp`
-
-#### Run Locally
+#### Local environment
 
 Install the following prerequisites:
 
@@ -64,18 +88,12 @@ Install the following prerequisites:
 - [Docker](https://www.docker.com/products/docker-desktop/)
   - **Important**: Ensure Docker is running before running any `azd` provisioning / deployment commands.
 
-##### Project Initialization
+Then, run the following commands to get the project on your local environment:
 
-1. Create a new folder and switch to it in the terminal
-1. Run `azd auth login`
-1. Run `azd init -t azure-search-openai-demo-csharp`
+   1. Run `azd auth login`
+   1. Run `azd env new azure-search-openai-demo-csharp`
 
-> **Note**<br>
-> Your Azure Account must have `Microsoft.Authorization/roleAssignments/write` permissions, such as [User Access Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#user-access-administrator) or [Owner](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#owner).
-
-### Installation
-
-#### Starting from scratch
+### Deploying from scratch
 
 Execute the following command, if you don't have any pre-existing Azure services and want to start from a fresh deployment.
 
@@ -102,7 +120,7 @@ If you have existing resources in Azure that you wish to use, you can configure 
 1. Run `azd env set AZURE_OPENAI_SERVICE {Name of existing OpenAI service}`
 1. Run `azd env set AZURE_OPENAI_RESOURCE_GROUP {Name of existing resource group that OpenAI service is provisioned to}`
 1. Run `azd env set AZURE_OPENAI_CHATGPT_DEPLOYMENT {Name of existing ChatGPT deployment}`. Only needed if your ChatGPT deployment is not the default 'chat'.
-1. Run `azd env set AZURE_OPENAI_GPT_DEPLOYMENT {Name of existing GPT deployment}`. Only needed if your ChatGPT deployment is not the default `davinci`.
+1. Run `azd env set AZURE_OPENAI_EMBEDDING_DEPLOYMENT {Name of existing embedding model deployment}`. Only needed if your embedding model deployment is not the default `embedding`.
 1. Run `azd up`
 
 > NOTE: You can also use existing Search and Storage Accounts. See `./infra/main.parameters.json` for list of environment variables to pass to `azd env set` to configure those existing resources.
@@ -172,18 +190,42 @@ Run the following if you want to give someone else access to the deployed and ex
 
 Run `azd down`
 
-### Quickstart
+### Using the app
 
-- In Azure: navigate to the Azure Static Web App deployed by `azd`. The URL is printed out when `azd` completes (as "Endpoint"), or you can find it in the Azure portal.
+- In Azure: navigate to the Azure Contaier App deployed by `azd`. The URL is printed out when `azd` completes (as "Endpoint"), or you can find it in the Azure portal.
 - When running locally, navigate to <http://localhost:7181> for the client app and <http://localhost:7181/swagger> for the Open API server page.
 
 Once in the web app:
 
 - On the **Voice Chat** page, select the voice settings dialog and configure text-to-speech preferences.
   - You can either type messages to interact with Blazor Clippy, or select the Speak toggle button to use speech-to-text as your input.
-- Try different topics in **Chat** or **Ask Questions** context. For chat, try follow up questions, clarifications, ask to simplify or elaborate on answer, etc.
+- Try different topics in **Chat** context. For chat, try follow up questions, clarifications, ask to simplify or elaborate on answer, etc.
 - Explore citations and sources
 - Click on the "settings" icon to try different options, tweak prompts, etc.
+
+## Enabling optional features
+
+### Enabling Application Insights
+
+### Enabling authentication
+
+By default, the deployed Azure container app will have no authentication or access restrictions enabled, meaning anyone with routable network access to the container app can chat with your indexed data.  You can require authentication to your Azure Active Directory by following the [Add container app authentication](https://learn.microsoft.com/en-us/azure/container-apps/authentication-azure-active-directory) tutorial and set it up against the deployed container app.
+
+To then limit access to a specific set of users or groups, you can follow the steps from [Restrict your Azure AD app to a set of users](https://learn.microsoft.com/azure/active-directory/develop/howto-restrict-your-app-to-a-set-of-users) by changing "Assignment Required?" option under the Enterprise Application, and then assigning users/groups access.  Users not granted explicit access will receive the error message -AADSTS50105: Your administrator has configured the application <app_name> to block users unless they are specifically granted ('assigned') access to the application.-
+
+## Productionizing
+
+This sample is designed to be a starting point for your own production application,
+but you should do a thorough review of the security and performance before deploying
+to production. Here are some things to consider:
+
+* **OpenAI Capacity**: The default TPM (tokens per minute) is set to 30K. That is equivalent to approximately 30 conversations per minute (assuming 1K per user message/response). You can increase the capacity by changing the `chatGptDeploymentCapacity` and `embeddingDeploymentCapacity` parameters in `infra/main.bicep` to your account's maximum capacity. You can also view the Quotas tab in [Azure OpenAI studio](https://oai.azure.com/) to understand how much capacity you have.
+* **Azure Storage**: The default storage account uses the `Standard_LRS` SKU. To improve your resiliency, we recommend using `Standard_ZRS` for production deployments, which you can specify using the `sku` property under the `storage` module in `infra/main.bicep`.
+* **Azure Cognitive Search**: If you see errors about search service capacity being exceeded, you may find it helpful to increase the number of replicas by changing `replicaCount` in `infra/core/search/search-services.bicep` or manually scaling it from the Azure Portal.
+* **Azure Container Apps**: By default, this application deploys containers with 0.5 CPU Cores and 1GB of memory. The minimum replicas is 1 and maximum 10. For this app, you can set values such as `containerCpuCoreCount`, `containerMaxReplicas `, `containerMemory`, `containerMinReplicas` in the `infra/core/host/container-app.bicep` file to fit your needs. You can use auto-scaling rules or scheduled scaling rules, and scale up the [maximum/minimum](https://learn.microsoft.com/azure/container-apps/scale-app) based on load.
+* **Authentication**: By default, the deployed app is publicly accessible. We recommend restricting access to authenticated users. See [Enabling authentication](#enabling-authentication) above for how to enable authentication.
+* **Networking**: We recommend deploying inside a Virtual Network. If the app is only for internal enterprise use, use a private DNS zone. Also consider using Azure API Management (APIM) for firewalls and other forms of protection. For more details, read [Azure OpenAI Landing Zone reference architecture](https://techcommunity.microsoft.com/t5/azure-architecture-blog/azure-openai-landing-zone-reference-architecture/ba-p/3882102).
+* **Loadtesting**: We recommend running a loadtest for your expected number of users.
 
 ## Resources
 
