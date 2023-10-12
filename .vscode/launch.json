@@ -9,7 +9,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/app/frontend/ClientApp.csproj",
+      "program": "${workspaceFolder}/app/backend/bin/Debug/net7.0/ClientApp.dll",
       "args": [],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
