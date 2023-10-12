@@ -14,5 +14,11 @@
     "search.exclude": {
         "static": true
     },
-    "dotnet.defaultSolution": "app/app.sln"
+    "dotnet.defaultSolution": "app/app.sln",
+    "azureFunctions.deploySubpath": "app/functions/EmbedFunctions/bin/Release/net7.0/publish",
+    "azureFunctions.projectLanguage": "C#",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.projectSubpath": "app/functions/EmbedFunctions",
+    "azureFunctions.preDeployTask": "publish (functions)"
 }
