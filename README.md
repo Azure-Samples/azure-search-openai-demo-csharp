@@ -100,10 +100,9 @@ It will look like the following:
 If you have existing resources in Azure that you wish to use, you can configure `azd` to use those by setting the following `azd` environment variables:
 
 1. Run `azd env set AZURE_OPENAI_SERVICE {Name of existing OpenAI service}`
-1. Run `azd env set AZURE_OPENAI_RESOURCE_LOCATION {location of existing OpenAI resource}`
 1. Run `azd env set AZURE_OPENAI_RESOURCE_GROUP {Name of existing resource group that OpenAI service is provisioned to}`
-1. (Optional) Run `azd env set AZURE_OPENAI_CHATGPT_DEPLOYMENT {Name of existing ChatGPT deployment}`. Only needed if your ChatGPT deployment is not the default 'chat'.
-1. (Optional) Run `azd env set AZURE_OPENAI_EMBEDDING_DEPLOYMENT {Name of existing Embedding deployment}`. Only needed if your Embedding model deployment is not the default 'embedding'.
+1. Run `azd env set AZURE_OPENAI_CHATGPT_DEPLOYMENT {Name of existing ChatGPT deployment}`. Only needed if your ChatGPT deployment is not the default 'chat'.
+1. Run `azd env set AZURE_OPENAI_GPT_DEPLOYMENT {Name of existing GPT deployment}`. Only needed if your ChatGPT deployment is not the default `davinci`.
 1. Run `azd up`
 
 > NOTE: You can also use existing Search and Storage Accounts. See `./infra/main.parameters.json` for list of environment variables to pass to `azd env set` to configure those existing resources.
