@@ -21,6 +21,8 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
+    static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
+
     builder.Services.AddStackExchangeRedisCache(options =>
     {
         var name = builder.Configuration["AzureRedisCacheName"] +
@@ -28,7 +30,6 @@ else
         var key = builder.Configuration["AzureRedisCachePrimaryKey"];
         var ssl = "true";
 
-        static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
 
         if (GetEnvVar("REDIS_HOST") is string redisHost)
         {
@@ -48,6 +49,8 @@ else
             {name},abortConnect=false,ssl={ssl},allowAdmin=true,password={key}
             """;
         options.InstanceName = "content";
+
+        
     });
 
     builder.Services.AddCors(options =>
@@ -63,6 +66,14 @@ else
                                     .AllowCredentials();
                           });
     });
+    // set application telemetry
+    if (GetEnvVar("APPLICATIONINSIGHTS_CONNECTION_STRING") is string appInsightsConnectionString)
+    {
+        builder.Services.AddApplicationInsightsTelemetry((option) =>
+        {
+            option.ConnectionString = appInsightsConnectionString;
+        });
+    }
 }
 
 var app = builder.Build();
