@@ -1,3 +1,19 @@
+---
+page_type: sample
+languages:
+- csharp
+products:
+- ai-services
+- azure-blob-storage
+- azure-container-apps
+- azure-cognitive-search
+- azure-openai
+- aspnet-core
+- blazor
+- defender-for-cloud
+- azure-monitor
+---
+
 # ChatGPT + Enterprise data with Azure OpenAI and Cognitive Search (.NET)
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Azure-Samples/azure-search-openai-demo-csharp/dotnet-build.yml?label=BUILD%20%26%20TEST&logo=github&style=for-the-badge)
