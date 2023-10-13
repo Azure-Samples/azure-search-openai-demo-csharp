@@ -4,8 +4,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.ConfigureAzureKeyVault();
 
-var allowMSIdentity = "_myAllowSpecificOrigins";
-
 // See: https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -21,8 +19,6 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
-
     builder.Services.AddStackExchangeRedisCache(options =>
     {
         var name = builder.Configuration["AzureRedisCacheName"] +
@@ -30,6 +26,7 @@ else
         var key = builder.Configuration["AzureRedisCachePrimaryKey"];
         var ssl = "true";
 
+        static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
 
         if (GetEnvVar("REDIS_HOST") is string redisHost)
         {
@@ -49,35 +46,7 @@ else
             {name},abortConnect=false,ssl={ssl},allowAdmin=true,password={key}
             """;
         options.InstanceName = "content";
-
-        
     });
-
-    if (GetEnvVar("AZURE_AUTHENTICATION_ENABLED") is string azureAuthEnabled && azureAuthEnabled == "true")
-    {
-        builder.Services.AddCors(options =>
-            {
-                options.AddPolicy(name: allowMSIdentity,
-                policy =>
-                {
-                    // add login.windows.net and login.microsoftonline.com
-                    policy.WithOrigins("https://login.microsoftonline.com",
-                                       "https://login.windows.net")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
-                });
-            });
-    }
-
-    // set application telemetry
-    if (GetEnvVar("APPLICATIONINSIGHTS_CONNECTION_STRING") is string appInsightsConnectionString)
-    {
-        builder.Services.AddApplicationInsightsTelemetry((option) =>
-        {
-            option.ConnectionString = appInsightsConnectionString;
-        });
-    }
 }
 
 var app = builder.Build();
@@ -93,11 +62,9 @@ else
     app.UseHsts();
 }
 
-
-
 app.UseHttpsRedirection();
 app.UseOutputCache();
-app.UseCors(allowMSIdentity);
+app.UseCors();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();

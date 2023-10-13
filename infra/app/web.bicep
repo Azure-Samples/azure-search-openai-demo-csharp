@@ -56,9 +56,6 @@ param openAiEmbeddingDeployment string
 @description('An array of service binds')
 param serviceBinds array
 
-@description('enable authenication')
-param enableAuthentication bool = false
-
 resource webIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
   location: location
@@ -130,10 +127,6 @@ module app '../core/host/container-app-upsert.bicep' = {
       {
         name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT'
         value: openAiEmbeddingDeployment
-      }
-      {
-        name: 'AZURE_AUTHENTICATION_ENABLED'
-        value: enableAuthentication ? 'true' : 'false'
       }
     ]
     targetPort: 80
