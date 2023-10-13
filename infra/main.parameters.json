@@ -29,7 +29,7 @@
     "openAiResourceGroupName": {
       "value": "${AZURE_OPENAI_RESOURCE_GROUP}"
     },
-    "openAiResourceLocation":{
+    "openAiResourceGroupLocation":{
       "value": "${AZURE_OPENAI_RESOURCE_LOCATION}"
     },
     "chatGptDeploymentName":{

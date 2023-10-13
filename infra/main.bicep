@@ -10,14 +10,14 @@ param environmentName string
 param location string
 param tags string = ''
 
-@description('Location for the OpenAI resource')
+@description('Location for the OpenAI resource group')
 @allowed(['canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus'])
 @metadata({
   azd: {
     type: 'location'
   }
 })
-param openAiResourceLocation string
+param openAiResourceGroupLocation string
 
 @description('Name of the chat GPT model. Default: gpt-35-turbo')
 @allowed(['gpt-35-turbo', 'gpt-4', 'gpt-35-turbo-16k', 'gpt-4-16k'])
@@ -294,7 +294,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
   scope: openAiResourceGroup
   params: {
     name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
-    location: openAiResourceLocation
+    location: openAiResourceGroupLocation
     tags: updatedTags
     sku: {
       name: openAiSkuName
@@ -500,7 +500,7 @@ output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_RESOURCE_GROUP string = keyVaultResourceGroup.name
 output AZURE_LOCATION string = location
-output AZURE_OPENAI_RESOURCE_LOCATION string = openAiResourceLocation
+output AZURE_OPENAI_RESOURCE_LOCATION string = openAiResourceGroupLocation
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingDeploymentName
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
