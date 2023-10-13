@@ -53,19 +53,23 @@ else
         
     });
 
-    builder.Services.AddCors(options =>
+    if (GetEnvVar("AZURE_AUTHENTICATION_ENABLED") is string azureAuthEnabled && azureAuthEnabled == "true")
     {
-        options.AddPolicy(name: allowMSIdentity,
-                          policy =>
-                          {
-                              // add login.windows.net and login.microsoftonline.com
-                              policy.WithOrigins("https://login.microsoftonline.com",
-                                                 "https://login.windows.net")
-                                    .AllowAnyHeader()
-                                    .AllowAnyMethod()
-                                    .AllowCredentials();
-                          });
-    });
+        builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(name: allowMSIdentity,
+                policy =>
+                {
+                    // add login.windows.net and login.microsoftonline.com
+                    policy.WithOrigins("https://login.microsoftonline.com",
+                                       "https://login.windows.net")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
+    }
+
     // set application telemetry
     if (GetEnvVar("APPLICATIONINSIGHTS_CONNECTION_STRING") is string appInsightsConnectionString)
     {

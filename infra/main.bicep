@@ -134,6 +134,9 @@ param webIdentityName string = ''
 @description('Name of the web app image')
 param webImageName string = ''
 
+@description('Enable authentication for the web app, default to false')
+param webAppAuthenticationEnabled bool = false
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
@@ -256,6 +259,7 @@ module web './app/web.bicep' = {
     openAiEndpoint: openAi.outputs.endpoint
     openAiChatGptDeployment: chatGptDeploymentName
     openAiEmbeddingDeployment: embeddingDeploymentName
+    enableAuthentication: webAppAuthenticationEnabled
     // serviceBinds: [ redis.outputs.serviceBind ]
     serviceBinds: []
   }
@@ -519,3 +523,4 @@ output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
 output AZURE_TENANT_ID string = tenant().tenantId
 output SERVICE_WEB_IDENTITY_NAME string = web.outputs.SERVICE_WEB_IDENTITY_NAME
 output SERVICE_WEB_NAME string = web.outputs.SERVICE_WEB_NAME
+output WEB_APP_AUTHENTICATION_ENABLED bool = webAppAuthenticationEnabled
