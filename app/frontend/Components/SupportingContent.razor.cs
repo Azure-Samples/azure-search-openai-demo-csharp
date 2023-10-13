@@ -6,7 +6,7 @@ public sealed partial class SupportingContent
 {
     [Parameter, EditorRequired] public required string[] DataPoints { get; set; }
 
-    private ParsedSupportingContentItem[] _supportingContent = Array.Empty<ParsedSupportingContentItem>();
+    private ParsedSupportingContentItem[] _supportingContent = [];
 
     protected override void OnParametersSet()
     {

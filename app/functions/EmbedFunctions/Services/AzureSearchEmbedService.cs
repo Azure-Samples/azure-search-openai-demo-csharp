@@ -2,30 +2,15 @@
 
 namespace EmbedFunctions.Services;
 
-internal sealed partial class AzureSearchEmbedService : IEmbedService
+internal sealed partial class AzureSearchEmbedService(
+    SearchClient indexSectionClient,
+    SearchIndexClient searchIndexClient,
+    DocumentAnalysisClient documentAnalysisClient,
+    BlobContainerClient corpusContainerClient,
+    ILogger<AzureSearchEmbedService> logger) : IEmbedService
 {
     [GeneratedRegex("[^0-9a-zA-Z_-]")]
     private static partial Regex MatchInSetRegex();
-
-    private readonly SearchClient _indexSectionClient;
-    private readonly SearchIndexClient _searchIndexClient;
-    private readonly DocumentAnalysisClient _documentAnalysisClient;
-    private readonly BlobContainerClient _corpusContainerClient;
-    private readonly ILogger<AzureSearchEmbedService> _logger;
-
-    public AzureSearchEmbedService(
-        SearchClient indexSectionClient,
-        SearchIndexClient searchIndexClient,
-        DocumentAnalysisClient documentAnalysisClient,
-        BlobContainerClient corpusContainerClient,
-        ILogger<AzureSearchEmbedService> logger)
-    {
-        _indexSectionClient = indexSectionClient;
-        _searchIndexClient = searchIndexClient;
-        _documentAnalysisClient = documentAnalysisClient;
-        _corpusContainerClient = corpusContainerClient;
-        _logger = logger;
-    }
 
     public async Task<bool> EmbedBlobAsync(Stream blobStream, string blobName)
     {
@@ -56,7 +41,7 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
         }
         catch (Exception exception)
         {
-            _logger.LogError(
+            logger.LogError(
                 exception, "Failed to embed blob '{BlobName}'", blobName);
 
             return false;
@@ -65,12 +50,12 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
 
     private async Task EnsureSearchIndexAsync(string searchIndexName)
     {
-        var indexNames = _searchIndexClient.GetIndexNamesAsync();
+        var indexNames = searchIndexClient.GetIndexNamesAsync();
         await foreach (var page in indexNames.AsPages())
         {
             if (page.Values.Any(indexName => indexName == searchIndexName))
             {
-                _logger.LogWarning(
+                logger.LogWarning(
                     "Search index '{SearchIndexName}' already exists", searchIndexName);
                 return;
             }
@@ -104,22 +89,22 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
             }
         };
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Creating '{searchIndexName}' search index", searchIndexName);
 
-        await _searchIndexClient.CreateIndexAsync(index);
+        await searchIndexClient.CreateIndexAsync(index);
     }
 
     private async Task<IReadOnlyList<PageDetail>> GetDocumentTextAsync(Stream blobStream, string blobName)
     {
-        _logger.LogInformation(
+        logger.LogInformation(
             "Extracting text from '{Blob}' using Azure Form Recognizer", blobName);
 
-        AnalyzeDocumentOperation operation = _documentAnalysisClient.AnalyzeDocument(
+        AnalyzeDocumentOperation operation = documentAnalysisClient.AnalyzeDocument(
             WaitUntil.Started, "prebuilt-layout", blobStream);
 
         var offset = 0;
-        List<PageDetail> pageMap = new();
+        List<PageDetail> pageMap = [];
 
         var results = await operation.WaitForCompletionAsync();
         var pages = results.Value.Pages;
@@ -150,7 +135,7 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
 
             // Build page text by replacing characters in table spans with table HTML
             StringBuilder pageText = new();
-            HashSet<int> addedTables = new();
+            HashSet<int> addedTables = [];
             for (int j = 0; j < tableChars.Length; j++)
             {
                 if (tableChars[j] == -1)
@@ -178,9 +163,12 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
         var rows = new List<DocumentTableCell>[table.RowCount];
         for (int i = 0; i < table.RowCount; i++)
         {
-            rows[i] = table.Cells.Where(c => c.RowIndex == i)
-                .OrderBy(c => c.ColumnIndex)
-                .ToList();
+            rows[i] =
+            [
+                .. table.Cells.Where(c => c.RowIndex == i)
+                                .OrderBy(c => c.ColumnIndex)
+,
+            ];
         }
 
         foreach (var rowCells in rows)
@@ -214,13 +202,13 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
 
     private async Task UploadCorpusAsync(string corpusBlobName, string text)
     {
-        var blobClient = _corpusContainerClient.GetBlobClient(corpusBlobName);
+        var blobClient = corpusContainerClient.GetBlobClient(corpusBlobName);
         if (await blobClient.ExistsAsync())
         {
             return;
         }
 
-        _logger.LogInformation("Uploading corpus '{CorpusBlobName}'", corpusBlobName);
+        logger.LogInformation("Uploading corpus '{CorpusBlobName}'", corpusBlobName);
 
         await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
         await blobClient.UploadAsync(stream, new BlobHttpHeaders
@@ -243,7 +231,7 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
         var start = 0;
         var end = length;
 
-        _logger.LogInformation("Splitting '{BlobName}' into sections", blobName);
+        logger.LogInformation("Splitting '{BlobName}' into sections", blobName);
 
         while (start + SectionOverlap < length)
         {
@@ -312,9 +300,9 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
                 // If the section ends with an unclosed table, we need to start the next section with the table.
                 // If table starts inside SentenceSearchLimit, we ignore it, as that will cause an infinite loop for tables longer than MaxSectionLength
                 // If last table starts inside SectionOverlap, keep overlapping
-                if (_logger.IsEnabled(LogLevel.Warning))
+                if (logger.IsEnabled(LogLevel.Warning))
                 {
-                    _logger.LogWarning("""
+                    logger.LogWarning("""
                         Section ends with unclosed table, starting next section with the
                         table at page {Offset} offset {Start} table start {LastTableStart}
                         """,
@@ -361,10 +349,10 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
 
     private async Task IndexSectionsAsync(string searchIndexName, IEnumerable<Section> sections, string blobName)
     {
-        var infoLoggingEnabled = _logger.IsEnabled(LogLevel.Information);
+        var infoLoggingEnabled = logger.IsEnabled(LogLevel.Information);
         if (infoLoggingEnabled)
         {
-            _logger.LogInformation("""
+            logger.LogInformation("""
                 Indexing sections from '{BlobName}' into search index '{SearchIndexName}'
                 """,
                 blobName,
@@ -390,11 +378,11 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
             if (iteration % 1_000 is 0)
             {
                 // Every one thousand documents, batch create.
-                IndexDocumentsResult result = await _indexSectionClient.IndexDocumentsAsync(batch);
+                IndexDocumentsResult result = await indexSectionClient.IndexDocumentsAsync(batch);
                 int succeeded = result.Results.Count(r => r.Succeeded);
                 if (infoLoggingEnabled)
                 {
-                    _logger.LogInformation("""
+                    logger.LogInformation("""
                         Indexed {Count} sections, {Succeeded} succeeded
                         """,
                         batch.Actions.Count,
@@ -409,11 +397,11 @@ internal sealed partial class AzureSearchEmbedService : IEmbedService
         {
             // Any remaining documents, batch create.
             var index = new SearchIndex($"index-{batch.Actions.Count}");
-            IndexDocumentsResult result = await _indexSectionClient.IndexDocumentsAsync(batch);
+            IndexDocumentsResult result = await indexSectionClient.IndexDocumentsAsync(batch);
             int succeeded = result.Results.Count(r => r.Succeeded);
-            if (_logger.IsEnabled(LogLevel.Information))
+            if (logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("""
+                logger.LogInformation("""
                     Indexed {Count} sections, {Succeeded} succeeded
                     """,
                 batch.Actions.Count,

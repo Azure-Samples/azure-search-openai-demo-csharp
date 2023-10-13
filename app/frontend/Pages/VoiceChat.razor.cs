@@ -11,7 +11,7 @@ public sealed partial class VoiceChat : IDisposable
     private bool _isReadingResponse = false;
     private IDisposable? _recognitionSubscription;
     private VoicePreferences? _voicePreferences;
-    private readonly Dictionary<UserQuestion, string?> _questionAndAnswerMap = new();
+    private readonly Dictionary<UserQuestion, string?> _questionAndAnswerMap = [];
     private readonly MarkdownPipeline _pipeline = new MarkdownPipelineBuilder()
         .ConfigureNewLine("\n")
         .UseAdvancedExtensions()

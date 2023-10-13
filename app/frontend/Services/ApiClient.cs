@@ -4,15 +4,11 @@ using System.Net.Http.Headers;
 
 namespace ClientApp.Services;
 
-public sealed class ApiClient
+public sealed class ApiClient(HttpClient httpClient)
 {
-    private readonly HttpClient _httpClient;
-
-    public ApiClient(HttpClient httpClient) => _httpClient = httpClient;
-
     public async Task<ImageResponse?> RequestImageAsync(PromptRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync(
+        var response = await httpClient.PostAsJsonAsync(
             "api/images", request, SerializerOptions.Default);
 
         response.EnsureSuccessStatusCode();
@@ -38,7 +34,7 @@ public sealed class ApiClient
                 content.Add(fileContent, file.Name, file.Name);
             }
 
-            var response = await _httpClient.PostAsync("api/documents", content);
+            var response = await httpClient.PostAsync("api/documents", content);
 
             response.EnsureSuccessStatusCode();
 
@@ -58,7 +54,7 @@ public sealed class ApiClient
     public async IAsyncEnumerable<DocumentResponse> GetDocumentsAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var response = await _httpClient.GetAsync("api/documents", cancellationToken);
+        var response = await httpClient.GetAsync("api/documents", cancellationToken);
 
         if (response.IsSuccessStatusCode)
         {
@@ -97,7 +93,7 @@ public sealed class ApiClient
         using var body = new StringContent(
             json, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PostAsync(apiRoute, body);
+        var response = await httpClient.PostAsync(apiRoute, body);
 
         if (response.IsSuccessStatusCode)
         {
@@ -113,7 +109,7 @@ public sealed class ApiClient
             var answer = new ApproachResponse(
                 $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}",
                 null,
-                Array.Empty<string>(),
+                [],
                 "Unable to retrieve valid response from the server.");
 
             return result with

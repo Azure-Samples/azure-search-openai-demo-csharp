@@ -14,7 +14,7 @@ public sealed partial class Docs : IDisposable
 
     // Store a cancelation token that will be used to cancel if the user disposes of this component.
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly HashSet<DocumentResponse> _documents = new();
+    private readonly HashSet<DocumentResponse> _documents = [];
 
     [Inject]
     public required ApiClient Client { get; set; }

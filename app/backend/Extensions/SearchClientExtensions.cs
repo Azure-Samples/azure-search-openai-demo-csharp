@@ -35,21 +35,23 @@ internal static class SearchClientExtensions
                 Size = top,
             };
 
-        if (embedding != null && overrides?.RetrievalMode != "Text")
-        {
-            var k = useSemanticRanker ? 50 : top;
-            var vectorQuery = new SearchQueryVector
-            {
-                // if semantic ranker is enabled, we need to set the rank to a large number to get more
-                // candidates for semantic reranking
-                KNearestNeighborsCount = useSemanticRanker ? 50 : top,
-                Value = embedding,
-            };
-            vectorQuery.Fields.Add("embedding");
-            searchOption.Vectors.Add(vectorQuery);
-        }
+        // TODO: Fix this as SearchQueryVector doesn't exist anymore
+        //if (embedding != null && overrides?.RetrievalMode != "Text")
+        //{
+        //    var k = useSemanticRanker ? 50 : top;
+        //    var vectorQuery = new SearchQueryVector
+        //    {
+        //        // if semantic ranker is enabled, we need to set the rank to a large number to get more
+        //        // candidates for semantic reranking
+        //        KNearestNeighborsCount = useSemanticRanker ? 50 : top,
+        //        Value = embedding,
+        //    };
+        //    vectorQuery.Fields.Add("embedding");
+        //    searchOption.Vectors.Add(vectorQuery);
+        //}
 
-        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption, cancellationToken);
+        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(
+            query, searchOption, cancellationToken);
         if (searchResultResponse.Value is null)
         {
             throw new InvalidOperationException("fail to get search result");
