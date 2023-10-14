@@ -43,10 +43,10 @@ internal static class SearchClientExtensions
                 // if semantic ranker is enabled, we need to set the rank to a large number to get more
                 // candidates for semantic reranking
                 KNearestNeighborsCount = useSemanticRanker ? 50 : top,
-                Value = embedding,
+                Vector = embedding,
             };
             vectorQuery.Fields.Add("embedding");
-            searchOption.Vectors.Add(vectorQuery);
+            searchOption.VectorQueries.Add(vectorQuery);
         }
 
         var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(
