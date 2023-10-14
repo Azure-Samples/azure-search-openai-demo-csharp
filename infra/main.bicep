@@ -10,6 +10,19 @@ param environmentName string
 param location string
 param tags string = ''
 
+@description('Location for the OpenAI resource group')
+@allowed(['canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus'])
+@metadata({
+  azd: {
+    type: 'location'
+  }
+})
+param openAiResourceGroupLocation string
+
+@description('Name of the chat GPT model. Default: gpt-35-turbo')
+@allowed(['gpt-35-turbo', 'gpt-4', 'gpt-35-turbo-16k', 'gpt-4-16k'])
+param chatGptModelName string = 'gpt-35-turbo'
+
 @description('Name of the Azure Application Insights dashboard')
 param applicationInsightsDashboardName string = ''
 
@@ -21,9 +34,6 @@ param chatGptDeploymentCapacity int = 30
 
 @description('Name of the chat GPT deployment')
 param chatGptDeploymentName string = 'chat'
-
-@description('Name of the chat GPT model. Default: gpt-35-turbo')
-param chatGptModelName string = 'gpt-35-turbo'
 
 @description('Name of the embedding deployment. Default: embedding')
 param embeddingDeploymentName string = 'embedding'
@@ -66,9 +76,6 @@ param keyVaultResourceGroupName string = ''
 
 @description('Name of the Azure Log Analytics workspace')
 param logAnalyticsName string = ''
-
-@description('Location of the resource group for the OpenAI resources')
-param openAiResourceGroupLocation string = location
 
 @description('Name of the resource group for the OpenAI resources')
 param openAiResourceGroupName string = ''
@@ -493,6 +500,7 @@ output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_RESOURCE_GROUP string = keyVaultResourceGroup.name
 output AZURE_LOCATION string = location
+output AZURE_OPENAI_RESOURCE_LOCATION string = openAiResourceGroupLocation
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingDeploymentName
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
