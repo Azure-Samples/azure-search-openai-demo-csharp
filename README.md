@@ -238,6 +238,18 @@ Once in the web app:
 
 ### Enabling Application Insights
 
+To enable Application Insights and the tracing of each request, along with the logging of errors, set the `AZURE_USE_APPLICATION_INSIGHTS` variable to true before running `azd up`
+
+1. Run `azd env set AZURE_USE_APPLICATION_INSIGHTS true`
+1. Run `azd up`
+
+To see the performance data, go to the Application Insights resource in your resource group, click on the "Investigate -> Performance" blade and navigate to any HTTP request to see the timing data.
+To inspect the performance of chat requests, use the "Drill into Samples" button to see end-to-end traces of all the API calls made for any chat request:
+
+![Tracing screenshot](docs/transaction-tracing.png)
+
+To see any exceptions and server errors, navigate to the "Investigate -> Failures" blade and use the filtering tools to locate a specific exception. You can see Python stack traces on the right-hand side.
+
 ### Enabling authentication
 
 By default, the deployed Azure container app will have no authentication or access restrictions enabled, meaning anyone with routable network access to the container app can chat with your indexed data.  You can require authentication to your Azure Active Directory by following the [Add container app authentication](https://learn.microsoft.com/azure/container-apps/authentication-azure-active-directory) tutorial and set it up against the deployed container app.
