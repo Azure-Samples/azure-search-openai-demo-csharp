@@ -73,6 +73,9 @@
     },
     "webIdentityName": {
       "value": "${SERVICE_WEB_IDENTITY_NAME}"
+    },
+    "useApplicationInsights": {
+      "value": "${AZURE_USE_APPLICATION_INSIGHTS=false}"
     }
   }
 }

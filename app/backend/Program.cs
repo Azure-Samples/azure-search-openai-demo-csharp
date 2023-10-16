@@ -52,7 +52,7 @@ else
     });
 
     // set application telemetry
-    if (GetEnvVar("APPLICATIONINSIGHTS_CONNECTION_STRING") is string appInsightsConnectionString)
+    if (GetEnvVar("APPLICATIONINSIGHTS_CONNECTION_STRING") is string appInsightsConnectionString && !string.IsNullOrEmpty(appInsightsConnectionString))
     {
         builder.Services.AddApplicationInsightsTelemetry((option) =>
         {
