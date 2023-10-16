@@ -24,7 +24,7 @@ This sample demonstrates a few approaches for creating ChatGPT-like experiences 
 
 The repo includes sample data so it's ready to try end-to-end. In this sample application, we use a fictitious company called Contoso Electronics, and the experience allows its employees to ask questions about the benefits, internal policies, as well as job descriptions and roles.
 
-![RAG Architecture](docs/appcomponents-version-3.png)
+![RAG Architecture](docs/appcomponents-version-4.png)
 
 For more details on how this application was built, check out:
 
@@ -46,10 +46,10 @@ We want to hear from you! Are you interested in building or currently building i
 
 ## Application architecture
 
-- **User interface** - The application’s chat interface is a [Blazor WebAssembly](https://learn.microsoft.com/aspnet/core/blazor/) static web application. This interface is what accepts user queries, routes request to the application backend, and displays generated responses.
+- **User interface** - The application’s chat interface is a [Blazor WebAssembly](https://learn.microsoft.com/aspnet/core/blazor/) application. This interface is what accepts user queries, routes request to the application backend, and displays generated responses.
 - **Backend** - The application backend is an [ASP.NET Core Minimal API](https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/overview). The backend hosts the Blazor static web application and what orchestrates the interactions among the different services. Services used in this application include:
    - [**Azure Cognitive Search**](https://learn.microsoft.com/azure/search/search-what-is-azure-search) – indexes documents from the data stored in an Azure Storage Account. This makes the documents searchable using [vector search](https://learn.microsoft.com/azure/search/search-get-started-vector) capabilities. 
-   - [**Azure OpenAI Service**](https://learn.microsoft.com/azure/ai-services/openai/overview) – provides the Large Language Models to generate responses. The Additionally, [Semantic Kernel](https://learn.microsoft.com/semantic-kernel/whatissk) is used in conjunction with the Azure OpenAI Service to orchestrate the more complex AI workflows.
+   - [**Azure OpenAI Service**](https://learn.microsoft.com/azure/ai-services/openai/overview) – provides the Large Language Models to generate responses. [Semantic Kernel](https://learn.microsoft.com/semantic-kernel/whatissk) is used in conjunction with the Azure OpenAI Service to orchestrate the more complex AI workflows.
 
 ## Getting Started
 
@@ -78,7 +78,7 @@ Pricing varies per region and usage, so it isn't possible to predict exact costs
 
 ### Project setup
 
-You have a few options for setting up this project. The easiest way to get started is GitHub Codespaces, since it will setup all the tools for you, but you can also set it up [locally]() if desired.
+You have a few options for setting up this project. The easiest way to get started is GitHub Codespaces, since it will setup all the tools for you, but you can also set it up [locally](#local-environment) if desired.
 
 #### GitHub Codespaces
 
@@ -100,9 +100,14 @@ Install the following prerequisites:
 - [.NET 7](https://dotnet.microsoft.com/download)
 - [Git](https://git-scm.com/downloads)
 - [Powershell 7+ (pwsh)](https://github.com/powershell/powershell) - For Windows users only.
-  - **Important**: Ensure you can run `pwsh.exe` from a PowerShell command. If this fails, you likely need to upgrade PowerShell.
+  
+   > **Important**<br> 
+   > Ensure you can run `pwsh.exe` from a PowerShell command. If this fails, you likely need to upgrade PowerShell.
+
 - [Docker](https://www.docker.com/products/docker-desktop/)
-  - **Important**: Ensure Docker is running before running any `azd` provisioning / deployment commands.
+
+   > **Important**<br>
+   > Ensure Docker is running before running any `azd` provisioning / deployment commands.
 
 Then, run the following commands to get the project on your local environment:
 
@@ -111,14 +116,17 @@ Then, run the following commands to get the project on your local environment:
 
 ### Deploying from scratch
 
+> **Important**<br>
+> Ensure Docker is running before running any `azd` provisioning / deployment commands.
+
 Execute the following command, if you don't have any pre-existing Azure services and want to start from a fresh deployment.
 
 1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
    - For the target location, the regions that currently support the model used in this sample are **East US 2** , **East US** or **South Central US**. For an up-to-date list of regions and models, check [here](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models)
    - If you have access to multiple Azure subscriptions, you will be prompted to select the subscription you want to use. If you only have access to one subscription, it will be selected automatically.
 
-> **Note**<br>
-> This application uses the `gpt-35-turbo` model. When choosing which region to deploy to, make sure they're available in that region (i.e. EastUS). For more information, see the [Azure OpenAI Service documentation](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#gpt-35-models).
+   > **Note**<br>
+   > This application uses the `gpt-35-turbo` model. When choosing which region to deploy to, make sure they're available in that region (i.e. EastUS). For more information, see the [Azure OpenAI Service documentation](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#gpt-35-models).
 
 1. After the application has been successfully deployed you will see a URL printed to the console. Click that URL to interact with the application in your browser.
 
@@ -139,9 +147,13 @@ If you have existing resources in Azure that you wish to use, you can configure 
 1. Run `azd env set AZURE_OPENAI_EMBEDDING_DEPLOYMENT {Name of existing embedding model deployment}`. Only needed if your embedding model deployment is not the default `embedding`.
 1. Run `azd up`
 
-> NOTE: You can also use existing Search and Storage Accounts. See `./infra/main.parameters.json` for list of environment variables to pass to `azd env set` to configure those existing resources.
+> **Note**<br> 
+> You can also use existing Search and Storage Accounts. See `./infra/main.parameters.json` for list of environment variables to pass to `azd env set` to configure those existing resources.
 
 #### Deploying or re-deploying a local clone of the repo
+
+> **Important**<br>
+> Ensure Docker is running before running any `azd` provisioning / deployment commands.
 
 - Run `azd up`
 
@@ -182,6 +194,9 @@ If you have existing resources in Azure that you wish to use, you can configure 
    ````
 
 #### Running locally
+
+> **Important**<br>
+> Ensure Docker is running before running any `azd` provisioning / deployment commands.
 
 1. Run `azd auth login`
 1. After the application deploys, set the environment variable `AZURE_KEY_VAULT_ENDPOINT`. You can find the value in the _.azure/YOUR-ENVIRONMENT-NAME/.env_ file or the Azure portal.
