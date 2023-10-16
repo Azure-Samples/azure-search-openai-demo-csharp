@@ -112,6 +112,7 @@ Install the following prerequisites:
 Then, run the following commands to get the project on your local environment:
 
    1. Run `azd auth login`
+   1. Clone the repository or run `azd init -t azure-search-openai-demo-csharp`
    1. Run `azd env new azure-search-openai-demo-csharp`
 
 ### Deploying from scratch
