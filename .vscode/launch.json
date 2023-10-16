@@ -6,21 +6,12 @@
   "configurations": [
     {
       "name": "Frontend: Blazor client",
-      "type": "coreclr",
+      "type": "blazorwasm",
       "request": "launch",
-      "preLaunchTask": "build frontend",
-      "program": "${workspaceFolder}/app/frontend/bin/Debug/net8.0/ClientApp.dll",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "stopAtEntry": false,
-      "serverReadyAction": {
-        "action": "openExternally",
-        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-      },
+      "cwd": "${workspaceFolder}/app/frontend",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "envFile": "${input:dotEnvFilePath}"
+      }
     },
     {
       "name": "Backend: Minimal API",
@@ -45,7 +36,12 @@
   "compounds": [
     {
       "name": "Full Stack",
-      "configurations": ["Backend: Minimal API", "Frontend: Blazor client"]
+      "configurations": ["Backend: Minimal API", "Frontend: Blazor client"],
+      "presentation": {
+        "hidden": false,
+        "group": "",
+        "order": 1
+      }
     }
   ]
 }
