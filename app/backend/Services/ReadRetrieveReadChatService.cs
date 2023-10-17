@@ -112,7 +112,7 @@ standard plan AND dental AND employee benefit.
 
 You answer needs to be a json object with the following format.
 {{
-    ""answer"": // the answer to the question, add a source reference to the end of each sentence. e.g. Apple is a fruit [reference1.pdf]. If no source available, put the answer as I don't know.
+    ""answer"": // the answer to the question, add a source reference to the end of each sentence. e.g. Apple is a fruit [reference1.pdf][reference2.pdf]. If no source available, put the answer as I don't know.
     ""thoughts"": // brief thoughts on how you came up with the answer, e.g. what sources you used, what you thought about, etc.
 }}");
 
