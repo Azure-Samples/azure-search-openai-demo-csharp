@@ -41,9 +41,7 @@ async function onFetch(event) {
             && !event.request.url.includes('/connect/')
             && !event.request.url.includes('/api/')
             && !event.request.url.includes('/_framework/')
-            && !event.request.url.includes('/.auth')
-            && !event.request.url.includes('/.auth/login')
-            && !event.request.url.includes('/.auth/logout');
+            && !event.request.url.includes('/.auth/');
 
 
         const request = shouldServeIndexHtml ? 'index.html' : event.request;
