@@ -24,6 +24,7 @@ public sealed partial class MainLayout
     private bool _isRightToLeft =>
         Thread.CurrentThread.CurrentUICulture is { TextInfo.IsRightToLeft: true };
 
+    [Inject] public required ApiClient ApiClient { get; set; }
     [Inject] public required NavigationManager Nav { get; set; }
     [Inject] public required ILocalStorageService LocalStorage { get; set; }
     [Inject] public required IDialogService Dialog { get; set; }
@@ -33,6 +34,8 @@ public sealed partial class MainLayout
         "ask" or "chat" => false,
         _ => true
     };
+
+    private bool ShowLogoutButton { get; set; } = false;
 
     private bool SortDisabled => new Uri(Nav.Uri).Segments.LastOrDefault() switch
     {

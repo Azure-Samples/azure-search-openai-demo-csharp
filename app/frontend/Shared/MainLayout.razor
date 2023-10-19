@@ -41,7 +41,10 @@
             <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Size="Size.Large"
                         Title="Visit the Azure Samples: GitHub repository for this app."
                         Href="https://github.com/Azure-Samples/azure-search-openai-demo-csharp" Target="_blank" />
-            <LogoutDisplay />
+            @if (ShowLogoutButton)
+            {
+                <LogoutDisplay />
+            }
         </MudAppBar>
         <MudDrawer @bind-Open="_drawerOpen" Elevation="5" id="drawer">
             <MudDrawerHeader>
@@ -66,3 +69,12 @@
         </MudMainContent>
     </MudLayout>
 </MudRTLProvider>
+
+
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        ShowLogoutButton = await this.ApiClient.ShowLogoutButtonAsync();
+    }
+}
