@@ -11,19 +11,19 @@
 @code {
     [Parameter] public bool ShowLogoutButton { get; set; } = true;
 
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     await base.OnInitializedAsync();
-    //     try
-    //     {
-    //         Logger.LogInformation("start retrieve logout button visibility.");
-    //         ShowLogoutButton = true;
-    //     }
-    //     catch(Exception e)
-    //     {
-    //         Logger.LogError(e.Message);
-    //     }
-    // }
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        try
+        {
+            Logger.LogInformation("start retrieve logout button visibility.");
+            ShowLogoutButton = await ApiClient.ShowLogoutButtonAsync();
+        }
+        catch(Exception e)
+        {
+            Logger.LogError(e.Message);
+        }
+    }
 
     private void SignOut()
     {
