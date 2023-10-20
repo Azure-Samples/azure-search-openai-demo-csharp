@@ -76,10 +76,15 @@ else
 
 app.UseHttpsRedirection();
 app.UseOutputCache();
-app.UseCors();
-app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
 app.UseRouting();
+//app.UseCors();
+// enable all cors
+app.UseStaticFiles();
+app.UseCors(builder => builder
+    .AllowAnyOrigin()
+       .AllowAnyMethod()
+          .AllowAnyHeader());
+app.UseBlazorFrameworkFiles();
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");

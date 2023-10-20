@@ -24,7 +24,6 @@ public sealed partial class MainLayout
     private bool _isRightToLeft =>
         Thread.CurrentThread.CurrentUICulture is { TextInfo.IsRightToLeft: true };
 
-    [Inject] public required ApiClient ApiClient { get; set; }
     [Inject] public required NavigationManager Nav { get; set; }
     [Inject] public required ILocalStorageService LocalStorage { get; set; }
     [Inject] public required IDialogService Dialog { get; set; }
