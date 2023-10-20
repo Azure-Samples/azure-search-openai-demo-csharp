@@ -77,13 +77,8 @@ else
 app.UseHttpsRedirection();
 app.UseOutputCache();
 app.UseRouting();
-//app.UseCors();
-// enable all cors
 app.UseStaticFiles();
-app.UseCors(builder => builder
-    .AllowAnyOrigin()
-       .AllowAnyMethod()
-          .AllowAnyHeader());
+app.UseCors();
 app.UseBlazorFrameworkFiles();
 app.MapRazorPages();
 app.MapControllers();
