@@ -23,7 +23,17 @@ internal static class WebApplicationExtensions
         // Get DALL-E image result from prompt
         api.MapPost("images", OnPostImagePromptAsync);
 
+        api.MapGet("enableLogout", OnGetEnableLogout);
+
         return app;
+    }
+
+    private static IResult OnGetEnableLogout(HttpContext context)
+    {
+        var header = context.Request.Headers["X-MS-CLIENT-PRINCIPAL-ID"];
+        var enableLogout = !string.IsNullOrEmpty(header);
+
+        return TypedResults.Ok(enableLogout);
     }
 
     private static async IAsyncEnumerable<ChatChunkResponse> OnPostChatPromptAsync(

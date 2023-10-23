@@ -1,0 +1,33 @@
+﻿@inject NavigationManager Nav
+@inject ILogger<LogoutDisplay> Logger
+@inject ApiClient ApiClient
+
+@if (ShowLogoutButton)
+{
+    <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Size="Size.Large"
+                   Title="Logout of the app." OnClick="SignOut" />
+}
+
+@code {
+    [Parameter] public bool ShowLogoutButton { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        try
+        {
+            Logger.LogInformation("start retrieve logout button visibility.");
+            ShowLogoutButton = await ApiClient.ShowLogoutButtonAsync();
+        }
+        catch(Exception e)
+        {
+            Logger.LogError(e.Message);
+        }
+    }
+
+    private void SignOut()
+    {
+        Logger.LogInformation("User start logged out.");
+        Nav.NavigateTo(".auth/logout", true);
+    }
+}

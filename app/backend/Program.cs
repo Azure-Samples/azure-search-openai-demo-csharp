@@ -76,10 +76,10 @@ else
 
 app.UseHttpsRedirection();
 app.UseOutputCache();
+app.UseRouting();
+app.UseStaticFiles();
 app.UseCors();
 app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
-app.UseRouting();
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
