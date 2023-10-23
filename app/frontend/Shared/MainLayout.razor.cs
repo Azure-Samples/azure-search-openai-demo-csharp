@@ -34,8 +34,6 @@ public sealed partial class MainLayout
         _ => true
     };
 
-    private bool ShowLogoutButton { get; set; } = false;
-
     private bool SortDisabled => new Uri(Nav.Uri).Segments.LastOrDefault() switch
     {
         "voicechat" or "chat" => false,
