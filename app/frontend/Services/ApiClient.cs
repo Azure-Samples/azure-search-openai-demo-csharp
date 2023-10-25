@@ -16,6 +16,14 @@ public sealed class ApiClient(HttpClient httpClient)
         return await response.Content.ReadFromJsonAsync<ImageResponse>();
     }
 
+    public async Task<bool> ShowLogoutButtonAsync()
+    {
+        var response = await _httpClient.GetAsync("api/enableLogout");
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<bool>();
+    }
+
     public async Task<UploadDocumentsResponse> UploadDocumentsAsync(
         IReadOnlyList<IBrowserFile> files,
         long maxAllowedSize)

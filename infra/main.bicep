@@ -134,6 +134,9 @@ param webIdentityName string = ''
 @description('Name of the web app image')
 param webImageName string = ''
 
+@description('Use Application Insights for monitoring and performance tracing')
+param useApplicationInsights bool = false
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
@@ -256,24 +259,9 @@ module web './app/web.bicep' = {
     openAiEndpoint: openAi.outputs.endpoint
     openAiChatGptDeployment: chatGptDeploymentName
     openAiEmbeddingDeployment: embeddingDeploymentName
-    // serviceBinds: [ redis.outputs.serviceBind ]
     serviceBinds: []
   }
 }
-
-// this launches a redis instance inside of the ACA env
-// module redis 'core/host/container-app.bicep' = {
-//   name: 'redis'
-//   scope: resourceGroup
-//   params: {
-//     name: 'redis'
-//     location: location
-//     tags: updatedTags
-//     containerAppsEnvironmentName: containerApps.outputs.environmentName
-//     containerRegistryName: containerApps.outputs.registryName
-//     serviceType: 'redis'
-//   }
-// }
 
 // Monitor application with Azure Monitor
 module monitoring 'core/monitor/monitoring.bicep' = {
@@ -283,6 +271,7 @@ module monitoring 'core/monitor/monitoring.bicep' = {
     location: location
     tags: updatedTags
     includeDashboard: false
+    includeApplicationInsights: useApplicationInsights
     logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
     applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'
     applicationInsightsDashboardName: !empty(applicationInsightsDashboardName) ? applicationInsightsDashboardName : '${abbrs.portalDashboards}${resourceToken}'

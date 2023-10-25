@@ -52,7 +52,7 @@ else
     });
 
     // set application telemetry
-    if (GetEnvVar("APPLICATIONINSIGHTS_CONNECTION_STRING") is string appInsightsConnectionString)
+    if (GetEnvVar("APPLICATIONINSIGHTS_CONNECTION_STRING") is string appInsightsConnectionString && !string.IsNullOrEmpty(appInsightsConnectionString))
     {
         builder.Services.AddApplicationInsightsTelemetry((option) =>
         {
@@ -76,10 +76,10 @@ else
 
 app.UseHttpsRedirection();
 app.UseOutputCache();
+app.UseRouting();
+app.UseStaticFiles();
 app.UseCors();
 app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
-app.UseRouting();
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");

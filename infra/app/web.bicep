@@ -90,7 +90,7 @@ module app '../core/host/container-app-upsert.bicep' = {
       }
       {
         name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-        value: applicationInsights.properties.ConnectionString
+        value: !empty(applicationInsightsName) ? applicationInsights.properties.ConnectionString : ''
       }
       {
         name: 'AZURE_KEY_VAULT_ENDPOINT'
@@ -133,7 +133,7 @@ module app '../core/host/container-app-upsert.bicep' = {
   }
 }
 
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = if (!empty(applicationInsightsName)) {
   name: applicationInsightsName
 }
 
