@@ -26,7 +26,8 @@ public sealed class ApiClient(HttpClient httpClient)
 
     public async Task<UploadDocumentsResponse> UploadDocumentsAsync(
         IReadOnlyList<IBrowserFile> files,
-        long maxAllowedSize)
+        long maxAllowedSize,
+        string cookie)
     {
         try
         {
@@ -41,6 +42,10 @@ public sealed class ApiClient(HttpClient httpClient)
 
                 content.Add(fileContent, file.Name, file.Name);
             }
+
+            // set cookie
+            content.Headers.Add("X-CSRF-TOKEN-FORM", cookie);
+            content.Headers.Add("X-CSRF-TOKEN-HEADER", cookie);
 
             var response = await httpClient.PostAsync("api/documents", content);
 

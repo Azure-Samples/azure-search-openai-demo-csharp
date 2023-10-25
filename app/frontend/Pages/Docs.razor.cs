@@ -28,6 +28,9 @@ public sealed partial class Docs : IDisposable
     [Inject]
     public required ILogger<Docs> Logger { get; set; }
 
+    [Inject]
+    public required IJSRuntime JSRuntime { get; set; }
+
     private bool FilesSelected => _fileUpload is { Files.Count: > 0 };
 
     protected override void OnInitialized() =>
@@ -64,8 +67,10 @@ public sealed partial class Docs : IDisposable
     {
         if (_fileUpload is { Files.Count: > 0 })
         {
+            var cookie = await JSRuntime.InvokeAsync<string>("getCookie", "XSRF-TOKEN");
+
             var result = await Client.UploadDocumentsAsync(
-                _fileUpload.Files, MaxIndividualFileSize);
+                _fileUpload.Files, MaxIndividualFileSize, cookie);
 
             Logger.LogInformation("Result: {x}", result);
 
