@@ -38,18 +38,19 @@ internal static class SearchClientExtensions
         if (embedding != null && overrides?.RetrievalMode != "Text")
         {
             var k = useSemanticRanker ? 50 : top;
-            var vectorQuery = new SearchQueryVector
+            var vectorQuery = new RawVectorQuery
             {
                 // if semantic ranker is enabled, we need to set the rank to a large number to get more
                 // candidates for semantic reranking
                 KNearestNeighborsCount = useSemanticRanker ? 50 : top,
-                Value = embedding,
+                Vector = embedding,
             };
             vectorQuery.Fields.Add("embedding");
-            searchOption.Vectors.Add(vectorQuery);
+            searchOption.VectorQueries.Add(vectorQuery);
         }
 
-        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(query, searchOption, cancellationToken);
+        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(
+            query, searchOption, cancellationToken);
         if (searchResultResponse.Value is null)
         {
             throw new InvalidOperationException("fail to get search result");

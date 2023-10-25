@@ -1,42 +1,45 @@
 {
-    "name": "Azure Developer CLI",
-    "image": "mcr.microsoft.com/devcontainers/dotnet:0-7.0-bullseye",
-    "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-        "ghcr.io/devcontainers/features/azure-cli:1.2.1": {},
-        "ghcr.io/devcontainers/features/github-cli:1.0.9": {},
-        "ghcr.io/azure/azure-dev/azd:latest": {}
+  "name": "Azure Search OpenAI Demo - C#",
+  "image": "mcr.microsoft.com/devcontainers/base:jammy",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/azure-cli:1.2.1": {},
+    "ghcr.io/devcontainers/features/github-cli:1.0.9": {},
+    "ghcr.io/devcontainers/features/powershell:1.1.0": {},
+    "ghcr.io/azure/azure-dev/azd:latest": {},
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "8.0"
     },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-azuretools.azure-dev",
-                "ms-azuretools.vscode-bicep",
-                "ms-azuretools.vscode-docker",
-                "ms-vscode.vscode-node-azure-pack",
-                "ms-dotnettools.csharp",
-                "ms-dotnettools.vscode-dotnet-runtime",
-                "ms-azuretools.vscode-azurefunctions",
-                "ms-azuretools.vscode-cosmosdb",
-                "ms-azuretools.vscode-azurestorage",
-                "ms-vscode.azurecli",
-                "ms-kubernetes-tools.vscode-aks-tools",
-                "ms-kubernetes-tools.aks-devx-tools",
-                "ms-azuretools.vscode-azurecontainerapps",
-                "ms-azuretools.vscode-azureeventgrid",
-                "ms-kubernetes-tools.vscode-kubernetes-tools",
-                "ipedrazas.kubernetes-snippets",
-                "redhat.vscode-yaml",
-                "GitHub.vscode-github-actions"
-            ]
-        }
-    },
-    "forwardPorts": [
-        5000
-    ],
-    "postCreateCommand": "",
-    "remoteUser": "vscode",
-    "hostRequirements": {
-        "memory": "8gb"
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20.6.1"
     }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "ms-azuretools.vscode-azurefunctions",
+        "ms-azuretools.vscode-azurestorage",
+        "ms-azuretools.vscode-azurecontainerapps",
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "ms-dotnettools.blazorwasm-companion",
+        "ms-kubernetes-tools.vscode-aks-tools",
+        "ms-kubernetes-tools.aks-devx-tools",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ipedrazas.kubernetes-snippets",
+        "redhat.vscode-yaml",
+        "GitHub.vscode-github-actions",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "forwardPorts": [
+    5000
+  ],
+  "postCreateCommand": "",
+  "remoteUser": "vscode",
+  "hostRequirements": {
+    "memory": "8gb"
+  }
 }

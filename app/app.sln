@@ -13,9 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\.gitignore = ..\.gitignore
 		..\.github\workflows\azure-dev.yml = ..\.github\workflows\azure-dev.yml
 		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
 		..\.github\workflows\dotnet-build.yml = ..\.github\workflows\dotnet-build.yml
-		global.json = global.json
 		..\LICENSE = ..\LICENSE
+		nuget.config = nuget.config
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
@@ -25,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientApp.Tests", "tests\Cl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrepareDocs", "prepdocs\PrepareDocs\PrepareDocs.csproj", "{9C39AF95-2BB1-48CF-BD12-D214C0BD6076}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbedFunctions", "functions\EmbedFunctions\EmbedFunctions.csproj", "{54099AF3-CFA8-4EA9-9118-A26E3E63745B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmbedFunctions", "functions\EmbedFunctions\EmbedFunctions.csproj", "{54099AF3-CFA8-4EA9-9118-A26E3E63745B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

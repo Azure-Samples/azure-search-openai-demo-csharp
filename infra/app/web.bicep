@@ -129,7 +129,7 @@ module app '../core/host/container-app-upsert.bicep' = {
         value: openAiEmbeddingDeployment
       }
     ]
-    targetPort: 80
+    targetPort: 8080
   }
 }
 

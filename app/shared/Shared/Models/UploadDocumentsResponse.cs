@@ -13,5 +13,5 @@ public record class UploadDocumentsResponse(
     };
 
     public static UploadDocumentsResponse FromError(string error) =>
-        new(Array.Empty<string>(), error);
+        new([], error);
 }

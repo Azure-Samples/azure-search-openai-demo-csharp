@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Search.Documents.Indexes.Models;
+
 s_rootCommand.SetHandler(
     async (context) =>
     {
@@ -181,20 +183,24 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
     }
 
     string vectorSearchConfigName = "my-vector-config";
-
+    string vectorSearchProfile = "my-vector-profile";
     var index = new SearchIndex(options.SearchIndexName)
     {
         VectorSearch = new()
         {
-            AlgorithmConfigurations =
-                {
-                    new HnswVectorSearchAlgorithmConfiguration(vectorSearchConfigName)
-                }
+            Algorithms =
+            {
+                new HnswVectorSearchAlgorithmConfiguration(vectorSearchConfigName)
+            },
+            Profiles =
+            {
+                new VectorSearchProfile(vectorSearchProfile, vectorSearchConfigName)
+            }
         },
         Fields =
         {
             new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
-            new SearchableField("content") { AnalyzerName = "en.microsoft" },
+            new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
             new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
             new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
             new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
@@ -202,7 +208,7 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
             {
                 VectorSearchDimensions = 1536,
                 IsSearchable = true,
-                VectorSearchConfiguration = vectorSearchConfigName,
+                VectorSearchProfile = vectorSearchProfile,
             }
         },
         SemanticSettings = new SemanticSettings
@@ -341,7 +347,7 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
         WaitUntil.Started, "prebuilt-layout", stream);
 
     var offset = 0;
-    List<PageDetail> pageMap = new();
+    List<PageDetail> pageMap = [];
 
     var results = await operation.WaitForCompletionAsync();
     var pages = results.Value.Pages;
@@ -372,7 +378,7 @@ static async ValueTask<IReadOnlyList<PageDetail>> GetDocumentTextAsync(
 
         // Build page text by replacing characters in table spans with table HTML
         StringBuilder pageText = new();
-        HashSet<int> addedTables = new();
+        HashSet<int> addedTables = [];
         for (int j = 0; j < tableChars.Length; j++)
         {
             if (tableChars[j] == -1)
@@ -401,8 +407,8 @@ static IEnumerable<Section> CreateSections(
     const int SentenceSearchLimit = 100;
     const int SectionOverlap = 100;
 
-    var sentenceEndings = new[] { '.', '!', '?' };
-    var wordBreaks = new[] { ',', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n' };
+    char[] sentenceEndings = ['.', '!', '?'];
+    char[] wordBreaks = [',', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n'];
     var allText = string.Concat(pageMap.Select(p => p.Text));
     var length = allText.Length;
     var start = 0;
@@ -528,7 +534,7 @@ static async ValueTask IndexSectionsAsync(
     foreach (var section in sections)
     {
         var embeddings = await openAIClient.GetEmbeddingsAsync(options.EmbeddingModelName, new Azure.AI.OpenAI.EmbeddingsOptions(section.Content.Replace('\r', ' ')));
-        var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? new float[0];
+        var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
         batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
             IndexActionType.MergeOrUpload,
             new SearchDocument
@@ -583,9 +589,11 @@ static string TableToHtml(DocumentTable table)
     var rows = new List<DocumentTableCell>[table.RowCount];
     for (int i = 0; i < table.RowCount; i++)
     {
-        rows[i] = table.Cells.Where(c => c.RowIndex == i)
-            .OrderBy(c => c.ColumnIndex)
-            .ToList();
+        rows[i] =
+        [
+            .. table.Cells.Where(c => c.RowIndex == i)
+                .OrderBy(c => c.ColumnIndex)
+        ];
     }
 
     foreach (var rowCells in rows)

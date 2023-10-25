@@ -4,7 +4,7 @@ namespace ClientApp.Components;
 
 public sealed partial class VoiceDialog : IDisposable
 {
-    private SpeechSynthesisVoice[] _voices = Array.Empty<SpeechSynthesisVoice>();
+    private SpeechSynthesisVoice[] _voices = [];
     private readonly IList<double> _voiceSpeeds =
         Enumerable.Range(0, 12).Select(i => (i + 1) * .25).ToList();
     private VoicePreferences? _voicePreferences;

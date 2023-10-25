@@ -2,14 +2,12 @@
 
 namespace ClientApp.Services;
 
-public sealed class OpenAIPromptQueue
+public sealed class OpenAIPromptQueue(
+    IServiceProvider provider,
+    ILogger<OpenAIPromptQueue> logger)
 {
-    private readonly IServiceProvider _provider;
-    private readonly ILogger<OpenAIPromptQueue> _logger;
     private readonly StringBuilder _responseBuffer = new();
     private Task? _processPromptTask = null;
-
-    public OpenAIPromptQueue(IServiceProvider provider, ILogger<OpenAIPromptQueue> logger) => (_provider, _logger) = (provider, logger);
 
     public void Enqueue(string prompt, Func<PromptResponse, Task> handler)
     {
@@ -27,7 +25,7 @@ public sealed class OpenAIPromptQueue
                     new PromptRequest { Prompt = prompt }, options);
 
                 using var body = new StringContent(json, Encoding.UTF8, "application/json");
-                using var scope = _provider.CreateScope();
+                using var scope = provider.CreateScope();
 
                 var factory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
                 using var client = factory.CreateClient(typeof(ApiClient).Name);
@@ -47,7 +45,7 @@ public sealed class OpenAIPromptQueue
 
                         _responseBuffer.Append(chunk.Text);
 
-                        var responseText = NormalizeResponseText(_responseBuffer, _logger);
+                        var responseText = NormalizeResponseText(_responseBuffer, logger);
                         await handler(
                             new PromptResponse(
                                 prompt, responseText));
@@ -65,7 +63,7 @@ public sealed class OpenAIPromptQueue
             {
                 if (_responseBuffer.Length > 0)
                 {
-                    var responseText = NormalizeResponseText(_responseBuffer, _logger);
+                    var responseText = NormalizeResponseText(_responseBuffer, logger);
                     await handler(
                         new PromptResponse(
                             prompt, responseText, true));

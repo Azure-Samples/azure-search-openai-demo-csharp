@@ -2,19 +2,15 @@
 
 namespace MinimalApi.Services;
 
-internal sealed class AzureBlobStorageService
+internal sealed class AzureBlobStorageService(BlobContainerClient container)
 {
     internal static DefaultAzureCredential DefaultCredential { get; } = new();
-
-    private readonly BlobContainerClient _container;
-
-    public AzureBlobStorageService(BlobContainerClient container) => _container = container;
 
     internal async Task<UploadDocumentsResponse> UploadFilesAsync(IEnumerable<IFormFile> files, CancellationToken cancellationToken)
     {
         try
         {
-            var uploadedFiles = new List<string>();
+            List<string> uploadedFiles = [];
             foreach (var file in files)
             {
                 var fileName = file.FileName;
@@ -25,7 +21,7 @@ internal sealed class AzureBlobStorageService
                 for (int i = 0; i < documents.PageCount; i++)
                 {
                     var documentName = BlobNameFromFilePage(fileName, i);
-                    var blobClient = _container.GetBlobClient(documentName);
+                    var blobClient = container.GetBlobClient(documentName);
                     if (await blobClient.ExistsAsync(cancellationToken))
                     {
                         continue;
@@ -61,7 +57,7 @@ internal sealed class AzureBlobStorageService
                     """);
             }
 
-            return new UploadDocumentsResponse(uploadedFiles.ToArray());
+            return new UploadDocumentsResponse([.. uploadedFiles]);
         }
 #pragma warning disable CA1031 // Do not catch general exception types
         catch (Exception ex)

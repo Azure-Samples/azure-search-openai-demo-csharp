@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.Extensions.Azure;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-
 namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService
@@ -18,12 +14,15 @@ public class ReadRetrieveReadChatService
         IConfiguration configuration)
     {
         _searchClient = searchClient;
-        var deployedModelName = configuration["AzureOpenAiChatGptDeployment"] ?? throw new ArgumentNullException();
+        var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(deployedModelName);
+
         var kernelBuilder = Kernel.Builder.WithAzureChatCompletionService(deployedModelName, client);
         var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
         if (!string.IsNullOrEmpty(embeddingModelName))
         {
-            var endpoint = configuration["AzureOpenAiServiceEndpoint"] ?? throw new ArgumentNullException();
+            var endpoint = configuration["AzureOpenAiServiceEndpoint"];
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint);
             kernelBuilder = kernelBuilder.WithAzureTextEmbeddingGenerationService(embeddingModelName, endpoint, new DefaultAzureCredential());
         }
         _kernel = kernelBuilder.Build();
@@ -48,7 +47,7 @@ public class ReadRetrieveReadChatService
             : throw new InvalidOperationException("Use question is null");
         if (overrides?.RetrievalMode != "Text" && embedding is not null)
         {
-            embeddings = (await embedding.GenerateEmbeddingAsync(question)).ToArray();
+            embeddings = (await embedding.GenerateEmbeddingAsync(question, cancellationToken: cancellationToken)).ToArray();
         }
 
         // step 1
@@ -66,12 +65,7 @@ standard plan AND dental AND employee benefit.
             getQueryChat.AddUserMessage(question);
             var result = await chat.GetChatCompletionsAsync(
                 getQueryChat,
-                new ChatRequestSettings
-                {
-                    Temperature = 0,
-                    MaxTokens = 128,
-                },
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             if (result.Count != 1)
             {
@@ -80,7 +74,7 @@ standard plan AND dental AND employee benefit.
 
             query = result[0].ModelResult.GetOpenAIChatResult().Choice.Message.Content;
         }
-        
+
         // step 2
         // use query to search related docs
         var documentContents = await _searchClient.QueryDocumentsAsync(query, embeddings, overrides, cancellationToken);
@@ -93,7 +87,9 @@ standard plan AND dental AND employee benefit.
         Console.WriteLine(documentContents);
         // step 3
         // put together related docs and conversation history to generate answer
-        var answerChat = chat.CreateNewChat($@"You are a system assistant who helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers");
+        var answerChat = chat.CreateNewChat(
+            "You are a system assistant who helps the company employees with their healthcare " +
+            "plan questions, and questions about the employee handbook. Be brief in your answers");
 
         // add chat history
         foreach (var turn in history)
@@ -119,12 +115,7 @@ You answer needs to be a json object with the following format.
         // get answer
         var answer = await chat.GetChatCompletionsAsync(
                        answerChat,
-                       new ChatRequestSettings
-                       {
-                           Temperature = overrides?.Temperature ?? 0.7,
-                           MaxTokens = 1024,
-                       },
-                       cancellationToken);
+                       cancellationToken: cancellationToken);
         var answerJson = answer[0].ModelResult.GetOpenAIChatResult().Choice.Message.Content;
         var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
         var ans = answerObject.GetProperty("answer").GetString() ?? throw new InvalidOperationException("Failed to get answer");
@@ -149,13 +140,8 @@ e.g.
 ]");
 
             var followUpQuestions = await chat.GetChatCompletionsAsync(
-                               followUpQuestionChat,
-                               new ChatRequestSettings
-                               {
-                                   Temperature = 0,
-                                   MaxTokens = 256,
-                               },
-                               cancellationToken);
+                followUpQuestionChat,
+                cancellationToken: cancellationToken);
 
             var followUpQuestionsJson = followUpQuestions[0].ModelResult.GetOpenAIChatResult().Choice.Message.Content;
             var followUpQuestionsObject = JsonSerializer.Deserialize<JsonElement>(followUpQuestionsJson);

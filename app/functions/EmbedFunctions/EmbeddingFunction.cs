@@ -2,18 +2,11 @@
 
 using Microsoft.Azure.Functions.Worker;
 
-public sealed class EmbeddingFunction
+public sealed class EmbeddingFunction(
+    EmbeddingAggregateService embeddingAggregateService,
+    ILoggerFactory loggerFactory)
 {
-    private readonly EmbeddingAggregateService _embeddingAggregateService;
-    private readonly ILogger<EmbeddingFunction> _logger;
-
-    public EmbeddingFunction(
-        EmbeddingAggregateService embeddingAggregateService,
-        ILoggerFactory loggerFactory)
-    {
-        _logger = loggerFactory.CreateLogger<EmbeddingFunction>();
-        _embeddingAggregateService = embeddingAggregateService;
-    }
+    private readonly ILogger<EmbeddingFunction> _logger = loggerFactory.CreateLogger<EmbeddingFunction>();
 
     [Function(name: "embed-blob")]
     public Task EmbedAsync(
@@ -21,5 +14,5 @@ public sealed class EmbeddingFunction
             blobPath: "content/{name}",
             Connection = "AzureStorageAccountEndpoint")] Stream blobStream,
         string name,
-        BlobClient client) => _embeddingAggregateService.EmbedBlobAsync(client, blobStream, blobName: name);
+        BlobClient client) => embeddingAggregateService.EmbedBlobAsync(client, blobStream, blobName: name);
 }
