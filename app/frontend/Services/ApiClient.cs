@@ -18,7 +18,7 @@ public sealed class ApiClient(HttpClient httpClient)
 
     public async Task<bool> ShowLogoutButtonAsync()
     {
-        var response = await _httpClient.GetAsync("api/enableLogout");
+        var response = await httpClient.GetAsync("api/enableLogout");
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<bool>();
