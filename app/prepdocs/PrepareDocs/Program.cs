@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Search.Documents.Indexes.Models;
+
 s_rootCommand.SetHandler(
     async (context) =>
     {
@@ -181,20 +183,24 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
     }
 
     string vectorSearchConfigName = "my-vector-config";
-
+    string vectorSearchProfile = "my-vector-profile";
     var index = new SearchIndex(options.SearchIndexName)
     {
         VectorSearch = new()
         {
             Algorithms =
-                {
-                    new HnswVectorSearchAlgorithmConfiguration(vectorSearchConfigName)
-                }
+            {
+                new HnswVectorSearchAlgorithmConfiguration(vectorSearchConfigName)
+            },
+            Profiles =
+            {
+                new VectorSearchProfile(vectorSearchProfile, vectorSearchConfigName)
+            }
         },
         Fields =
         {
             new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
-            new SearchableField("content") { AnalyzerName = "en.microsoft" },
+            new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
             new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
             new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
             new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
@@ -202,7 +208,7 @@ static async ValueTask CreateSearchIndexAsync(AppOptions options)
             {
                 VectorSearchDimensions = 1536,
                 IsSearchable = true,
-                SearchAnalyzerName = vectorSearchConfigName, // TODO: is this right?
+                VectorSearchProfile = vectorSearchProfile,
             }
         },
         SemanticSettings = new SemanticSettings
