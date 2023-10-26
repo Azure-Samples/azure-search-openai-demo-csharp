@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.IO;
+
 namespace EmbedFunctions.Services;
 
 public sealed class EmbeddingAggregateService(
     EmbedServiceFactory embedServiceFactory,
+    BlobContainerClient client,
     ILogger<EmbeddingAggregateService> logger)
 {
-    internal async Task EmbedBlobAsync(BlobClient client, Stream blobStream, string blobName)
+    internal async Task EmbedBlobAsync(Stream blobStream, string blobName)
     {
         try
         {

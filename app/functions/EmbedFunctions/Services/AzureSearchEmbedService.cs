@@ -100,8 +100,11 @@ internal sealed partial class AzureSearchEmbedService(
         logger.LogInformation(
             "Extracting text from '{Blob}' using Azure Form Recognizer", blobName);
 
+        using var ms = new MemoryStream();
+        blobStream.CopyTo(ms);
+        ms.Position = 0;
         AnalyzeDocumentOperation operation = documentAnalysisClient.AnalyzeDocument(
-            WaitUntil.Started, "prebuilt-layout", blobStream);
+            WaitUntil.Started, "prebuilt-layout", ms);
 
         var offset = 0;
         List<PageDetail> pageMap = [];

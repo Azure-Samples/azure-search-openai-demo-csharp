@@ -36,7 +36,7 @@ var host = new HostBuilder()
         services.AddSingleton<BlobContainerClient>(_ =>
         {
             var blobServiceClient = new BlobServiceClient(
-                GetUriFromEnvironment("AZURE_STORAGE_ACCOUNT_ENDPOINT"),
+                GetUriFromEnvironment("AZURE_STORAGE_BLOB_ENDPOINT"),
                 credential);
 
             return blobServiceClient.GetBlobContainerClient("corpus");
@@ -46,9 +46,6 @@ var host = new HostBuilder()
         services.AddSingleton<EmbeddingAggregateService>();
 
         services.AddSingleton<IEmbedService, AzureSearchEmbedService>();
-        services.AddSingleton<IEmbedService, PineconeEmbedService>();
-        services.AddSingleton<IEmbedService, QdrantEmbedService>();
-        services.AddSingleton<IEmbedService, MilvusEmbedService>();
     })
     .ConfigureFunctionsWorkerDefaults()
     .Build();
