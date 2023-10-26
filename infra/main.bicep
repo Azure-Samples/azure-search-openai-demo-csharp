@@ -472,7 +472,7 @@ module storageContribRoleBackend 'core/security/role.bicep' = {
   params: {
     principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-    principalType: principalType
+    principalType: 'ServicePrincipal'
   }
 }
 
