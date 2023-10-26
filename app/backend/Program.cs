@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Microsoft.AspNetCore.Antiforgery;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.ConfigureAzureKeyVault();
@@ -12,6 +14,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddCrossOriginResourceSharing();
 builder.Services.AddAzureServices();
+builder.Services.AddAntiforgery(options => { options.HeaderName = "X-CSRF-TOKEN-HEADER"; options.FormFieldName = "X-CSRF-TOKEN-FORM"; });
 
 if (builder.Environment.IsDevelopment())
 {
@@ -80,8 +83,17 @@ app.UseRouting();
 app.UseStaticFiles();
 app.UseCors();
 app.UseBlazorFrameworkFiles();
+app.UseAntiforgery();
 app.MapRazorPages();
 app.MapControllers();
+
+app.Use(next => context =>
+{
+    var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
+    var tokens = antiforgery.GetAndStoreTokens(context);
+    context.Response.Cookies.Append("XSRF-TOKEN", tokens?.RequestToken ?? string.Empty, new CookieOptions() { HttpOnly = false });
+    return next(context);
+});
 app.MapFallbackToFile("index.html");
 
 app.MapApi();
