@@ -285,7 +285,7 @@ module appServicePlan './core/host/appserviceplan.bicep' = {
 }
 
 // The application backend
-module api './app/function.bicep' = {
+module function './app/function.bicep' = {
   name: 'function'
   scope: resourceGroup
   params: {
