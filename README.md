@@ -97,7 +97,7 @@ A related option is VS Code Remote Containers, which will open the project in yo
 Install the following prerequisites:
 
 - [Azure Developer CLI](https://aka.ms/azure-dev/install)
-- [.NET 7](https://dotnet.microsoft.com/download)
+- [.NET 8](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Git](https://git-scm.com/downloads)
 - [Powershell 7+ (pwsh)](https://github.com/powershell/powershell) - For Windows users only.
   
