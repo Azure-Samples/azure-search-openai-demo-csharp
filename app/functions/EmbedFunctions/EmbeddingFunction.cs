@@ -12,6 +12,6 @@ public sealed class EmbeddingFunction(
     public Task EmbedAsync(
         [BlobTrigger(
             blobPath: "content/{name}",
-            Connection = "AzureStorageAccountEndpoint")] Stream blobStream,
+            Connection = "AzureWebJobsStorage")] Stream blobStream,
         string name) => embeddingAggregateService.EmbedBlobAsync(blobStream, blobName: name);
 }

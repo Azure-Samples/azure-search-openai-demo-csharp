@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 
+using EmbedFunctions.Services;
+using Microsoft.Extensions.Logging;
+
 internal static partial class Program
 {
     private static BlobContainerClient? s_corpusContainerClient;
@@ -16,6 +19,21 @@ internal static partial class Program
     private static readonly SemaphoreSlim s_searchIndexLock = new(1);
     private static readonly SemaphoreSlim s_searchLock = new(1);
     private static readonly SemaphoreSlim s_openAILock = new(1);
+    private static readonly SemaphoreSlim s_embeddingLock = new(1);
+
+    private static Task<AzureSearchEmbedService> GetAzureSearchEmbedService(AppOptions options) =>
+        GetLazyClientAsync<AzureSearchEmbedService>(options, s_embeddingLock, async o =>
+        {
+            var searchIndexClient = await GetSearchIndexClientAsync(o);
+            var searchClient = await GetSearchClientAsync(o);
+            var documentClient = await GetFormRecognizerClientAsync(o);
+            var blobContainerClient = await GetBlobContainerClientAsync(o);
+            var openAIClient = await GetAzureOpenAIClientAsync(o);
+            var embeddingModelName = o.EmbeddingModelName ?? throw new ArgumentNullException(nameof(o.EmbeddingModelName));
+            var searchIndexName = o.SearchIndexName ?? throw new ArgumentNullException(nameof(o.SearchIndexName));
+
+            return new AzureSearchEmbedService(openAIClient, embeddingModelName, searchClient, searchIndexName, searchIndexClient, documentClient, blobContainerClient, null);
+        });
 
     private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options) =>
         GetLazyClientAsync<BlobContainerClient>(options, s_corpusContainerLock, static async o =>

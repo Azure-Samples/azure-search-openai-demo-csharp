@@ -12,6 +12,7 @@
     <PackageReference Include="Azure.AI.FormRecognizer" />
     <PackageReference Include="Azure.Search.Documents" />
     <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Azure.Storage.Files.Shares" />
     <PackageReference Include="Azure.Storage.Queues" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" />
