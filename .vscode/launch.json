@@ -33,6 +33,12 @@
       "stopAtEntry": false,
       "console": "internalConsole",
       "envFile": "${input:dotEnvFilePath}"
+    },
+    {
+      "name": "Frontend: .NET MAUI Blazor",
+      "type": "maui",
+      "request": "launch",
+      "preLaunchTask": "maui: Build"
     }
   ],
   "inputs": [
