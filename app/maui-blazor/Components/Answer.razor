@@ -1,0 +1,69 @@
+﻿<MudGrid Justify="Justify.Center">
+@if (_parsedAnswer.HasValue is true)
+{
+    var answer = _parsedAnswer.Value;
+    var html = answer.AnswerHtml;
+
+    <MudItem xs="12">
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
+            <MudTabPanel Icon="@Icons.Material.Filled.Quickreply" Text="Answer" ToolTip="Answer text">
+                <ChildContent>
+                    <MudPaper Class="pa-6" Elevation="3">
+                        <MudText Typo="Typo.body1">
+                            @((MarkupString)html)
+                        </MudText>
+                        @if (answer is { Citations.Count: > 0 })
+                        {
+                            <div class="pt-4">
+                                <MudText Typo="Typo.subtitle2" Class="pb-2">Citations:</MudText>
+                                @foreach (var citation in answer.Citations)
+                                {
+                                    var icon = citation.Name.EndsWith(".pdf")
+                                        ? @Icons.Custom.FileFormats.FilePdf
+                                        : null;
+                                    <MudChip Variant="Variant.Text" Color="Color.Info"
+                                             Icon="@icon" OnClick="@(_ => OnShowCitation(citation))">
+                                        @($"{citation.Number}. {citation.Name}")
+                                    </MudChip>
+                                }
+                            </div>
+                        }
+                        @if (answer is { FollowupQuestions.Count: > 0 })
+                        {
+                            <div class="pt-4">
+                                <MudText Typo="Typo.subtitle2" Class="pb-2">Follow-up questions:</MudText>
+                                @foreach (var followup in answer.FollowupQuestions)
+                                {
+                                    <MudChip Variant="Variant.Text" Color="Color.Tertiary"
+                                        OnClick="@(_ => OnAskFollowupAsync(followup))">
+                                            @followup
+                                    </MudChip>
+                                }
+                            </div>
+                        }
+                    </MudPaper>
+                </ChildContent>
+            </MudTabPanel>
+            <MudTabPanel Icon="@Icons.Material.Filled.Lightbulb" Text="Thought process" 
+                         ToolTip="Show thought process."
+                         Disabled="@(Retort is { Thoughts: null })">
+                <ChildContent>
+                    <MudPaper Class="pa-6" Elevation="3">
+                        <pre style="white-space: normal; font-size: 1.2em;">
+                            @(RemoveLeadingAndTrailingLineBreaks(Retort.Thoughts!))
+                        </pre>
+                    </MudPaper>
+                </ChildContent>
+            </MudTabPanel>
+            <MudTabPanel Icon="@Icons.Material.Filled.TextSnippet" Text="Supporting Content"
+                         ToolTip="Show the supporting content." Disabled="@(Retort is { DataPoints: null } or { DataPoints.Length: 0 })">
+                <ChildContent>
+                    <MudPaper Class="pa-2" Elevation="3">
+                        <SupportingContent DataPoints="Retort.DataPoints" />
+                    </MudPaper>
+                </ChildContent>
+            </MudTabPanel>
+        </MudTabs>
+    </MudItem>
+}
+</MudGrid>

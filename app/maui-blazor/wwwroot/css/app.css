@@ -1,39 +1,51 @@
-﻿html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+pre {
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
 }
 
-a, .btn-link {
-    color: #006bb7;
+div.mud-tabs-panels > div > pre {
+    padding-top: initial;
+    padding-bottom: initial;
 }
 
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+blockquote:empty {
+    display: none;
+    pointer-events: none;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+blockquote:not(:empty) {
+    padding: 1rem 1.5rem;
+    border-radius: 6px;
+    background: rgba(0,0,0,.2);
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
-.content {
-    padding-top: 1.1rem;
+    blockquote:not(:empty) p::before {
+        content: '\201C';
+        font-size: 2rem;
+        padding-right: .5rem;
+    }
+
+ul, ol {
+    padding: 1.5rem;
 }
 
-h1:focus {
-    outline: none;
-}
+    ul > li, ol > li {
+        padding-left: 1.2rem;
+        padding-bottom: .2rem;
+    }
 
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
 }
 
 .invalid {
-    outline: 1px solid #e50000;
+    outline: 1px solid red;
 }
 
 .validation-message {
-    color: #e50000;
+    color: red;
 }
 
 #blazor-error-ui {
@@ -65,22 +77,176 @@ h1:focus {
         content: "An error has occurred."
     }
 
-.status-bar-safe-area {
-    display: none;
+.loading-progress {
+    position: relative;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    margin: 20vh auto 1rem auto;
 }
 
-@supports (-webkit-touch-callout: none) {
-    .status-bar-safe-area {
-        display: flex;
-        position: sticky;
-        top: 0;
-        height: env(safe-area-inset-top);
-        background-color: #f7f7f7;
-        width: 100%;
-        z-index: 1;
+    .loading-progress circle {
+        fill: none;
+        stroke: #e0e0e0;
+        stroke-width: 0.6rem;
+        transform-origin: 50% 50%;
+        transform: rotate(-90deg);
     }
 
-    .flex-column, .navbar-brand {
-        padding-left: env(safe-area-inset-left);
+        .loading-progress circle:last-child {
+            stroke: #1b6ec2;
+            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+            transition: stroke-dasharray 0.05s ease-in-out;
+        }
+
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+}
+
+    .loading-progress-text:after {
+        content: var(--blazor-load-percentage-text, "Loading");
+    }
+
+
+.rtl-lang {
+    direction: rtl;
+}
+
+.hljs-copy-button {
+    top: 2em !important;
+}
+
+    .hljs-copy-button:hover {
+        filter: brightness(150%);
+    }
+
+    .hljs-copy-button[data-copied="true"] {
+        padding: 1em;
+        background-color: #1b5e20;
+    }
+
+        .hljs-copy-button[data-copied="true"]:hover {
+            filter: none;
+            background-color: initial;
+        }
+
+.mud-nav-item {
+    font-size: 1.2rem;
+}
+
+.mud-navmenu > * > a > svg {
+    font-size: 2rem;
+}
+
+.full-width {
+    width: 100% !important;
+}
+
+.full-height {
+    height: 100% !important;
+}
+
+.filter-shadow {
+    filter: drop-shadow(0px 0px 5px rbga(0,0,0,.5));
+}
+
+.clickable {
+    border: 3px solid transparent;
+    cursor: pointer;
+}
+
+    .clickable:hover {
+        border-width: 3px;
+        border-color: var(--mud-palette-secondary-lighten);
+    }
+
+iframe {
+    min-height: 60vh;
+    min-width: 100%;
+}
+
+.icon-huge {
+    font-size: 4rem;
+}
+
+.dim {
+    filter: brightness(90%);
+}
+
+    .dim:hover {
+        transition: all 0.3s ease-out;
+        filter: brightness(80%);
+    }
+
+.text-align-center {
+    text-align: center;
+}
+
+/* Address various Lighthouse audit issues */
+.mud-snackbar.mud-snackbar-blurred {
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+}
+
+.mud-input-control.mud-input-number-control input[type=number] {
+    -moz-appearance: textfield;
+    -webkit-appearance: textfield;
+    appearance: textfield;
+}
+
+button {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.mud-tooltip-root {
+    width: -moz-fit-content;
+    width: -webkit-fit-content;
+    width: fit-content;
+}
+
+.ten-twelves {
+    min-width: calc(100% / 12 * 10) !important;
+    width: calc(100% / 12 * 10) !important;
+}
+
+.pdf-container {
+    min-height: 60vh;
+    max-height: 75vh;
+    overflow-y: scroll;
+}
+
+#toggle-mic > span.mud-badge-wrapper > span.mud-badge-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 2rem;
+    inset: auto auto calc(100% - 1.2rem) calc(100% - 1rem);
+}
+
+    #toggle-mic > span.mud-badge-wrapper > span.mud-badge-icon > svg {
+        font-size: 1.2rem;
+        margin-inline-start: 0;
+        margin-top: .1rem;
+    }
+
+#toggle-mic[mic="on"] > span.mud-badge-wrapper > span.mud-badge-icon {
+    animation: active 1.5s infinite;
+}
+
+@keyframes active {
+    0% {
+        -webkit-box-shadow: 0 0 0 0 rgba(118,106,231,0.4);
+    }
+
+    70% {
+        -webkit-box-shadow: 0 0 0 1.2rem rgba(118,106,231,0);
+    }
+
+    100% {
+        -webkit-box-shadow: 0 0 0 0 rgba(118,106,231,0);
     }
 }

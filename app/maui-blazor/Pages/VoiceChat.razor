@@ -1,0 +1,123 @@
+﻿@page "/voicechat"
+
+<PageTitle>Voice Chat</PageTitle>
+
+<MudGrid Justify="Justify.Center">
+    <MudItem id="replies" xs="12" Class="overflow-x-auto">
+        @if (_questionAndAnswerMap is { Count: 0 })
+        {
+            <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
+                <MudGrid Justify="Justify.Center" Spacing="2">
+                    <MudItem xs="12">
+                        <MudStack Class="pb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome"
+                                     Class="icon-huge align-self-center" Color="Color.Primary" />
+                            <MudText Typo="Typo.h2" Class="align-self-center">
+                                Interact with
+                            </MudText>
+                            <MudText Typo="Typo.h1" Class="align-self-center"
+                                     Style="font-family: monospace;">
+                                Blazor 📎 Clippy
+                            </MudText>
+                            <MudText Typo="Typo.h2" Class="align-self-center">
+                                using voice chat.
+                            </MudText>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </div>
+        }
+        else
+        {
+            <MudStack Reverse="@IsReversed" Spacing="12">
+                @foreach (var ((question, askedOn), answer) in _questionAndAnswerMap)
+                {
+                    <MudStack Justify="Justify.Center" AlignItems="AlignItems.Start" Spacing="4">
+                        <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+                                  Icon="@Icons.Material.Filled.QuestionMark" Class="d-flex align-self-end">
+                            <MudPaper Class="pa-6 d-flex flex-column" Elevation="3">
+                                <MudText Typo="Typo.body1" Align="Align.End">
+                                    @question
+                                </MudText>
+                                <MudText Typo="Typo.caption" Align="Align.End" Color="Color.Secondary">
+                                    @($"Asked at {askedOn:h:mm:ss tt} on {askedOn:M/dd/yy}")
+                                </MudText>
+                            </MudPaper>
+                        </MudBadge>
+                        <div class="ten-twelves">
+                            @if (answer is null)
+                            {
+                                <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+                                          Icon="@Icons.Material.Filled.Lightbulb" Class="full-width">
+                                    <MudPaper Class="pa-6" Elevation="3">
+                                        <Loading />
+                                    </MudPaper>
+                                </MudBadge>
+                            }
+                            else
+                            {
+                                <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
+                                          Icon="@Icons.Material.Filled.AutoAwesome">
+                                    <MudPaper Class="pa-6" Elevation="3">
+                                        <MudText Typo="Typo.body1">
+                                            @((MarkupString)answer)
+                                        </MudText>
+                                    </MudPaper>
+                                </MudBadge>
+                            }
+                        </div>
+                    </MudStack>
+                }
+            </MudStack>
+        }
+    </MudItem>
+    <MudItem xs="12" Class="rounded">
+        <MudGrid>
+            <MudItem xs="12" lg="10">
+                <MudTextField @bind-Value="_userQuestion" Label="Prompt"
+                              Variant="Variant.Outlined" Adornment="Adornment.End"
+                              AdornmentIcon="@Icons.Material.Filled.VoiceChat"
+                              AdornmentColor="Color.Secondary" AutoFocus="true"
+                              Placeholder="Enter an Azure.AI.OpenAI chat prompt." Lines="3" Immediate="true"
+                              HelperText="Use Shift + Enter for new lines."
+                              OnKeyUp="@OnKeyUp" Clearable="true" Counter="1000" MaxLength="1000"
+                              Disabled=@(_isRecognizingSpeech || _isReceivingResponse) IconSize="Size.Large"
+                              autocomplete="off" title="Enter an Azure.AI.OpenAI chat prompt." />
+            </MudItem>
+            <MudItem xs="0" lg="2" Class="d-flex align-self-center">
+                <MudGrid Justify="Justify.Center">
+                    <MudItem xs="9" Class="pa-2">
+                        <MudFab Color="Color.Primary" Label=@(_isRecognizingSpeech ? "Stop" : "Speak") Size="Size.Large"
+                                StartIcon=@(_isRecognizingSpeech ? @Icons.Material.Filled.MicOff : Icons.Material.Filled.Mic)
+                                OnClick="@OnRecognizeSpeechClick" Disabled=@_isReceivingResponse Class="full-width" />
+                    </MudItem>
+                    <MudItem xs="3" Class="pa-2">
+                        <MudTooltip Text="Open text-to-speech settings dialog?" Placement="Placement.Top">
+                            <MudFab Color="Color.Tertiary" Size="Size.Medium"
+                                    StartIcon="@Icons.Material.Filled.SettingsVoice"
+                                    OnClick="@ShowVoiceDialogAsync" />
+                        </MudTooltip>
+                    </MudItem>
+                    <MudItem xs="9" Class="pa-2">
+                        <MudFab Color="Color.Secondary" Label="Ask" Size="Size.Large"
+                                StartIcon=@Icons.Material.Filled.Send Class="full-width"
+                                OnClick="@OnSendPrompt" 
+                                Disabled=@(_isRecognizingSpeech || _isReceivingResponse || string.IsNullOrWhiteSpace(_userQuestion)) />
+                    </MudItem>
+                    <MudItem xs="3" Class="pa-2">
+                        <MudTooltip Text=@(_isReadingResponse ? "Stop active text-to-speech?": "") Placement="Placement.Right">
+                            <MudFab Color="Color.Warning" Size="Size.Medium"
+                                    StartIcon="@Icons.Material.Filled.Stop"
+                                    OnClick="@StopTalking" Disabled=@(_isReadingResponse is false) />
+                        </MudTooltip>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+        </MudGrid>
+    </MudItem>
+    <MudScrollToTop Selector="#replies"
+                    VisibleCssClass="visible absolute"
+                    HiddenCssClass="invisible">
+        <MudFab Color="Color.Primary" IconSize="Size.Large" StartIcon="@Icons.Material.Filled.ArrowUpward" />
+    </MudScrollToTop>
+</MudGrid>
