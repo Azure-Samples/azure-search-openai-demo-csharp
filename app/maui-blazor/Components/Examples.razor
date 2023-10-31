@@ -1,0 +1,33 @@
+﻿<MudGrid Justify="Justify.Center" Spacing="2">
+    <MudItem xs="0" sm="0" md="0" lg="12" Class="d-flex">
+        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome"
+                 Class="icon-huge ma-auto" Color="Color.Primary" />
+    </MudItem>
+    <MudItem xs="12">
+        <MudText Typo="Typo.h2" Align="Align.Center">@Message</MudText>
+    </MudItem>
+    <MudItem lg="3" xs="12">
+        <MudPaper Elevation="4" Height="12rem" onclick="@(async () => await OnClickedAsync(WhatIsIncluded))"
+                  Class="d-flex pa-8 clickable flex-column align-center justify-center mud-width-full rounded dim">
+            <MudText Typo="Typo.h5">
+                @WhatIsIncluded
+            </MudText>
+        </MudPaper>
+    </MudItem>
+    <MudItem lg="3" xs="12">
+        <MudPaper Elevation="4" Height="12rem" onclick="@(async () => await OnClickedAsync(WhatIsPerfReview))"
+                  Class="d-flex pa-8 clickable flex-column align-center justify-center mud-width-full rounded dim">
+            <MudText Typo="Typo.h5">
+                @WhatIsPerfReview
+            </MudText>
+        </MudPaper>
+    </MudItem>
+    <MudItem lg="3" xs="12">
+        <MudPaper Elevation="4" Height="12rem" onclick="@(async () => await OnClickedAsync(WhatDoesPmDo))"
+                  Class="d-flex pa-8 clickable flex-column align-center justify-center mud-width-full rounded dim">
+            <MudText Typo="Typo.h5">
+                @WhatDoesPmDo
+            </MudText>
+        </MudPaper>
+    </MudItem>
+</MudGrid>

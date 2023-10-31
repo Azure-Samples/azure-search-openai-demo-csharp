@@ -1,0 +1,31 @@
+﻿@if (IsDarkTheme)
+{
+    <style>
+        code:not([class="hljs"]) {
+            color: #adbac7;
+            background: #22272e;
+            padding: 0 .2rem;
+            border-radius: .2rem;
+        }
+    </style>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/github-dark-dimmed.min.css">
+}
+else
+{
+    <style>
+        code:not([class="hljs"]) {
+            color: #444;
+            background: #f3f3f3;
+            padding: 0 .2rem;
+            border-radius: .2rem;
+        }
+    </style>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/default.min.css">
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public bool IsDarkTheme { get; set; }
+}

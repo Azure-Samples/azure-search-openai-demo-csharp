@@ -1,0 +1,18 @@
+﻿<MudPaper Class="pa-6" Elevation="3">
+    <MudStack Spacing="4" Class="full-width">
+        <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" Size="Size.Large" />
+        <MudText Typo="Typo.subtitle2">
+            @Error.Answer
+        </MudText>
+        <MudText Typo="Typo.body1">
+            @Error.Error
+        </MudText>
+        <div>
+            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Info"
+                       EndIcon="@Icons.Material.Filled.Replay" title="Retry"
+                       OnClick="@OnRetryClickedAsync">
+                Retry
+            </MudButton>
+        </div>
+    </MudStack>
+</MudPaper>

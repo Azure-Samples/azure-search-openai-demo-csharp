@@ -1,0 +1,66 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<MudCard Elevation="24">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatar Color="Color.Info" Size="Size.Large">
+                <MudIcon Icon="@Icons.Custom.Brands.MicrosoftAzure" Size="Size.Large" />
+            </MudAvatar>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5">
+                <MudLink Href="https://www.nuget.org/packages/Azure.AI.OpenAI" Color="Color.Secondary" 
+                         Target="_blank" aria-label="The official Azure.AI.OpenAI .NET NuGet link.">
+                    Azure.AI.OpenAI 📦
+                </MudLink>
+            </MudText>
+            <MudText Typo="Typo.h6">Blazor 💜 OpenAI</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudCarousel Class="mud-width-full"
+                     BulletsColor="Color.Primary" Style="height: 58vh;"
+                     AutoCycle="true" TData="Image" Context="image"
+                     ItemsSource=@_images AutoCycleTime=@TimeSpan.FromSeconds(3)>
+            <ItemTemplate>
+                <div class="d-flex flex-grow-1">
+                    <MudImage Fluid="true" Src=@image.Src Elevation="5" ObjectPosition="ObjectPosition.Center"
+                              Alt=@($"{image.Alt} (generated with Bing Create).") Class="rounded-lg mx-auto my-auto" />
+                </div>
+            </ItemTemplate>
+        </MudCarousel>
+        <div class="full-width pt-6 text-align-center">
+            <MudText Typo="Typo.caption">
+                These photo were created using generative AI
+                <MudLink Href="https://www.bing.com/images/create/" Target="_blank" 
+                         Class="mud-typography-caption mud-secondary-text"
+                         aria-label="Microsoft Bing Create link.">
+                    Bing - Image Creator (powered by DALL-E)
+                </MudLink>
+            </MudText>
+        </div>
+    </MudCardContent>
+    <MudCardActions>
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Size="Size.Large" Target="_blank"
+                       aria-label="Azure SDK for .NET link."
+                       Href="https://github.com/Azure/azure-sdk-for-net"
+                       Title="GitHub link for the Azure .NET SDK." />
+        <MudIconButton Icon="@Icons.Material.Filled.GetApp" Size="Size.Large" Target="_blank"
+                       aria-label="Azure.AI.OpenAI .NET NuGet link."
+                       Href="https://www.nuget.org/packages/Azure.AI.OpenAI" 
+                       Title="NuGet link for Azure.AI.OpenAI." />
+        <MudIconButton Icon="@Icons.Custom.Brands.Microsoft" Size="Size.Large" Target="_blank"
+                       aria-label="Microsoft Learn link for Azure OpenAI."
+                       Href="https://learn.microsoft.com/azure/cognitive-services/openai"
+                       Title="Microsoft Learn link for Azure OpenAI." />
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Size="Size.Large" Target="_blank"
+                       aria-label="MudBlazor (Blazor component library) link."
+                       Href="https://www.mudblazor.com/" Title="MudBlazor Component Library link." />
+        <MudIconButton Icon="@Icons.Material.Filled.Html" Size="Size.Large" Target="_blank"
+                       aria-label="Markdig (GitHub repository) link."
+                       Href="https://github.com/xoofx/markdig" Title="Markdig GitHub repo link." />
+    </MudCardActions>
+</MudCard>
