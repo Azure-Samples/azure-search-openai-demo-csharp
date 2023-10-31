@@ -11,7 +11,7 @@ param location string
 param tags string = ''
 
 @description('Location for the OpenAI resource group')
-@allowed(['canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus'])
+@allowed([ 'canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus' ])
 @metadata({
   azd: {
     type: 'location'
@@ -20,7 +20,7 @@ param tags string = ''
 param openAiResourceGroupLocation string
 
 @description('Name of the chat GPT model. Default: gpt-35-turbo')
-@allowed(['gpt-35-turbo', 'gpt-4', 'gpt-35-turbo-16k', 'gpt-4-16k'])
+@allowed([ 'gpt-35-turbo', 'gpt-4', 'gpt-35-turbo-16k', 'gpt-4-16k' ])
 param chatGptModelName string = 'gpt-35-turbo'
 
 @description('Name of the Azure Application Insights dashboard')
@@ -462,6 +462,16 @@ module storageRoleBackend 'core/security/role.bicep' = {
   params: {
     principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module storageRoleServiceCreator 'core/security/role.bicep' = {
+  scope: storageResourceGroup
+  name: 'storage-role-service-create'
+  params: {
+    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
     principalType: 'ServicePrincipal'
   }
 }
