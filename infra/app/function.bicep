@@ -26,6 +26,7 @@ module function '../core/host/functions.bicep' = {
     runtimeName: 'dotnet-isolated'
     runtimeVersion: '8'
     storageAccountName: storageAccountName
+    scmDoBuildDuringDeployment: false
   }
 }
 
