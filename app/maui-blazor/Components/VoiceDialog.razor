@@ -1,0 +1,56 @@
+﻿<MudDialog>
+    <DialogContent>
+        @switch (_state)
+        {
+            case RequestVoiceState.RequestingVoices:
+                <div class="d-flex">
+                    <MudText Typo="Typo.subtitle1" Class="flex-grow-1">
+                        Requesting client voices...
+                    </MudText>
+                    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+                </div>
+                break;
+            case RequestVoiceState.FoundVoices:
+                if (_voices is { Length: > 0 })
+                {
+                    <MudSelect T="string" Label="Voice" AdornmentColor="Color.Secondary"
+                       AutoFocus="true" Strict="true" Variant="Variant.Outlined"
+                       AnchorOrigin="Origin.BottomCenter" ReadOnly="(_state is RequestVoiceState.RequestingVoices)"
+                       TextChanged="OnValueChanged"
+                       OpenIcon="@Icons.Material.Filled.RecordVoiceOver" @bind-Value="@_voicePreferences!.Voice">
+                        @foreach (var voice in _voices!)
+                        {
+                            <MudSelectItem T="string" Value="@voice.Name">
+                                @voice.Name
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudSlider TickMarks=true Step=".25" Min="_voiceSpeeds.Min()" Max="_voiceSpeeds.Max()"
+                               Variant="Variant.Filled" @bind-Value="@_voicePreferences!.Rate"
+                               ValueLabel=true Immediate=true Color="Color.Secondary" Class="pt-4">
+                        Voice Speed (@(_voicePreferences!.Rate))
+                    </MudSlider>
+
+                    <MudCheckBox @bind-Checked=@_voicePreferences!.IsEnabled Size="Size.Large"
+                                 Color="Color.Secondary"
+                                 Label="Text-to-speech Enabled (responses will be read aloud)" />
+                }
+                break;
+            default:
+                <MudTextField T="string" Value=@("Unable to load available voices.") Label="Error"
+                              ReadOnly="true" Variant="Variant.Outlined" Error="true" />
+                break;
+        }
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="OnCancel" Size="Size.Large" Class="ml-4 mb-4"
+                   StartIcon="@Icons.Material.Filled.Close"
+                   Variant="Variant.Filled" Color="@Color.Primary">Cancel</MudButton>
+        <MudSpacer />
+        <MudButton Color="Color.Secondary" Size="Size.Large"
+                StartIcon="@Icons.Material.Filled.Save" Class="mr-4 mb-4"
+                Variant="Variant.Filled" OnClick="OnSaveVoiceSelection">Save</MudButton>
+    </DialogActions>
+</MudDialog>

@@ -1,0 +1,15 @@
+﻿<MudBadge id="toggle-mic" Origin="Origin.TopRight" Color="Color.Primary"
+          Overlap=true Dot=false Bordered=false Icon="@MicIcon"
+          Style="width:100%; cursor:pointer;" @onclick="@OnMicClicked"
+          mic=@(_isListening ? "on" : "off")>
+    <MudTextField @bind-Value="@Value" Label="@Label"
+                  Variant="Variant.Outlined" Adornment="Adornment.End"
+                  AdornmentIcon="@Icon"
+                  AdornmentColor="Color.Secondary" AutoFocus="true"
+                  Placeholder="@Placeholder" Lines="3"
+                  Disabled=@Disabled IconSize="Size.Large"
+                  HelperText="@HelperText" Immediate="true"
+                  OnKeyUp="@OnKeyUpAsync" Clearable="true"
+                  Counter="1_000" MaxLength="1_000"
+                  autocomplete="off" title="@HelperText" />
+</MudBadge>
