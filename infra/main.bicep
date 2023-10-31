@@ -466,6 +466,16 @@ module storageRoleBackend 'core/security/role.bicep' = {
   }
 }
 
+module storageContribRoleBackend 'core/security/role.bicep' = {
+  scope: storageResourceGroup
+  name: 'storage-contribrole-backend'
+  params: {
+    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+    principalType: 'ServicePrincipal'
+  }
+}
+
 module searchRoleBackend 'core/security/role.bicep' = {
   scope: searchServiceResourceGroup
   name: 'search-role-backend'
