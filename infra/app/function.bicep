@@ -24,7 +24,7 @@ module function '../core/host/functions.bicep' = {
     appServicePlanId: appServicePlanId
     keyVaultName: keyVaultName
     runtimeName: 'dotnet-isolated'
-    runtimeVersion: '8'
+    runtimeVersion: '8.0'
     storageAccountName: storageAccountName
     scmDoBuildDuringDeployment: false
   }
