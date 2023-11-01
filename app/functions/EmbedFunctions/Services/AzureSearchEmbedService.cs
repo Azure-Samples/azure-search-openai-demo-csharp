@@ -1,13 +1,20 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.AI.OpenAI;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
+
 namespace EmbedFunctions.Services;
 
-internal sealed partial class AzureSearchEmbedService(
+public sealed partial class AzureSearchEmbedService(
+    OpenAIClient openAIClient,
+    string embeddingModelName,
     SearchClient indexSectionClient,
+    string searchIndexName,
     SearchIndexClient searchIndexClient,
     DocumentAnalysisClient documentAnalysisClient,
     BlobContainerClient corpusContainerClient,
-    ILogger<AzureSearchEmbedService> logger) : IEmbedService
+    ILogger<AzureSearchEmbedService>? logger) : IEmbedService
 {
     [GeneratedRegex("[^0-9a-zA-Z_-]")]
     private static partial Regex MatchInSetRegex();
@@ -16,9 +23,6 @@ internal sealed partial class AzureSearchEmbedService(
     {
         try
         {
-            var searchIndexName = Environment.GetEnvironmentVariable(
-                "AZURE_SEARCH_INDEX") ?? "gptkbindex";
-
             await EnsureSearchIndexAsync(searchIndexName);
 
             var pageMap = await GetDocumentTextAsync(blobStream, blobName);
@@ -41,67 +45,94 @@ internal sealed partial class AzureSearchEmbedService(
         }
         catch (Exception exception)
         {
-            logger.LogError(
+            logger?.LogError(
                 exception, "Failed to embed blob '{BlobName}'", blobName);
 
             return false;
         }
     }
 
-    private async Task EnsureSearchIndexAsync(string searchIndexName)
+    public async Task CreateSearchIndexAsync(string searchIndexName)
+    {
+        string vectorSearchConfigName = "my-vector-config";
+        string vectorSearchProfile = "my-vector-profile";
+        var index = new SearchIndex(searchIndexName)
+        {
+            VectorSearch = new()
+            {
+                Algorithms =
+            {
+                new HnswVectorSearchAlgorithmConfiguration(vectorSearchConfigName)
+            },
+                Profiles =
+            {
+                new VectorSearchProfile(vectorSearchProfile, vectorSearchConfigName)
+            }
+            },
+            Fields =
+        {
+            new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
+            new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
+            new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
+            new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
+            new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
+            new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
+            {
+                VectorSearchDimensions = 1536,
+                IsSearchable = true,
+                VectorSearchProfile = vectorSearchProfile,
+            }
+        },
+            SemanticSettings = new SemanticSettings
+            {
+                Configurations =
+            {
+                new SemanticConfiguration("default", new PrioritizedFields
+                {
+                    ContentFields =
+                    {
+                        new SemanticField
+                        {
+                            FieldName = "content"
+                        }
+                    }
+                })
+            }
+            }
+        };
+
+        logger?.LogInformation(
+                       "Creating '{searchIndexName}' search index", searchIndexName);
+
+        await searchIndexClient.CreateIndexAsync(index);
+    }
+
+    public async Task EnsureSearchIndexAsync(string searchIndexName)
     {
         var indexNames = searchIndexClient.GetIndexNamesAsync();
         await foreach (var page in indexNames.AsPages())
         {
             if (page.Values.Any(indexName => indexName == searchIndexName))
             {
-                logger.LogWarning(
+                logger?.LogWarning(
                     "Search index '{SearchIndexName}' already exists", searchIndexName);
                 return;
             }
         }
 
-        var index = new SearchIndex(searchIndexName)
-        {
-            Fields =
-            {
-                new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
-                new SearchableField("content") { AnalyzerName = "en.microsoft" },
-                new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
-                new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
-                new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true }
-            },
-            SemanticSettings = new SemanticSettings
-            {
-                Configurations =
-                {
-                    new SemanticConfiguration("default", new PrioritizedFields
-                    {
-                        ContentFields =
-                        {
-                            new SemanticField
-                            {
-                                FieldName = "content"
-                            }
-                        }
-                    })
-                    }
-            }
-        };
-
-        logger.LogInformation(
-            "Creating '{searchIndexName}' search index", searchIndexName);
-
-        await searchIndexClient.CreateIndexAsync(index);
+        await CreateSearchIndexAsync(searchIndexName);
     }
 
     private async Task<IReadOnlyList<PageDetail>> GetDocumentTextAsync(Stream blobStream, string blobName)
     {
-        logger.LogInformation(
+        logger?.LogInformation(
             "Extracting text from '{Blob}' using Azure Form Recognizer", blobName);
 
+        using var ms = new MemoryStream();
+        blobStream.CopyTo(ms);
+        ms.Position = 0;
         AnalyzeDocumentOperation operation = documentAnalysisClient.AnalyzeDocument(
-            WaitUntil.Started, "prebuilt-layout", blobStream);
+            WaitUntil.Started, "prebuilt-layout", ms);
 
         var offset = 0;
         List<PageDetail> pageMap = [];
@@ -208,7 +239,7 @@ internal sealed partial class AzureSearchEmbedService(
             return;
         }
 
-        logger.LogInformation("Uploading corpus '{CorpusBlobName}'", corpusBlobName);
+        logger?.LogInformation("Uploading corpus '{CorpusBlobName}'", corpusBlobName);
 
         await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
         await blobClient.UploadAsync(stream, new BlobHttpHeaders
@@ -231,7 +262,7 @@ internal sealed partial class AzureSearchEmbedService(
         var start = 0;
         var end = length;
 
-        logger.LogInformation("Splitting '{BlobName}' into sections", blobName);
+        logger?.LogInformation("Splitting '{BlobName}' into sections", blobName);
 
         while (start + SectionOverlap < length)
         {
@@ -300,9 +331,9 @@ internal sealed partial class AzureSearchEmbedService(
                 // If the section ends with an unclosed table, we need to start the next section with the table.
                 // If table starts inside SentenceSearchLimit, we ignore it, as that will cause an infinite loop for tables longer than MaxSectionLength
                 // If last table starts inside SectionOverlap, keep overlapping
-                if (logger.IsEnabled(LogLevel.Warning))
+                if (logger?.IsEnabled(LogLevel.Warning) is true)
                 {
-                    logger.LogWarning("""
+                    logger?.LogWarning("""
                         Section ends with unclosed table, starting next section with the
                         table at page {Offset} offset {Start} table start {LastTableStart}
                         """,
@@ -349,10 +380,10 @@ internal sealed partial class AzureSearchEmbedService(
 
     private async Task IndexSectionsAsync(string searchIndexName, IEnumerable<Section> sections, string blobName)
     {
-        var infoLoggingEnabled = logger.IsEnabled(LogLevel.Information);
-        if (infoLoggingEnabled)
+        var infoLoggingEnabled = logger?.IsEnabled(LogLevel.Information);
+        if (infoLoggingEnabled is true)
         {
-            logger.LogInformation("""
+            logger?.LogInformation("""
                 Indexing sections from '{BlobName}' into search index '{SearchIndexName}'
                 """,
                 blobName,
@@ -363,6 +394,8 @@ internal sealed partial class AzureSearchEmbedService(
         var batch = new IndexDocumentsBatch<SearchDocument>();
         foreach (var section in sections)
         {
+            var embeddings = await openAIClient.GetEmbeddingsAsync(embeddingModelName, new Azure.AI.OpenAI.EmbeddingsOptions(section.Content.Replace('\r', ' ')));
+            var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
             batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
                 IndexActionType.MergeOrUpload,
                 new SearchDocument
@@ -371,7 +404,8 @@ internal sealed partial class AzureSearchEmbedService(
                     ["content"] = section.Content,
                     ["category"] = section.Category,
                     ["sourcepage"] = section.SourcePage,
-                    ["sourcefile"] = section.SourceFile
+                    ["sourcefile"] = section.SourceFile,
+                    ["embedding"] = embedding,
                 }));
 
             iteration++;
@@ -380,9 +414,9 @@ internal sealed partial class AzureSearchEmbedService(
                 // Every one thousand documents, batch create.
                 IndexDocumentsResult result = await indexSectionClient.IndexDocumentsAsync(batch);
                 int succeeded = result.Results.Count(r => r.Succeeded);
-                if (infoLoggingEnabled)
+                if (infoLoggingEnabled is true)
                 {
-                    logger.LogInformation("""
+                    logger?.LogInformation("""
                         Indexed {Count} sections, {Succeeded} succeeded
                         """,
                         batch.Actions.Count,
@@ -399,9 +433,9 @@ internal sealed partial class AzureSearchEmbedService(
             var index = new SearchIndex($"index-{batch.Actions.Count}");
             IndexDocumentsResult result = await indexSectionClient.IndexDocumentsAsync(batch);
             int succeeded = result.Results.Count(r => r.Succeeded);
-            if (logger.IsEnabled(LogLevel.Information))
+            if (logger?.IsEnabled(LogLevel.Information) is true)
             {
-                logger.LogInformation("""
+                logger?.LogInformation("""
                     Indexed {Count} sections, {Succeeded} succeeded
                     """,
                 batch.Actions.Count,

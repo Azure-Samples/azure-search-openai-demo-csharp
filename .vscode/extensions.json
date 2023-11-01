@@ -1,19 +1,20 @@
 {
-    "recommendations": [
-      "ms-azuretools.vscode-azurefunctions",
-      "ms-dotnettools.csharp",
-      "ms-azuretools.vscode-docker",
-      "ms-azuretools.vscode-azurestorage",
-      "ms-azuretools.vscode-azurecontainerapps",
-      "ms-dotnettools.csdevkit",
-      "ms-dotnettools.vscode-dotnet-runtime",
-      "ms-dotnettools.blazorwasm-companion",
-      "ms-kubernetes-tools.vscode-aks-tools",
-      "ms-kubernetes-tools.aks-devx-tools",
-      "ms-kubernetes-tools.vscode-kubernetes-tools",
-      "ipedrazas.kubernetes-snippets",
-      "redhat.vscode-yaml",
-      "GitHub.vscode-github-actions",
-      "esbenp.prettier-vscode"
-    ]
-  }
+  "recommendations": [
+    "GitHub.vscode-github-actions",
+    "esbenp.prettier-vscode",
+    "ipedrazas.kubernetes-snippets",
+    "ms-azuretools.azure-dev",
+    "ms-azuretools.vscode-azurecontainerapps",
+    "ms-azuretools.vscode-azurefunctions",
+    "ms-azuretools.vscode-azurestorage",
+    "ms-azuretools.vscode-docker",
+    "ms-dotnettools.blazorwasm-companion",
+    "ms-dotnettools.csdevkit",
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.vscode-dotnet-runtime",
+    "ms-kubernetes-tools.aks-devx-tools",
+    "ms-kubernetes-tools.vscode-aks-tools",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    "redhat.vscode-yaml"
+  ]
+}
