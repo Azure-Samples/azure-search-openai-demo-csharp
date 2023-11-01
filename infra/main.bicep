@@ -11,7 +11,7 @@ param location string
 param tags string = ''
 
 @description('Location for the OpenAI resource group')
-@allowed(['canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus'])
+@allowed([ 'canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus' ])
 @metadata({
   azd: {
     type: 'location'
@@ -20,7 +20,7 @@ param tags string = ''
 param openAiResourceGroupLocation string
 
 @description('Name of the chat GPT model. Default: gpt-35-turbo')
-@allowed(['gpt-35-turbo', 'gpt-4', 'gpt-35-turbo-16k', 'gpt-4-16k'])
+@allowed([ 'gpt-35-turbo', 'gpt-4', 'gpt-35-turbo-16k', 'gpt-4-16k' ])
 param chatGptModelName string = 'gpt-35-turbo'
 
 @description('Name of the Azure Application Insights dashboard')
@@ -28,6 +28,9 @@ param applicationInsightsDashboardName string = ''
 
 @description('Name of the Azure Application Insights resource')
 param applicationInsightsName string = ''
+
+@description('Name of the Azure App Service Plan')
+param appServicePlanName string = ''
 
 @description('Capacity of the chat GPT deployment. Default: 30')
 param chatGptDeploymentCapacity int = 30
@@ -64,6 +67,9 @@ param formRecognizerServiceName string = ''
 
 @description('SKU name for the Form Recognizer service. Default: S0')
 param formRecognizerSkuName string = 'S0'
+
+@description('Name of the Azure Function App')
+param functionServiceName string = ''
 
 @description('Name of the Azure Key Vault')
 param keyVaultName string = ''
@@ -263,6 +269,43 @@ module web './app/web.bicep' = {
   }
 }
 
+// Create an App Service Plan to group applications under the same payment plan and SKU
+module appServicePlan './core/host/appserviceplan.bicep' = {
+  name: 'appserviceplan'
+  scope: resourceGroup
+  params: {
+    name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
+    location: location
+    tags: updatedTags
+    sku: {
+      name: 'Y1'
+      tier: 'Dynamic'
+    }
+  }
+}
+
+// The application backend
+module function './app/function.bicep' = {
+  name: 'function'
+  scope: resourceGroup
+  params: {
+    name: !empty(functionServiceName) ? functionServiceName : '${abbrs.webSitesFunctions}function-${resourceToken}'
+    location: location
+    tags: updatedTags
+    applicationInsightsName: monitoring.outputs.applicationInsightsName
+    appServicePlanId: appServicePlan.outputs.id
+    keyVaultName: keyVault.outputs.name
+    storageAccountName: storage.outputs.name
+    allowedOrigins: [ web.outputs.SERVICE_WEB_URI ]
+    appSettings: {
+      AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT: formRecognizer.outputs.endpoint
+      AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
+      AZURE_SEARCH_INDEX: searchIndexName
+      AZURE_STORAGE_BLOB_ENDPOINT: storage.outputs.primaryEndpoints.blob
+    }
+  }
+}
+
 // Monitor application with Azure Monitor
 module monitoring 'core/monitor/monitoring.bicep' = {
   name: 'monitoring'
@@ -438,6 +481,77 @@ module searchContribRoleUser 'core/security/role.bicep' = {
 module searchSvcContribRoleUser 'core/security/role.bicep' = {
   scope: searchServiceResourceGroup
   name: 'search-svccontrib-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
+    principalType: principalType
+  }
+}
+
+// FUNCTION ROLES
+module openAiRoleFunction 'core/security/role.bicep' = {
+  scope: openAiResourceGroup
+  name: 'openai-role-function'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+    principalType: principalType
+  }
+}
+
+module formRecognizerRoleFunction 'core/security/role.bicep' = {
+  scope: formRecognizerResourceGroup
+  name: 'formrecognizer-role-function'
+  params: {
+    principalId: principalId
+    roleDefinitionId: 'a97b65f3-24c7-4388-baec-2e87135dc908'
+    principalType: principalType
+  }
+}
+
+module storageRoleFunction 'core/security/role.bicep' = {
+  scope: storageResourceGroup
+  name: 'storage-role-function'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
+    principalType: principalType
+  }
+}
+
+module storageContribRoleFunction 'core/security/role.bicep' = {
+  scope: storageResourceGroup
+  name: 'storage-contribrole-function'
+  params: {
+    principalId: principalId
+    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+    principalType: principalType
+  }
+}
+
+module searchRoleFunction 'core/security/role.bicep' = {
+  scope: searchServiceResourceGroup
+  name: 'search-role-function'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
+    principalType: principalType
+  }
+}
+
+module searchContribRoleFunction 'core/security/role.bicep' = {
+  scope: searchServiceResourceGroup
+  name: 'search-contrib-role-function'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
+    principalType: principalType
+  }
+}
+
+module searchSvcContribRoleFunction 'core/security/role.bicep' = {
+  scope: searchServiceResourceGroup
+  name: 'search-svccontrib-role-function'
   params: {
     principalId: principalId
     roleDefinitionId: '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
