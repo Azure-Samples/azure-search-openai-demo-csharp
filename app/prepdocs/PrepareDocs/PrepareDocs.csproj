@@ -18,5 +18,9 @@
     <PackageReference Include="PdfSharpCore" />
     <PackageReference Include="System.CommandLine" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\functions\EmbedFunctions\EmbedFunctions.csproj" />
+  </ItemGroup>
 
 </Project>

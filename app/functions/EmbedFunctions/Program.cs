@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.AI.OpenAI;
+using Microsoft.Extensions.DependencyInjection;
+
 var host = new HostBuilder()
     .ConfigureServices(services =>
     {
@@ -36,7 +39,7 @@ var host = new HostBuilder()
         services.AddSingleton<BlobContainerClient>(_ =>
         {
             var blobServiceClient = new BlobServiceClient(
-                GetUriFromEnvironment("AZURE_STORAGE_ACCOUNT_ENDPOINT"),
+                GetUriFromEnvironment("AZURE_STORAGE_BLOB_ENDPOINT"),
                 credential);
 
             return blobServiceClient.GetBlobContainerClient("corpus");
@@ -45,10 +48,22 @@ var host = new HostBuilder()
         services.AddSingleton<EmbedServiceFactory>();
         services.AddSingleton<EmbeddingAggregateService>();
 
-        services.AddSingleton<IEmbedService, AzureSearchEmbedService>();
-        services.AddSingleton<IEmbedService, PineconeEmbedService>();
-        services.AddSingleton<IEmbedService, QdrantEmbedService>();
-        services.AddSingleton<IEmbedService, MilvusEmbedService>();
+        services.AddSingleton<IEmbedService, AzureSearchEmbedService>(provider =>
+        {
+            var searchIndexName = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new ArgumentNullException("AZURE_SEARCH_INDEX is null");
+            var embeddingModelName = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new ArgumentNullException("AZURE_OPENAI_EMBEDDING_DEPLOYMENT is null");
+            var openaiEndPoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new ArgumentNullException("AZURE_OPENAI_ENDPOINT is null");
+
+            var openAIClient = new OpenAIClient(new Uri(openaiEndPoint), new DefaultAzureCredential());
+
+            var searchClient = provider.GetRequiredService<SearchClient>();
+            var searchIndexClient = provider.GetRequiredService<SearchIndexClient>();
+            var blobContainerClient = provider.GetRequiredService<BlobContainerClient>();
+            var documentClient = provider.GetRequiredService<DocumentAnalysisClient>();
+            var logger = provider.GetRequiredService<ILogger<AzureSearchEmbedService>>();
+
+            return new AzureSearchEmbedService(openAIClient, embeddingModelName, searchClient, searchIndexName, searchIndexClient, documentClient, blobContainerClient, logger);
+        });
     })
     .ConfigureFunctionsWorkerDefaults()
     .Build();
