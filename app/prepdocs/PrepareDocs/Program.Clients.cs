@@ -27,7 +27,7 @@ internal static partial class Program
             var searchIndexClient = await GetSearchIndexClientAsync(o);
             var searchClient = await GetSearchClientAsync(o);
             var documentClient = await GetFormRecognizerClientAsync(o);
-            var blobContainerClient = await GetBlobContainerClientAsync(o);
+            var blobContainerClient = await GetCorpusBlobContainerClientAsync(o);
             var openAIClient = await GetAzureOpenAIClientAsync(o);
             var embeddingModelName = o.EmbeddingModelName ?? throw new ArgumentNullException(nameof(o.EmbeddingModelName));
             var searchIndexName = o.SearchIndexName ?? throw new ArgumentNullException(nameof(o.SearchIndexName));
