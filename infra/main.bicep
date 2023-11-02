@@ -141,7 +141,7 @@ param webIdentityName string = ''
 param webImageName string = ''
 
 @description('Use Application Insights for monitoring and performance tracing')
-param useApplicationInsights bool = true
+param useApplicationInsights bool = false
 
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
