@@ -302,7 +302,7 @@ module function './app/function.bicep' = {
       AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
       AZURE_SEARCH_INDEX: searchIndexName
       AZURE_STORAGE_BLOB_ENDPOINT: storage.outputs.primaryEndpoints.blob
-      AZURE_OPENAI_EMBEDDING_DEPLOYMENT: embeddingModelName
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT: embeddingDeploymentName
       AZURE_OPENAI_ENDPOINT: openAi.outputs.endpoint      
     }
   }
