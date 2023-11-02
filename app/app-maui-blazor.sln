@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientApp", "frontend\Clien
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinimalApi", "backend\MinimalApi.csproj", "{16D842AC-6B5E-4641-8DBF-62523B20C220}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MauiBlazor", "maui-blazor\MauiBlazor.csproj", "{91599083-0B15-4AE6-B640-B5AB665200D9}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D8F48C94-8F1C-4F2A-A01C-A546B13A2ED6}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -42,6 +44,12 @@ Global
 		{16D842AC-6B5E-4641-8DBF-62523B20C220}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{16D842AC-6B5E-4641-8DBF-62523B20C220}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{16D842AC-6B5E-4641-8DBF-62523B20C220}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91599083-0B15-4AE6-B640-B5AB665200D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91599083-0B15-4AE6-B640-B5AB665200D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91599083-0B15-4AE6-B640-B5AB665200D9}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{91599083-0B15-4AE6-B640-B5AB665200D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91599083-0B15-4AE6-B640-B5AB665200D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91599083-0B15-4AE6-B640-B5AB665200D9}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{B54798B7-C176-4373-86D4-9D7376AD2E17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B54798B7-C176-4373-86D4-9D7376AD2E17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B54798B7-C176-4373-86D4-9D7376AD2E17}.Release|Any CPU.ActiveCfg = Release|Any CPU
