@@ -14,6 +14,33 @@ products:
 - azure-monitor
 ---
 
+## Table of Contents
+
+- [Features](#features)
+- [Application Architecture](#application-architecture)
+- [Azure account requirements](#account-requirements)
+- [Getting Started](#getting-started)
+  - [Cost estimation](#cost-estimation)
+  - [Project setup](#project-setup)
+    - [GitHub Codespaces](#github-codespaces)
+    - [VS Code Dev Containers](#vs-code-remote-containers)
+    - [Local environment](#local-environment)
+  - [Deployment](#deployment)
+    - [Deploying from scratch](#deploying-from-scratch)
+    - [Deploying with existing Azure resources](#use-existing-resources)
+    - [Deploying again](#deploying-or-re-deploying-a-local-clone-of-the-repo)
+    - [Deploying App Spaces](#deploying-your-repo-using-app-spaces)
+    - [Running locally](#running-locally)
+    - [Sharing environments](#sharing-environments)
+    - [Clean up resources](#clean-up-resources)
+  - [Using the app](#using-the-app)
+- [Enabling optional features](#enabling-optional-features)
+  - [Enabling Application Insights](#enabling-optional-features)
+  - [Enabling authentication](#enabling-authentication)
+- [Productionizing](#productionizing)
+- [Resources](#resources)
+- [FAQ](#faq)
+
 # ChatGPT + Enterprise data with Azure OpenAI and Cognitive Search (.NET)
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Azure-Samples/azure-search-openai-demo-csharp/dotnet-build.yml?label=BUILD%20%26%20TEST&logo=github&style=for-the-badge)
@@ -115,7 +142,9 @@ Then, run the following commands to get the project on your local environment:
    1. Clone the repository or run `azd init -t azure-search-openai-demo-csharp`
    1. Run `azd env new azure-search-openai-demo-csharp`
 
-### Deploying from scratch
+### Deployment
+
+#### Deploying from scratch
 
 > **Important**<br>
 > Ensure Docker is running before running any `azd` provisioning / deployment commands.

@@ -68,7 +68,7 @@ param serviceBinds array = []
 param serviceType string = ''
 
 @description('The target port for the container')
-param targetPort int = 8080
+param targetPort int = 80
 
 resource userIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = if (!empty(identityName)) {
   name: identityName

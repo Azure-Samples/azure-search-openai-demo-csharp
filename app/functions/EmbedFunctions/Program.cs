@@ -42,7 +42,11 @@ var host = new HostBuilder()
                 GetUriFromEnvironment("AZURE_STORAGE_BLOB_ENDPOINT"),
                 credential);
 
-            return blobServiceClient.GetBlobContainerClient("corpus");
+            var containerClient = blobServiceClient.GetBlobContainerClient("corpus");
+
+            containerClient.CreateIfNotExists();
+
+            return containerClient;
         });
 
         services.AddSingleton<EmbedServiceFactory>();
