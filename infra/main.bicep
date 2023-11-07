@@ -140,9 +140,6 @@ param webIdentityName string = ''
 @description('Name of the web app image')
 param webImageName string = ''
 
-@description('Use Application Insights for monitoring and performance tracing')
-param useApplicationInsights bool = false
-
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
@@ -302,7 +299,7 @@ module function './app/function.bicep' = {
       AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
       AZURE_SEARCH_INDEX: searchIndexName
       AZURE_STORAGE_BLOB_ENDPOINT: storage.outputs.primaryEndpoints.blob
-      AZURE_OPENAI_EMBEDDING_DEPLOYMENT: embeddingModelName
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT: embeddingDeploymentName
       AZURE_OPENAI_ENDPOINT: openAi.outputs.endpoint      
     }
   }
@@ -316,7 +313,7 @@ module monitoring 'core/monitor/monitoring.bicep' = {
     location: location
     tags: updatedTags
     includeDashboard: false
-    includeApplicationInsights: useApplicationInsights
+    includeApplicationInsights: true
     logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
     applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'
     applicationInsightsDashboardName: !empty(applicationInsightsDashboardName) ? applicationInsightsDashboardName : '${abbrs.portalDashboards}${resourceToken}'
@@ -495,9 +492,9 @@ module openAiRoleFunction 'core/security/role.bicep' = {
   scope: openAiResourceGroup
   name: 'openai-role-function'
   params: {
-    principalId: principalId
+    principalId: function.outputs.SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-    principalType: principalType
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -505,9 +502,9 @@ module formRecognizerRoleFunction 'core/security/role.bicep' = {
   scope: formRecognizerResourceGroup
   name: 'formrecognizer-role-function'
   params: {
-    principalId: principalId
+    principalId: function.outputs.SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: 'a97b65f3-24c7-4388-baec-2e87135dc908'
-    principalType: principalType
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -515,9 +512,9 @@ module storageRoleFunction 'core/security/role.bicep' = {
   scope: storageResourceGroup
   name: 'storage-role-function'
   params: {
-    principalId: principalId
+    principalId: function.outputs.SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
-    principalType: principalType
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -525,9 +522,9 @@ module storageContribRoleFunction 'core/security/role.bicep' = {
   scope: storageResourceGroup
   name: 'storage-contribrole-function'
   params: {
-    principalId: principalId
+    principalId: function.outputs.SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-    principalType: principalType
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -535,9 +532,9 @@ module searchRoleFunction 'core/security/role.bicep' = {
   scope: searchServiceResourceGroup
   name: 'search-role-function'
   params: {
-    principalId: principalId
+    principalId: function.outputs.SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
-    principalType: principalType
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -545,9 +542,9 @@ module searchContribRoleFunction 'core/security/role.bicep' = {
   scope: searchServiceResourceGroup
   name: 'search-contrib-role-function'
   params: {
-    principalId: principalId
+    principalId: function.outputs.SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
-    principalType: principalType
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -555,9 +552,9 @@ module searchSvcContribRoleFunction 'core/security/role.bicep' = {
   scope: searchServiceResourceGroup
   name: 'search-svccontrib-role-function'
   params: {
-    principalId: principalId
+    principalId: function.outputs.SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID
     roleDefinitionId: '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
-    principalType: principalType
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -634,3 +631,4 @@ output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
 output AZURE_TENANT_ID string = tenant().tenantId
 output SERVICE_WEB_IDENTITY_NAME string = web.outputs.SERVICE_WEB_IDENTITY_NAME
 output SERVICE_WEB_NAME string = web.outputs.SERVICE_WEB_NAME
+output SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID string = function.outputs.SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID
