@@ -4,14 +4,14 @@ namespace ClientApp.Components;
 
 public sealed partial class SupportingContent
 {
-    internal static ParsedSupportingContentItem ParseSupportingContent(string item)
+    internal static ParsedSupportingContentItem ParseSupportingContent(SupportingContentRecord item)
     {
         // Assumes the item starts with the file name followed by : and the content.
         // Example: "sdp_corporate.pdf: this is the content that follows".
-        var parts = item.Split(":");
-        var title = parts[0];
+        var title = item.Title;
+        var content = item.Content;
 
-        return parts is { Length: 2 } ? new ParsedSupportingContentItem(title, parts[1].Trim()) : new ParsedSupportingContentItem(title);
+        return new ParsedSupportingContentItem(title, content.Trim());
     }
 }
 

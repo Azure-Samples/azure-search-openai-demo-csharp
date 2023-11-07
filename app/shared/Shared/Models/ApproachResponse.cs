@@ -2,9 +2,10 @@
 
 namespace Shared.Models;
 
+public record SupportingContentRecord(string Title, string Content);
 public record ApproachResponse(
     string Answer,
     string? Thoughts,
-    string[] DataPoints,
+    SupportingContentRecord[] DataPoints, // title, content
     string CitationBaseUrl,
     string? Error = null);
