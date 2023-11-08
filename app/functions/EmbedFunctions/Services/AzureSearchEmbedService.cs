@@ -375,7 +375,7 @@ public sealed partial class AzureSearchEmbedService(
     }
 
     private static string BlobNameFromFilePage(string blobName, int page = 0) => Path.GetExtension(blobName).ToLower() is ".pdf"
-            ? $"{Path.GetFileNameWithoutExtension(blobName)}-{page}.pdf"
+            ? $"{Path.GetFileNameWithoutExtension(blobName)}.pdf"
             : Path.GetFileName(blobName);
 
     private async Task IndexSectionsAsync(string searchIndexName, IEnumerable<Section> sections, string blobName)
