@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Shared.Models;
+
 namespace ClientApp.Tests;
 
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -12,14 +14,14 @@ public class SupportingContentParserTests
         {
             yield return new object[]
             {
-                "test.pdf:blah blah",
+                new SupportingContentRecord("test.pdf","blah blah"),
                 "test.pdf",
                 "blah blah",
             };
 
             yield return new object[]
             {
-                "sdp_corporate.pdf: this is the content that follows",
+                new SupportingContentRecord("sdp_corporate.pdf", "this is the content that follows"),
                 "sdp_corporate.pdf",
                 "this is the content that follows",
             };
@@ -28,7 +30,7 @@ public class SupportingContentParserTests
 
     [Theory, MemberData(nameof(ParserInput))]
     public void SupportingContentCorrectlyParsesText(
-        string supportingContent,
+        SupportingContentRecord supportingContent,
         string expectedTitle,
         string? expectedContent)
     {

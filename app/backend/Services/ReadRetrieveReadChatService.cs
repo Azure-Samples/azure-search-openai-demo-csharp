@@ -77,11 +77,16 @@ standard plan AND dental AND employee benefit.
 
         // step 2
         // use query to search related docs
-        var documentContents = await _searchClient.QueryDocumentsAsync(query, embeddings, overrides, cancellationToken);
+        var documentContentList = await _searchClient.QueryDocumentsAsync(query, embeddings, overrides, cancellationToken);
 
-        if (string.IsNullOrEmpty(documentContents))
+        string documentContents = string.Empty;
+        if (documentContentList.Length == 0)
         {
             documentContents = "no source available.";
+        }
+        else
+        {
+            documentContents = string.Join("\r", documentContentList.Select(x =>$"{x.Title}:{x.Content}"));
         }
 
         Console.WriteLine(documentContents);
@@ -152,7 +157,7 @@ e.g.
             }
         }
         return new ApproachResponse(
-            DataPoints: documentContents.Split('\r'),
+            DataPoints: documentContentList,
             Answer: ans,
             Thoughts: thoughts,
             CitationBaseUrl: _configuration.ToCitationBaseUrl());
