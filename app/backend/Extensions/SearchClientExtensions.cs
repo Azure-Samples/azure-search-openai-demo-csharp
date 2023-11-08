@@ -4,7 +4,7 @@ namespace MinimalApi.Extensions;
 
 internal static class SearchClientExtensions
 {
-    internal static async Task<string> QueryDocumentsAsync(
+    internal static async Task<SupportingContentRecord[]> QueryDocumentsAsync(
         this SearchClient searchClient,
         string? query = null,
         float[]? embedding = null,
@@ -68,7 +68,7 @@ internal static class SearchClientExtensions
         //   "sourcepage": "Northwind_Standard_Benefits_Details-24.pdf",
         //   "sourcefile": "Northwind_Standard_Benefits_Details.pdf"
         // }
-        var sb = new StringBuilder();
+        var sb = new List<SupportingContentRecord>();
         foreach (var doc in searchResult.GetResults())
         {
             doc.Document.TryGetValue("sourcepage", out var sourcePageValue);
@@ -94,11 +94,10 @@ internal static class SearchClientExtensions
             if (sourcePageValue is string sourcePage && contentValue is string content)
             {
                 content = content.Replace('\r', ' ').Replace('\n', ' ');
-                sb.AppendLine($"{sourcePage}:{content}");
+                sb.Add(new SupportingContentRecord(sourcePage,content));
             }
         }
-        documentContents = sb.ToString();
 
-        return documentContents;
+        return sb.ToArray();
     }
 }
