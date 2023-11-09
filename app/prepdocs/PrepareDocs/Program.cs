@@ -59,11 +59,7 @@ s_rootCommand.SetHandler(
                     return;
                 }
 
-                await UploadBlobsAsync(options, fileName);
-                using (var stream = File.OpenRead(fileName))
-                {
-                    await embedService.EmbedBlobAsync(stream, fileName);
-                }
+                await UploadBlobsAndCreateIndexAsync(options, fileName, embedService);
             }
         }
     });
@@ -159,8 +155,8 @@ static async ValueTask RemoveFromIndexAsync(
     }
 }
 
-static async ValueTask UploadBlobsAsync(
-    AppOptions options, string fileName)
+static async ValueTask UploadBlobsAndCreateIndexAsync(
+    AppOptions options, string fileName, IEmbedService embeddingService)
 {
     var container = await GetBlobContainerClientAsync(options);
 
@@ -190,6 +186,11 @@ static async ValueTask UploadBlobsAsync(
                 {
                     ContentType = "application/pdf"
                 });
+
+                // revert stream position
+                stream.Position = 0;
+
+                await embeddingService.EmbedBlobAsync(stream, documentName);
             }
             finally
             {
@@ -201,6 +202,7 @@ static async ValueTask UploadBlobsAsync(
     {
         var blobName = BlobNameFromFilePage(fileName);
         await UploadBlobAsync(fileName, blobName, container);
+        await embeddingService.EmbedBlobAsync(File.OpenRead(fileName), blobName);
     }
 }
 
