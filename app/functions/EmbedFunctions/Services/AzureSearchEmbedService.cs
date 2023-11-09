@@ -24,7 +24,7 @@ public sealed partial class AzureSearchEmbedService(
         try
         {
             await EnsureSearchIndexAsync(searchIndexName);
-
+            Console.WriteLine($"Embedding blob '{blobName}'");
             var pageMap = await GetDocumentTextAsync(blobStream, blobName);
 
             var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(blobName);
@@ -128,6 +128,7 @@ public sealed partial class AzureSearchEmbedService(
         logger?.LogInformation(
             "Extracting text from '{Blob}' using Azure Form Recognizer", blobName);
 
+        Console.WriteLine($"Extracting text from '{blobName}' using Azure Form Recognizer");
         using var ms = new MemoryStream();
         blobStream.CopyTo(ms);
         ms.Position = 0;
@@ -184,7 +185,7 @@ public sealed partial class AzureSearchEmbedService(
             pageMap.Add(new PageDetail(i, offset, pageText.ToString()));
             offset += pageText.Length;
         }
-
+        Console.WriteLine($"Extracted {pageMap.Count} pages from '{blobName}'");
         return pageMap.AsReadOnly();
     }
 
