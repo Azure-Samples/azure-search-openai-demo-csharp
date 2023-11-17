@@ -11,26 +11,26 @@
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.18.0" />
     <PackageVersion Include="Azure.Storage.Files.Shares" Version="12.16.0" />
     <PackageVersion Include="Azure.Storage.Queues" Version="12.16.0" />
-    <PackageVersion Include="Blazor.LocalStorage.WebAssembly" Version="8.0.0-rc.2.23480.2" />
-    <PackageVersion Include="Blazor.SessionStorage.WebAssembly" Version="8.0.0-rc.2.23480.2" />
-    <PackageVersion Include="Blazor.SpeechRecognition.WebAssembly" Version="8.0.0-rc.2.23480.2" />
-    <PackageVersion Include="Blazor.SpeechSynthesis.WebAssembly" Version="8.0.0-rc.2.23480.2" />
+    <PackageVersion Include="Blazor.LocalStorage.WebAssembly" Version="8.0.0" />
+    <PackageVersion Include="Blazor.SessionStorage.WebAssembly" Version="8.0.0" />
+    <PackageVersion Include="Blazor.SpeechRecognition.WebAssembly" Version="8.0.0" />
+    <PackageVersion Include="Blazor.SpeechSynthesis.WebAssembly" Version="8.0.0" />
     <PackageVersion Include="bunit" Version="1.24.10" />
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="Markdig" Version="0.33.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0-beta3" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0-rc.2.23480.2" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0-rc.2.23480.2" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0-rc.2.23480.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="6.2.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.15.1" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
     <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.7.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0-rc.2.23480.2" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0-rc.2.23479.6" />
-    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="8.0.0-rc.2.23479.6" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0-rc.2.23479.6" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0-rc.2.23479.6" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.ML" Version="2.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
     <PackageVersion Include="Microsoft.SemanticKernel" Version="0.24.230918.1-preview" />
