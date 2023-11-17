@@ -71,9 +71,11 @@
       <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0-rc.2.23479.6" />
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0-rc.2.23479.6" />
       <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+      <PackageReference Include="CommunityToolkit.Maui" Version="6.0.0" />
     </ItemGroup>
 
-    <ItemGroup>
+  <ItemGroup>
+      <ProjectReference Include="..\SharedWebComponents\SharedWebComponents.csproj" />
       <ProjectReference Include="..\shared\Shared\Shared.csproj" />
     </ItemGroup>
 

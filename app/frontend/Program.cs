@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using ClientApp.Services;
+
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<SharedWebComponents.App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.Configure<AppSettings>(
@@ -17,6 +19,7 @@ builder.Services.AddSessionStorageServices();
 builder.Services.AddSpeechSynthesisServices();
 builder.Services.AddSpeechRecognitionServices();
 builder.Services.AddMudServices();
+builder.Services.AddTransient<IPdfViewer, WebPdfViewer>();
 
 await JSHost.ImportAsync(
     moduleName: nameof(JavaScriptModule),

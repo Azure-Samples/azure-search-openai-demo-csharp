@@ -1,4 +1,7 @@
-﻿namespace MauiBlazor;
+﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Media;
+
+namespace MauiBlazor;
 
 public static class MauiProgram
 {
@@ -12,6 +15,8 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 			});
 
+		builder.UseMauiCommunityToolkit();
+
 		builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG
@@ -19,18 +24,24 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
-        builder.Services.AddHttpClient<ApiClient>(client =>
-        {
-            // TODO: Configure this to point to your deployed API. For example, https://MY_HOSTED_APP.example.azurecontainerapps.io/
-            client.BaseAddress = new Uri("TODO");
-        });
-        builder.Services.AddScoped<OpenAIPromptQueue>();
-        builder.Services.AddSingleton<ILocalStorageService, LocalStorageService>();
-        builder.Services.AddSingleton<ISessionStorageService, SessionStorageService>();
-        builder.Services.AddSingleton<ISpeechRecognitionService, SpeechRecognitionService>();
-        builder.Services.AddSingleton<ISpeechSynthesisService, SpeechSynthesisService>();
-        builder.Services.AddMudServices();
+		builder.Services.AddHttpClient<ApiClient>(client =>
+		{
+			// TODO: Configure this to point to your deployed API. For example, https://MY_HOSTED_APP.example.azurecontainerapps.io/
+			client.BaseAddress = new Uri("TODO");
+		});
+		builder.Services.AddScoped<OpenAIPromptQueue>();
 
-        return builder.Build();
+		builder.Services.AddSingleton<ILocalStorageService, MauiLocalStorageService>();
+		builder.Services.AddSingleton<ISessionStorageService, MauiSessionStorageService>();
+		builder.Services.AddSingleton<ISpeechRecognitionService, MauiSpeechRecognitionService>();
+		builder.Services.AddSingleton<ISpeechSynthesisService, MauiSpeechSynthesisService>();
+		builder.Services.AddTransient<IPdfViewer, MauiPdfViewer>();
+
+		builder.Services.AddMudServices();
+
+		builder.Services.AddSingleton<IPreferences>(Preferences.Default);
+		builder.Services.AddSingleton<ISpeechToText>(SpeechToText.Default);
+
+		return builder.Build();
 	}
 }
