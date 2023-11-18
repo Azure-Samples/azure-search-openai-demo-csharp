@@ -29,17 +29,17 @@ public sealed partial class Index : IDisposable
 
     protected override void OnInitialized()
     {
-        _images.Enqueue(new("media/bing-create-0.jpg", "The birth of generative AI, color pop"));
-        _images.Enqueue(new("media/bing-create-1.jpg", ".NET, pop art"));
-        _images.Enqueue(new("media/bing-create-2.jpg", "Computers evolving beyond humanity retro futurism"));
-        _images.Enqueue(new("media/bing-create-3.jpg", "Futuristic robots playing chess, Banksy art, color splash"));
-        _images.Enqueue(new("media/bing-create-4.jpg", "Artificial intelligence, geometric art, bright and vibrant"));
-        _images.Enqueue(new("media/bing-create-5.jpg", "Robot made of analog stereo equipment, digital art"));
-        _images.Enqueue(new("media/bing-create-6.jpg", "Steaming cup of coffee with text on side, pop art"));
-        _images.Enqueue(new("media/bing-create-7.jpg", "Futuristic scene with skyscrapers, hovercrafts and robots"));
-        _images.Enqueue(new("media/bing-create-8.jpg", "Robots playing chess, Banksy art"));
-        _images.Enqueue(new("media/bing-create-9.jpg", "Artificial intelligence, geometric art, bright and vivid"));
-        _images.Enqueue(new("media/bing-create-10.jpg", "Old 1950s computer on pick background, retro futurism"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-0.jpg", "The birth of generative AI, color pop"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-1.jpg", ".NET, pop art"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-2.jpg", "Computers evolving beyond humanity retro futurism"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-3.jpg", "Futuristic robots playing chess, Banksy art, color splash"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-4.jpg", "Artificial intelligence, geometric art, bright and vibrant"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-5.jpg", "Robot made of analog stereo equipment, digital art"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-6.jpg", "Steaming cup of coffee with text on side, pop art"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-7.jpg", "Futuristic scene with skyscrapers, hovercrafts and robots"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-8.jpg", "Robots playing chess, Banksy art"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-9.jpg", "Artificial intelligence, geometric art, bright and vivid"));
+        _images.Enqueue(new("_content/SharedWebComponents/media/bing-create-10.jpg", "Old 1950s computer on pick background, retro futurism"));
 
         _ = UpdateImageAsync();
     }
