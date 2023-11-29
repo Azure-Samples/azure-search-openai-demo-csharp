@@ -18,16 +18,22 @@ internal static class SearchClientExtensions
         var useSemanticRanker = overrides?.SemanticRanker ?? false;
         var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
 
-        SearchOptions searchOption = useSemanticRanker
+        SearchOptions searchOptions = useSemanticRanker
             ? new SearchOptions
             {
                 Filter = filter,
                 QueryType = SearchQueryType.Semantic,
-                QueryLanguage = "en-us",
-                QuerySpeller = "lexicon",
-                SemanticConfigurationName = "default",
+                SemanticSearch = new()
+                {
+                    SemanticConfigurationName = "default",
+                    QueryCaption = new(useSemanticCaptions
+                        ? QueryCaptionType.Extractive
+                        : QueryCaptionType.None),
+                },
+                // TODO: Find if these options are assignable
+                //QueryLanguage = "en-us",
+                //QuerySpeller = "lexicon",
                 Size = top,
-                QueryCaption = useSemanticCaptions ? QueryCaptionType.Extractive : QueryCaptionType.None,
             }
             : new SearchOptions
             {
@@ -38,19 +44,18 @@ internal static class SearchClientExtensions
         if (embedding != null && overrides?.RetrievalMode != "Text")
         {
             var k = useSemanticRanker ? 50 : top;
-            var vectorQuery = new RawVectorQuery
+            var vectorQuery = new VectorizedQuery(embedding)
             {
                 // if semantic ranker is enabled, we need to set the rank to a large number to get more
                 // candidates for semantic reranking
                 KNearestNeighborsCount = useSemanticRanker ? 50 : top,
-                Vector = embedding,
             };
             vectorQuery.Fields.Add("embedding");
-            searchOption.VectorQueries.Add(vectorQuery);
+            searchOptions.VectorSearch.Queries.Add(vectorQuery);
         }
 
         var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(
-            query, searchOption, cancellationToken);
+            query, searchOptions, cancellationToken);
         if (searchResultResponse.Value is null)
         {
             throw new InvalidOperationException("fail to get search result");
@@ -77,7 +82,7 @@ internal static class SearchClientExtensions
             {
                 if (useSemanticCaptions)
                 {
-                    var docs = doc.Captions.Select(c => c.Text);
+                    var docs = doc.SemanticSearch.Captions.Select(c => c.Text);
                     contentValue = string.Join(" . ", docs);
                 }
                 else
@@ -98,6 +103,6 @@ internal static class SearchClientExtensions
             }
         }
 
-        return sb.ToArray();
+        return [.. sb];
     }
 }
