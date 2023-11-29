@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Azure.AI.OpenAI;
-using Microsoft.Extensions.DependencyInjection;
 
 var host = new HostBuilder()
     .ConfigureServices(services =>

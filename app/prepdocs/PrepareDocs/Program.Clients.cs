@@ -2,7 +2,6 @@
 
 
 using EmbedFunctions.Services;
-using Microsoft.Extensions.Logging;
 
 internal static partial class Program
 {
