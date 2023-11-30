@@ -51,6 +51,7 @@ internal static class SearchClientExtensions
                 KNearestNeighborsCount = useSemanticRanker ? 50 : top,
             };
             vectorQuery.Fields.Add("embedding");
+            searchOptions.VectorSearch = new();
             searchOptions.VectorSearch.Queries.Add(vectorQuery);
         }
 
