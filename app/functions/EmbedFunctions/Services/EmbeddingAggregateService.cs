@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.IO;
-
 namespace EmbedFunctions.Services;
 
 public sealed class EmbeddingAggregateService(

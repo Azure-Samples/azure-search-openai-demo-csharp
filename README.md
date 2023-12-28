@@ -89,7 +89,7 @@ In order to deploy and run this example, you'll need
 - **Azure account permissions** - Your Azure Account must have `Microsoft.Authorization/roleAssignments/write` permissions, such as [User Access Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#user-access-administrator) or [Owner](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#owner).
 
 
-> **Warning**<br>
+> [!WARNING]<br>
 > By default this sample will create an Azure Container App, and Azure Cognitive Search resource that have a monthly cost, as well as Form Recognizer resource that has cost per document page. You can switch them to free versions of each of them if you want to avoid this cost by changing the parameters file under the infra folder (though there are some limits to consider; for example, you can have up to 1 free Cognitive Search resource per subscription, and the free Form Recognizer resource only analyzes the first 2 pages of each document.)
 
 ### Cost estimation
@@ -164,7 +164,7 @@ It will look like the following:
 
 !['Output from running azd up'](assets/endpoint.png)
 
-> **Note**<br>
+> [!NOTE]<br>
 > It may take a few minutes for the application to be fully deployed.
 
 #### Use existing resources
@@ -177,19 +177,19 @@ If you have existing resources in Azure that you wish to use, you can configure 
 1. Run `azd env set AZURE_OPENAI_EMBEDDING_DEPLOYMENT {Name of existing embedding model deployment}`. Only needed if your embedding model deployment is not the default `embedding`.
 1. Run `azd up`
 
-> **Note**<br> 
+> [!NOTE]<br> 
 > You can also use existing Search and Storage Accounts. See `./infra/main.parameters.json` for list of environment variables to pass to `azd env set` to configure those existing resources.
 
 #### Deploying or re-deploying a local clone of the repo
 
-> **Important**<br>
+> [!IMPORTANT]<br>
 > Ensure Docker is running before running any `azd` provisioning / deployment commands.
 
 - Run `azd up`
 
 #### Deploying your repo using App Spaces
 
-> **Note**<br>
+> [!NOTE]<br>
 > Make sure you have AZD supported bicep files in your repository and add an initial GitHub Actions Workflow file which can either be triggered manually (for initial deployment) or on code change (automatically re-deploying with the latest changes)
 > To make your repository compatible with App Spaces, you need to make changes to your main bicep and main parameters file to allow AZD to deploy to an existing resource group with the appropriate tags.
 
@@ -225,7 +225,7 @@ If you have existing resources in Azure that you wish to use, you can configure 
 
 #### Running locally
 
-> **Important**<br>
+> [!IMPORTANT]<br>
 > Ensure Docker is running before running any `azd` provisioning / deployment commands.
 
 1. Run `azd auth login`
@@ -308,7 +308,7 @@ to production. Here are some things to consider:
 - [`Azure.AI.OpenAI` NuGet package](https://www.nuget.org/packages/Azure.AI.OpenAI)
 - [Original Blazor App](https://github.com/IEvangelist/blazor-azure-openai)
 
-> **Note**<br>
+> [!NOTE]<br>
 > The PDF documents used in this demo contain information generated using a language model (Azure OpenAI Service). The information contained in these documents is only for demonstration purposes and does not reflect the opinions or beliefs of Microsoft. Microsoft makes no representations or warranties of any kind, express or implied, about the completeness, accuracy, reliability, suitability or availability with respect to the information contained in this document. All rights reserved to Microsoft.
 
 ### FAQ

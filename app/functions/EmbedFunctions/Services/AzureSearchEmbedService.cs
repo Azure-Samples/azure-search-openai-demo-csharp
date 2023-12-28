@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Azure.AI.OpenAI;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Options;
 
 namespace EmbedFunctions.Services;
 
@@ -61,48 +59,45 @@ public sealed partial class AzureSearchEmbedService(
             VectorSearch = new()
             {
                 Algorithms =
-            {
-                new HnswVectorSearchAlgorithmConfiguration(vectorSearchConfigName)
-            },
+                {
+                    new HnswAlgorithmConfiguration(vectorSearchConfigName)
+                },
                 Profiles =
-            {
-                new VectorSearchProfile(vectorSearchProfile, vectorSearchConfigName)
-            }
+                {
+                    new VectorSearchProfile(vectorSearchProfile, vectorSearchConfigName)
+                }
             },
             Fields =
-        {
-            new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
-            new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
-            new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
-            new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
-            new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
-            new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
             {
-                VectorSearchDimensions = 1536,
-                IsSearchable = true,
-                VectorSearchProfile = vectorSearchProfile,
-            }
-        },
-            SemanticSettings = new SemanticSettings
+                new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
+                new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
+                new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
+                new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
+                new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
+                new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
+                {
+                    VectorSearchDimensions = 1536,
+                    IsSearchable = true,
+                    VectorSearchProfileName = vectorSearchProfile,
+                }
+            },
+            SemanticSearch = new()
             {
                 Configurations =
-            {
-                new SemanticConfiguration("default", new PrioritizedFields
                 {
-                    ContentFields =
+                    new SemanticConfiguration("default", new()
                     {
-                        new SemanticField
+                        ContentFields =
                         {
-                            FieldName = "content"
+                            new SemanticField("content")
                         }
-                    }
-                })
-            }
+                    })
+                }
             }
         };
 
         logger?.LogInformation(
-                       "Creating '{searchIndexName}' search index", searchIndexName);
+            "Creating '{searchIndexName}' search index", searchIndexName);
 
         await searchIndexClient.CreateIndexAsync(index);
     }
