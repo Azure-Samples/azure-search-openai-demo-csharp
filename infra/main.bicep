@@ -6,12 +6,12 @@ targetScope = 'subscription'
 param environmentName string
 
 @description('Primary location for all resources')
-@allowed([ 'centralus', 'eastus2', 'eastasia', 'westeurope', 'westus2', 'australiaeast', 'eastus', 'francecentral', 'japaneast', 'nortcentralus', 'swedencentral', 'switzerlandnorth', 'uksouth' ])
+@allowed([ 'centralus', 'eastus2', 'eastasia', 'westus', 'westeurope', 'westus2', 'australiaeast', 'eastus', 'francecentral', 'japaneast', 'nortcentralus', 'swedencentral', 'switzerlandnorth', 'uksouth' ])
 param location string
 param tags string = ''
 
 @description('Location for the OpenAI resource group')
-@allowed([ 'canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus' ])
+@allowed([ 'canadaeast', 'westus', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus' ])
 @metadata({
   azd: {
     type: 'location'
@@ -37,6 +37,23 @@ param chatGptDeploymentCapacity int = 30
 
 @description('Name of the chat GPT deployment')
 param chatGptDeploymentName string = 'chat'
+
+param gpt4vModelName string = 'gpt-4'
+param gpt4vDeploymentName string = 'gpt-4v'
+param gpt4vModelVersion string = 'vision-preview'
+param gpt4vDeploymentCapacity int = 10
+
+@description('Name of the Azure Cognitive Services Computer Vision service')
+param computerVisionServiceName string = ''
+
+@description('Name of the resource group for the Azure Cognitive Services Computer Vision service')
+param computerVisionResourceGroupName string = ''
+
+@description('Location of the resource group for the Azure Cognitive Services Computer Vision service')
+param computerVisionResourceGroupLocation string = 'eastus' // Vision vectorize API is yet to be deployed globally
+
+@description('SKU name for the Azure Cognitive Services Computer Vision service. Default: S1')
+param computerVisionSkuName string = 'S1'
 
 @description('Name of the embedding deployment. Default: embedding')
 param embeddingDeploymentName string = 'embedding'
@@ -140,11 +157,15 @@ param webIdentityName string = ''
 @description('Name of the web app image')
 param webImageName string = ''
 
+@description('toggle to enable gpt-4v model')
+param useGPT4V bool = false
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
 var baseTags = { 'azd-env-name': environmentName }
 var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
+
 
 // Organize resources in a resource group
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -159,6 +180,10 @@ resource openAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' exi
 
 resource formRecognizerResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(formRecognizerResourceGroupName)) {
   name: !empty(formRecognizerResourceGroupName) ? formRecognizerResourceGroupName : resourceGroup.name
+}
+
+resource computerVisionResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(computerVisionResourceGroupName)) {
+  name: !empty(computerVisionResourceGroupName) ? computerVisionResourceGroupName : resourceGroup.name
 }
 
 resource searchServiceResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(searchServiceResourceGroupName)) {
@@ -193,12 +218,24 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
     tags: updatedTags
     secrets: [
       {
+        name: 'useGPT4V'
+        value: string(useGPT4V)
+      }
+      {
         name: 'AzureOpenAiServiceEndpoint'
         value: openAi.outputs.endpoint
       }
       {
         name: 'AzureOpenAiChatGptDeployment'
         value: chatGptDeploymentName
+      }
+      {
+        name: 'GPT4VModelName'
+        value: gpt4vModelName
+      }
+      {
+        name: 'GPT4VDeploymentName'
+        value: gpt4vDeploymentName
       }
       {
         name: 'AzureOpenAiEmbeddingDeployment'
@@ -259,9 +296,14 @@ module web './app/web.bicep' = {
     searchServiceEndpoint: searchService.outputs.endpoint
     searchIndexName: searchIndexName
     formRecognizerEndpoint: formRecognizer.outputs.endpoint
+    computerVisionEndpoint: useGPT4V ? computerVision.outputs.endpoint : ''
+    computerVisionName: useGPT4V ? computerVision.outputs.name : ''
     openAiEndpoint: openAi.outputs.endpoint
     openAiChatGptDeployment: chatGptDeploymentName
     openAiEmbeddingDeployment: embeddingDeploymentName
+    useGPT4V: useGPT4V
+    gpt4vModelName: gpt4vModelName
+    gpt4vModelDeploymentName: gpt4vDeploymentName
     serviceBinds: []
   }
 }
@@ -300,7 +342,10 @@ module function './app/function.bicep' = {
       AZURE_SEARCH_INDEX: searchIndexName
       AZURE_STORAGE_BLOB_ENDPOINT: storage.outputs.primaryEndpoints.blob
       AZURE_OPENAI_EMBEDDING_DEPLOYMENT: embeddingDeploymentName
-      AZURE_OPENAI_ENDPOINT: openAi.outputs.endpoint      
+      AZURE_OPENAI_ENDPOINT: openAi.outputs.endpoint
+      USE_GPT4V: string(useGPT4V)
+      GPT4V_MODEL_NAME: gpt4vModelName
+      GPT4V_MODEL_DEPLOYMENT_NAME: gpt4vDeploymentName
     }
   }
 }
@@ -330,13 +375,13 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     sku: {
       name: openAiSkuName
     }
-    deployments: [
+    deployments: concat([
       {
         name: chatGptDeploymentName
         model: {
           format: 'OpenAI'
           name: chatGptModelName
-          version: '0613'
+          version: '1106'
         }
         sku: {
           name: 'Standard'
@@ -355,7 +400,35 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
           capacity: embeddingDeploymentCapacity
         }
       }
-    ]
+    ], useGPT4V ? [
+      {
+        name: gpt4vDeploymentName
+        model: {
+          format: 'OpenAI'
+          name: gpt4vModelName
+          version: gpt4vModelVersion
+        }
+        sku: {
+          name: 'Standard'
+          capacity: gpt4vDeploymentCapacity
+        }
+      }
+    ] : [])
+  }
+}
+
+// create computer vision for image embedding && text embedding api
+module computerVision 'core/ai/cognitiveservices.bicep' = if (useGPT4V) {
+  name: 'computerVision'
+  scope: computerVisionResourceGroup
+  params: {
+    name: !empty(computerVisionServiceName) ? computerVisionServiceName : '${abbrs.cognitiveServicesComputerVision}${resourceToken}'
+    kind: 'ComputerVision'
+    location: computerVisionResourceGroupLocation
+    tags: updatedTags
+    sku: {
+      name: computerVisionSkuName
+    }
   }
 }
 
@@ -401,7 +474,7 @@ module storage 'core/storage/storage-account.bicep' = {
     tags: updatedTags
     publicNetworkAccess: 'Enabled'
     sku: {
-      name: 'Standard_ZRS'
+      name: 'Standard_LRS'
     }
     deleteRetentionPolicy: {
       enabled: true
@@ -608,6 +681,9 @@ output AZURE_CONTAINER_REGISTRY_RESOURCE_GROUP string = containerApps.outputs.re
 output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = formRecognizerResourceGroup.name
 output AZURE_FORMRECOGNIZER_SERVICE string = formRecognizer.outputs.name
 output AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT string = formRecognizer.outputs.endpoint
+output AZURE_COMPUTERVISION_RESOURCE_GROUP string = useGPT4V ? computerVisionResourceGroup.name : ''
+output AZURE_COMPUTERVISION_SERVICE string = useGPT4V ? computerVision.outputs.name : ''
+output AZURE_COMPUTERVISION_SERVICE_ENDPOINT string = useGPT4V ? computerVision.outputs.endpoint : ''
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_RESOURCE_GROUP string = keyVaultResourceGroup.name

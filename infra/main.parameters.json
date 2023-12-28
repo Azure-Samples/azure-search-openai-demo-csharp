@@ -76,6 +76,9 @@
     },
     "useApplicationInsights": {
       "value": "${AZURE_USE_APPLICATION_INSIGHTS=true}"
+    },
+    "useGPT4V": {
+      "value": "${USE_GPT4V=false}"
     }
   }
 }
