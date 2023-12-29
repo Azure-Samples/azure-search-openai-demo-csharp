@@ -17,7 +17,7 @@ public sealed partial class MainLayout
 
     private bool _isReversed
     {
-        get => LocalStorage.GetItem<bool?>(StorageKeys.PrefersReversedConversationSorting) ?? true;
+        get => LocalStorage.GetItem<bool?>(StorageKeys.PrefersReversedConversationSorting) ?? false;
         set => LocalStorage.SetItem<bool>(StorageKeys.PrefersReversedConversationSorting, value);
     }
 
