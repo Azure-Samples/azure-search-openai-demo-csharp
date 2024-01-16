@@ -11,28 +11,35 @@ namespace MauiBlazor.Services;
 
 public class MauiSessionStorageService : ISessionStorageService
 {
-    public double Length => 0;
+    private readonly ConcurrentDictionary<string, object> _storage = new(StringComparison.OrdinalIgnoreCase);
 
-    public void Clear()
-    {
-    }
+    public double Length => _storage.Length;
+
+    public void Clear() => _storage.Clear();
 
     public TValue? GetItem<TValue>(string key, JsonSerializerOptions? options = null)
     {
-        return default;
+        // Ignore these...
+        _ = options;
+        
+        return _storage.TryGetValue(key, out var value)
+            ? value as TValue
+            : default;
     }
 
-    public string? Key(double index)
-    {
-        return default;
-    }
+    public string? Key(double index) => default;
 
     public void RemoveItem(string key)
     {
+        _storage.TryRemove(key, out var _);
     }
 
     public void SetItem<TValue>(string key, TValue value, JsonSerializerOptions? options = null)
     {
+        // Ignore these...
+        _ = options;
+        
+        _storage.AddOrUpdate(key, value, (oldValue, newValue) => newValue);
     }
 }
 
