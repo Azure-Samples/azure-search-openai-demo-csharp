@@ -4,5 +4,5 @@ namespace SharedWebComponents.Services;
 
 public interface IPdfViewer
 {
-    Task ShowDocument(string name, string url);
+    ValueTask ShowDocumentAsync(string name, string url);
 }

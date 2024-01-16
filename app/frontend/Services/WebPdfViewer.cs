@@ -6,7 +6,7 @@ namespace ClientApp.Services;
 
 public class WebPdfViewer(IDialogService dialog) : IPdfViewer
 {
-    public Task ShowDocument(string name, string url)
+    public ValueTask ShowDocumentAsync(string name, string url)
     {
         dialog.Show<PdfViewerDialog>(
             $"📄 {name}",
@@ -23,6 +23,6 @@ public class WebPdfViewer(IDialogService dialog) : IPdfViewer
                 CloseOnEscapeKey = true
             });
 
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }
