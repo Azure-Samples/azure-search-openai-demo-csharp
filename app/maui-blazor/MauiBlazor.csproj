@@ -1,10 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-    </PropertyGroup>
-
-    <PropertyGroup>
         <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
         <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
         <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
@@ -62,16 +58,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
-        <PackageReference Include="MudBlazor" Version="6.11.1" />
-        <PackageReference Include="Markdig" Version="0.33.0" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
-        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-        <PackageReference Include="CommunityToolkit.Maui" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Maui.Controls" />
+        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+        <PackageReference Include="MudBlazor" />
+        <PackageReference Include="Markdig" />
+        <PackageReference Include="Microsoft.Extensions.Http" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+        <PackageReference Include="System.Linq.Async" />
+        <PackageReference Include="CommunityToolkit.Maui" />
     </ItemGroup>
 
     <ItemGroup>
