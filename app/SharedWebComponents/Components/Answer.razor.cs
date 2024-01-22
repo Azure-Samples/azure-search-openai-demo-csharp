@@ -28,7 +28,7 @@ public sealed partial class Answer
             await FollowupQuestionClicked.InvokeAsync(followupQuestion);
         }
     }
-    private void OnShowCitation(CitationDetails citation) => PdfViewer.ShowDocumentAsync(citation.Name, citation.BaseUrl);
+    private Task OnShowCitation(CitationDetails citation) => PdfViewer.ShowDocumentAsync(citation.Name, citation.BaseUrl);
 
     private MarkupString RemoveLeadingAndTrailingLineBreaks(string input) => (MarkupString)HtmlLineBreakRegex().Replace(input, "");
 
