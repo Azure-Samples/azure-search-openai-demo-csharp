@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MauiVersion>8.0.3</MauiVersion>
+    <MauiVersion>8.0.6</MauiVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Azure.AI.FormRecognizer" Version="4.1.0" />
