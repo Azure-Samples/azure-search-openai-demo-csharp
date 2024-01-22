@@ -140,7 +140,9 @@ public class MauiLocalStorageService : ILocalStorageService
         }
         else
         {
+#pragma warning disable CS8604 // Possible null reference argument.
             return _prefs.Get<TValue>(key, default);
+#pragma warning restore CS8604 // Possible null reference argument.
         }
     }
 
