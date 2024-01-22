@@ -22,7 +22,7 @@
                                         ? @Icons.Custom.FileFormats.FilePdf
                                         : null;
                                     <MudChip Variant="Variant.Text" Color="Color.Info"
-                                             Icon="@icon" OnClick="@(_ => OnShowCitation(citation))">
+                                             Icon="@icon" OnClick="@(_ => OnShowCitationAsync(citation))">
                                         @($"{citation.Number}. {citation.Name}")
                                     </MudChip>
                                 }
