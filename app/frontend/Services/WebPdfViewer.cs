@@ -6,14 +6,14 @@ namespace ClientApp.Services;
 
 public class WebPdfViewer(IDialogService dialog) : IPdfViewer
 {
-    public ValueTask ShowDocumentAsync(string name, string url)
+    public ValueTask ShowDocumentAsync(string name, string baseUrl)
     {
         dialog.Show<PdfViewerDialog>(
             $"📄 {name}",
             new DialogParameters
             {
                 [nameof(PdfViewerDialog.FileName)] = name,
-                [nameof(PdfViewerDialog.BaseUrl)] = url,
+                [nameof(PdfViewerDialog.BaseUrl)] = baseUrl,
             },
             new DialogOptions
             {
