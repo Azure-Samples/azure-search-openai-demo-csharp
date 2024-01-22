@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Threading;
+using System.Collections.Concurrent;
 using CommunityToolkit.Maui.Media;
 
 namespace MauiBlazor.Services;
@@ -11,9 +10,9 @@ namespace MauiBlazor.Services;
 
 public class MauiSessionStorageService : ISessionStorageService
 {
-    private readonly ConcurrentDictionary<string, object> _storage = new(StringComparison.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, object> _storage = new(StringComparer.OrdinalIgnoreCase);
 
-    public double Length => _storage.Length;
+    public double Length => _storage.Count;
 
     public void Clear() => _storage.Clear();
 
@@ -23,7 +22,7 @@ public class MauiSessionStorageService : ISessionStorageService
         _ = options;
         
         return _storage.TryGetValue(key, out var value)
-            ? value as TValue
+            ? (TValue?) value
             : default;
     }
 
@@ -39,7 +38,7 @@ public class MauiSessionStorageService : ISessionStorageService
         // Ignore these...
         _ = options;
         
-        _storage.AddOrUpdate(key, value, (oldValue, newValue) => newValue);
+        _storage.AddOrUpdate(key, value!, (oldValue, newValue) => newValue);
     }
 }
 
