@@ -2,6 +2,7 @@
 
 using FluentAssertions;
 using MinimalApi.Services;
+using NSubstitute;
 
 namespace MinimalApi.Tests;
 
@@ -12,8 +13,9 @@ public class AzureComputerVisionServiceTest
     {
         var endpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new InvalidOperationException();
         var apiKey = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_API_KEY") ?? throw new InvalidOperationException();
-
-        var service = new AzureComputerVisionService(endpoint, apiKey);
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        httpClientFactory.CreateClient().ReturnsForAnyArgs(x => new HttpClient());
+        var service = new AzureComputerVisionService(httpClientFactory, endpoint, apiKey);
         var imageUrl = @"https://learn.microsoft.com/azure/ai-services/computer-vision/media/quickstarts/presentation.png";
 
         var result = await service.VectorizeImageAsync(imageUrl);
@@ -48,8 +50,9 @@ public class AzureComputerVisionServiceTest
     {
         var endpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new InvalidOperationException();
         var apiKey = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_API_KEY") ?? throw new InvalidOperationException();
-
-        var service = new AzureComputerVisionService(endpoint, apiKey);
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        httpClientFactory.CreateClient().ReturnsForAnyArgs(x => new HttpClient());
+        var service = new AzureComputerVisionService(httpClientFactory, endpoint, apiKey);
         var text = "Hello world";
         var result = await service.VectorizeTextAsync(text);
 

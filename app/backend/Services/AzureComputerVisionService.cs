@@ -5,10 +5,8 @@ using System.Text;
 
 namespace MinimalApi.Services;
 
-public class AzureComputerVisionService(string endPoint, string apiKey)
+public class AzureComputerVisionService(IHttpClientFactory httpClientFactory, string endPoint, string apiKey)
 {
-    public record ImageEmbeddingResponse(string modelVersion, float[] vector);
-
     // add virtual keyword to make it mockable
     public virtual async Task<ImageEmbeddingResponse> VectorizeImageAsync(string imagePathOrUrl, CancellationToken ct = default)
     {
@@ -27,7 +25,7 @@ public class AzureComputerVisionService(string endPoint, string apiKey)
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("image/*");
 
             // send request
-            using var client = new HttpClient();
+            using var client = httpClientFactory.CreateClient();
             using var response = await client.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
 
@@ -53,7 +51,7 @@ public class AzureComputerVisionService(string endPoint, string apiKey)
             request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
 
             // send request
-            using var client = new HttpClient();
+            using var client = httpClientFactory.CreateClient();
             using var response = await client.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
 
