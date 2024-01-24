@@ -16,7 +16,7 @@ public abstract class EnvironmentSpecificFactAttribute : FactAttribute
     /// <param name="skipMessage">The message to be used when skipping the test marked with this attribute.</param>
     protected EnvironmentSpecificFactAttribute(string skipMessage)
     {
-        ArgumentException.ThrowIfNull(skipMessage);
+        ArgumentException.ThrowIfNullOrEmpty(skipMessage);
         
         _skipMessage = skipMessage;
     }
@@ -31,7 +31,7 @@ public abstract class EnvironmentSpecificFactAttribute : FactAttribute
 
 public sealed class ApiKeyFactAttribute : EnvironmentSpecificFactAttribute
 {
-    private readonly string[] _envVariableName;
+    private readonly string[] _envVariableNames;
     
     public ApiKeyFactAttribute(params string[] envVariableNames) : base($"{string.Join(", ", envVariableNames)} is not found in env")
     {
