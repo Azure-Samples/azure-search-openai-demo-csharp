@@ -21,7 +21,7 @@ public abstract class EnvironmentSpecificFactAttribute : FactAttribute
         _skipMessage = skipMessage;
     }
 
-    public sealed override string Skip => IsEnvironmentSupported() ? null : _skipMessage;
+    public sealed override string Skip => IsEnvironmentSupported() ? null! : _skipMessage;
 
     /// <summary>
     /// A method used to evaluate whether to skip a test marked with this attribute. Skips iff this method evaluates to false.
