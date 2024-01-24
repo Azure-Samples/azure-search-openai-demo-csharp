@@ -30,14 +30,15 @@ public abstract class EnvironmentSpecificFactAttribute : FactAttribute
 public sealed class ApiKeyFactAttribute : EnvironmentSpecificFactAttribute
 {
     private readonly string[] _envVariableName;
-    public ApiKeyFactAttribute(params string[] envVariableName) : base($"{envVariableName} is not found in env")
+    
+    public ApiKeyFactAttribute(params string[] envVariableNames) : base($"{string.Join(", ", envVariableNames)} is not found in env")
     {
-        _envVariableName = envVariableName;
+        _envVariableNames = envVariableNames;
     }
 
     /// <inheritdoc />
     protected override bool IsEnvironmentSupported()
     {
-        return _envVariableName.Any(Environment.GetEnvironmentVariables().Contains);
+        return _envVariableNames.Any(Environment.GetEnvironmentVariables().Contains);
     }
 }
