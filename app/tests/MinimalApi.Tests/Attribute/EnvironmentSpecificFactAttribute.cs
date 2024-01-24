@@ -16,7 +16,9 @@ public abstract class EnvironmentSpecificFactAttribute : FactAttribute
     /// <param name="skipMessage">The message to be used when skipping the test marked with this attribute.</param>
     protected EnvironmentSpecificFactAttribute(string skipMessage)
     {
-        _skipMessage = skipMessage ?? throw new ArgumentNullException(nameof(skipMessage));
+        ArgumentException.ThrowIfNull(skipMessage);
+        
+        _skipMessage = skipMessage;
     }
 
     public sealed override string Skip => IsEnvironmentSupported() ? null : _skipMessage;
