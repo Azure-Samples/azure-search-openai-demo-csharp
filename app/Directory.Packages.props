@@ -43,5 +43,7 @@
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.4" />
     <PackageVersion Include="xunit" Version="2.6.2" />
+    <PackageVersion Include="FluentAssertions" Version="6.8.0" />
+    <PackageVersion Include="NSubstitute" Version="5.1.0" />
   </ItemGroup>
 </Project>

@@ -15,6 +15,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddCrossOriginResourceSharing();
 builder.Services.AddAzureServices();
 builder.Services.AddAntiforgery(options => { options.HeaderName = "X-CSRF-TOKEN-HEADER"; options.FormFieldName = "X-CSRF-TOKEN-FORM"; });
+builder.Services.AddHttpClient();
 
 if (builder.Environment.IsDevelopment())
 {
