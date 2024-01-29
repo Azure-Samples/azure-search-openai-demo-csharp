@@ -58,8 +58,6 @@ This sample demonstrates a few approaches for creating ChatGPT-like experiences 
 
 The repo includes sample data so it's ready to try end-to-end. In this sample application, we use a fictitious company called Contoso Electronics, and the experience allows its employees to ask questions about the benefits, internal policies, as well as job descriptions and roles.
 
-This fork adds a MAUI Blazor app.
-
 ![RAG Architecture](docs/appcomponents-version-4.png)
 
 For more details on how this application was built, check out:
