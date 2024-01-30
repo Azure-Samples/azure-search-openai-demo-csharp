@@ -53,6 +53,7 @@ public class ReadRetrieveReadChatServiceTest
             Top = 2,
             SemanticCaptions = true,
             SemanticRanker = true,
+            SuggestFollowupQuestions = true,
         };
 
         var response = await chatService.ReplyAsync(history, overrides);
