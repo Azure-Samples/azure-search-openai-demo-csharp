@@ -2,7 +2,6 @@
 
 using System.Net.Http.Headers;
 using System.Text;
-using Azure.AI.Vision.ImageAnalysis;
 using Azure.Core;
 
 namespace MinimalApi.Services;
