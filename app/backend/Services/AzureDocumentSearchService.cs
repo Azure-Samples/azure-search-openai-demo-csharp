@@ -3,7 +3,16 @@ using Azure.Search.Documents;
 
 namespace MinimalApi.Services;
 
-public class AzureDocumentSearchService(SearchClient searchClient)
+public interface IDocumentSearchService
+{
+    Task<SupportingContentRecord[]> QueryDocumentsAsync(
+               string? query = null,
+               float[]? embedding = null,
+               RequestOverrides? overrides = null,
+               CancellationToken cancellationToken = default);
+}
+
+public class AzureDocumentSearchService(SearchClient searchClient) : IDocumentSearchService
 {
     // prepare for mock out
     public virtual async Task<SupportingContentRecord[]> QueryDocumentsAsync(
