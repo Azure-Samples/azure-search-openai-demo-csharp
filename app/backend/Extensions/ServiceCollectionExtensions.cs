@@ -27,7 +27,7 @@ internal static class ServiceCollectionExtensions
             return sp.GetRequiredService<BlobServiceClient>().GetBlobContainerClient(azureStorageContainer);
         });
 
-        services.AddSingleton<AzureDocumentSearchService>(sp =>
+        services.AddSingleton<IDocumentSearchService, AzureDocumentSearchService>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
             var azureSearchServiceEndpoint = config["AzureSearchServiceEndpoint"];

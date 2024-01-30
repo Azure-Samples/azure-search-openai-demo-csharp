@@ -10,7 +10,6 @@
     <WebAssemblyVersion>7.0.10</WebAssemblyVersion>
     <WebAssemblyDevServerVersion>7.0.10</WebAssemblyDevServerVersion>
     <MicrosoftMLVersion>2.0.1</MicrosoftMLVersion>
-    <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
 
 </Project>
