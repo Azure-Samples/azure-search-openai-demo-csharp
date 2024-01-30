@@ -2,22 +2,25 @@
 
 using System.Net.Http.Headers;
 using System.Text;
+using Azure.AI.Vision.ImageAnalysis;
+using Azure.Core;
 
 namespace MinimalApi.Services;
 
-public class AzureComputerVisionService(IHttpClientFactory httpClientFactory, string endPoint, string apiKey)
+public class AzureComputerVisionService(IHttpClientFactory httpClientFactory, string endPoint, TokenCredential tokenCredential)
 {
     // add virtual keyword to make it mockable
     public virtual async Task<ImageEmbeddingResponse> VectorizeImageAsync(string imagePathOrUrl, CancellationToken ct = default)
     {
         var api = $"{endPoint}/computervision/retrieval:vectorizeImage?api-version=2023-02-01-preview&modelVersion=latest";
+        var token = await tokenCredential.GetTokenAsync(new TokenRequestContext(new[] { "https://cognitiveservices.azure.com/.default" }), ct);
         // first try to read as local file
         if (File.Exists(imagePathOrUrl))
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, api);
 
             // set authorization header
-            request.Headers.Add("Ocp-Apim-Subscription-Key", apiKey);
+            request.Headers.Add("Authorization", "Bearer " + token.Token);
 
             // set body
             var bytes = await File.ReadAllBytesAsync(imagePathOrUrl, ct);
@@ -44,7 +47,7 @@ public class AzureComputerVisionService(IHttpClientFactory httpClientFactory, st
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             // set authorization header
-            request.Headers.Add("Ocp-Apim-Subscription-Key", apiKey);
+            request.Headers.Add("Authorization", "Bearer " + token.Token);
 
             // set body
             var body = new { url = imagePathOrUrl };
@@ -67,13 +70,14 @@ public class AzureComputerVisionService(IHttpClientFactory httpClientFactory, st
     {
         var api = $"{endPoint}/computervision/retrieval:vectorizeText?api-version=2023-02-01-preview&modelVersion=latest";
 
+        var token = await tokenCredential.GetTokenAsync(new TokenRequestContext(new[] { "https://cognitiveservices.azure.com/.default" }), ct);
         using var request = new HttpRequestMessage(HttpMethod.Post, api);
 
         // set content type to application/json
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         // set authorization header
-        request.Headers.Add("Ocp-Apim-Subscription-Key", apiKey);
+        request.Headers.Add("Authorization", "Bearer " + token.Token);
 
         // set body
         var body = new { text };
