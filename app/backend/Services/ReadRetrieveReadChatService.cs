@@ -4,12 +4,12 @@ namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService
 {
-    private readonly SearchClient _searchClient;
+    private readonly IDocumentSearchService _searchClient;
     private readonly IKernel _kernel;
     private readonly IConfiguration _configuration;
 
     public ReadRetrieveReadChatService(
-        SearchClient searchClient,
+        IDocumentSearchService searchClient,
         OpenAIClient client,
         IConfiguration configuration)
     {

@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="PdfSharpCore" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Azure.AI.Vision.ImageAnalysis" />
   </ItemGroup>
 
   <ItemGroup>
