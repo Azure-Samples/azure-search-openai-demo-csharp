@@ -1,9 +1,9 @@
 ﻿using Azure;
 using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
+using Shared.Models;
 
-namespace MinimalApi.Services;
-
-public interface IDocumentSearchService
+public interface IDocumentService
 {
     Task<SupportingContentRecord[]> QueryDocumentsAsync(
                string? query = null,
@@ -12,10 +12,9 @@ public interface IDocumentSearchService
                CancellationToken cancellationToken = default);
 }
 
-public class AzureDocumentSearchService(SearchClient searchClient) : IDocumentSearchService
+public class AzureDocumentService(SearchClient searchClient) : IDocumentService
 {
-    // prepare for mock out
-    public virtual async Task<SupportingContentRecord[]> QueryDocumentsAsync(
+    public async Task<SupportingContentRecord[]> QueryDocumentsAsync(
         string? query = null,
         float[]? embedding = null,
         RequestOverrides? overrides = null,

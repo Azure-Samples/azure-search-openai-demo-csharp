@@ -14,12 +14,10 @@ public class AzureComputerVisionServiceTest
     public async Task VectorizeImageTestAsync()
     {
         var endpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new InvalidOperationException();
-
-        var httpClientFactory = Substitute.For<IHttpClientFactory>();
-        httpClientFactory.CreateClient().ReturnsForAnyArgs(x => new HttpClient());
+        using var httpClient = new HttpClient();
         var imageUrl = @"https://learn.microsoft.com/azure/ai-services/computer-vision/media/quickstarts/presentation.png";
 
-        var service = new AzureComputerVisionService(httpClientFactory, endpoint, new DefaultAzureCredential());
+        var service = new AzureComputerVisionService(httpClient, endpoint, new DefaultAzureCredential());
         var result = await service.VectorizeImageAsync(imageUrl);
 
         result.modelVersion.Should().NotBeNullOrEmpty();
@@ -51,9 +49,8 @@ public class AzureComputerVisionServiceTest
     public async Task VectorizeTextTestAsync()
     {
         var endpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new InvalidOperationException();
-        var httpClientFactory = Substitute.For<IHttpClientFactory>();
-        httpClientFactory.CreateClient().ReturnsForAnyArgs(x => new HttpClient());
-        var service = new AzureComputerVisionService(httpClientFactory, endpoint, new DefaultAzureCredential());
+        using var httpClient = new HttpClient();
+        var service = new AzureComputerVisionService(httpClient, endpoint, new DefaultAzureCredential());
         var text = "Hello world";
         var result = await service.VectorizeTextAsync(text);
 

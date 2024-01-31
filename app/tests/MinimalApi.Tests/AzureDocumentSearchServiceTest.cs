@@ -21,7 +21,7 @@ public class AzureDocumentSearchServiceTest
         var index = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new InvalidOperationException();
         var endpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
         var searchClient = new SearchClient(new Uri(endpoint), index, new DefaultAzureCredential());
-        var service = new AzureDocumentSearchService(searchClient);
+        var service = new AzureDocumentService(searchClient);
 
         // query only
         var option = new RequestOverrides
@@ -49,7 +49,7 @@ public class AzureDocumentSearchServiceTest
         var embeddingResponse = await openAIClient.GetEmbeddingsAsync(openAiEmbeddingDeployment, new EmbeddingsOptions(query));
         var embedding = embeddingResponse.Value.Data.First().Embedding;
         var searchClient = new SearchClient(new Uri(searchServceEndpoint), index, new DefaultAzureCredential());
-        var service = new AzureDocumentSearchService(searchClient);
+        var service = new AzureDocumentService(searchClient);
 
         // query only
         var option = new RequestOverrides

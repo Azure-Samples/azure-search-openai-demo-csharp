@@ -2,14 +2,13 @@
 
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using Azure.Core;
 
-namespace MinimalApi.Services;
-
-public class AzureComputerVisionService(IHttpClientFactory httpClientFactory, string endPoint, TokenCredential tokenCredential)
+public class AzureComputerVisionService(HttpClient client, string endPoint, TokenCredential tokenCredential)
 {
     // add virtual keyword to make it mockable
-    public virtual async Task<ImageEmbeddingResponse> VectorizeImageAsync(string imagePathOrUrl, CancellationToken ct = default)
+    public async Task<ImageEmbeddingResponse> VectorizeImageAsync(string imagePathOrUrl, CancellationToken ct = default)
     {
         var api = $"{endPoint}/computervision/retrieval:vectorizeImage?api-version=2023-02-01-preview&modelVersion=latest";
         var token = await tokenCredential.GetTokenAsync(new TokenRequestContext(new[] { "https://cognitiveservices.azure.com/.default" }), ct);
@@ -27,7 +26,6 @@ public class AzureComputerVisionService(IHttpClientFactory httpClientFactory, st
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("image/*");
 
             // send request
-            using var client = httpClientFactory.CreateClient();
             using var response = await client.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
 
@@ -53,7 +51,6 @@ public class AzureComputerVisionService(IHttpClientFactory httpClientFactory, st
             request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
 
             // send request
-            using var client = httpClientFactory.CreateClient();
             using var response = await client.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
 
