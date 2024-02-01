@@ -26,7 +26,7 @@ public class AzureDocumentSearchServiceTest
         // query only
         var option = new RequestOverrides
         {
-            RetrievalMode = "Text",
+            RetrievalMode = RetrievalMode.Text,
             Top = 3,
             SemanticCaptions = true,
             SemanticRanker = true,
@@ -54,7 +54,7 @@ public class AzureDocumentSearchServiceTest
         // query only
         var option = new RequestOverrides
         {
-            RetrievalMode = "Vector",
+            RetrievalMode = RetrievalMode.Vector,
             Top = 3,
             SemanticCaptions = true,
             SemanticRanker = true,

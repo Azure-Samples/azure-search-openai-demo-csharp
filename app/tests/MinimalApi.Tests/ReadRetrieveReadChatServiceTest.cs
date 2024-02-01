@@ -49,7 +49,7 @@ public class ReadRetrieveReadChatServiceTest
         };
         var overrides = new RequestOverrides
         {
-            RetrievalMode = "Text",
+            RetrievalMode = RetrievalMode.Text,
             Top = 2,
             SemanticCaptions = true,
             SemanticRanker = true,

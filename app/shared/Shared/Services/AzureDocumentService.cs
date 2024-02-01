@@ -55,7 +55,7 @@ public class AzureDocumentService(SearchClient searchClient) : IDocumentService
                 Size = top,
             };
 
-        if (embedding != null && overrides?.RetrievalMode != "Text")
+        if (embedding != null && overrides?.RetrievalMode != RetrievalMode.Text)
         {
             var k = useSemanticRanker ? 50 : top;
             var vectorQuery = new VectorizedQuery(embedding)
