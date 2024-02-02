@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Core;
+using Azure.Identity;
 using FluentAssertions;
 using MinimalApi.Services;
 using NSubstitute;
@@ -8,16 +10,14 @@ namespace MinimalApi.Tests;
 
 public class AzureComputerVisionServiceTest
 {
-    [ApiKeyFact("AZURE_COMPUTER_VISION_API_KEY", "AZURE_COMPUTER_VISION_ENDPOINT")]
+    [EnvironmentVariablesFact("AZURE_COMPUTER_VISION_ENDPOINT")]
     public async Task VectorizeImageTestAsync()
     {
         var endpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new InvalidOperationException();
-        var apiKey = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_API_KEY") ?? throw new InvalidOperationException();
-        var httpClientFactory = Substitute.For<IHttpClientFactory>();
-        httpClientFactory.CreateClient().ReturnsForAnyArgs(x => new HttpClient());
-        var service = new AzureComputerVisionService(httpClientFactory, endpoint, apiKey);
+        using var httpClient = new HttpClient();
         var imageUrl = @"https://learn.microsoft.com/azure/ai-services/computer-vision/media/quickstarts/presentation.png";
 
+        var service = new AzureComputerVisionService(httpClient, endpoint, new DefaultAzureCredential());
         var result = await service.VectorizeImageAsync(imageUrl);
 
         result.modelVersion.Should().NotBeNullOrEmpty();
@@ -45,14 +45,12 @@ public class AzureComputerVisionServiceTest
         }
     }
 
-    [ApiKeyFact("AZURE_COMPUTER_VISION_API_KEY", "AZURE_COMPUTER_VISION_ENDPOINT")]
+    [EnvironmentVariablesFact("AZURE_COMPUTER_VISION_ENDPOINT")]
     public async Task VectorizeTextTestAsync()
     {
         var endpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new InvalidOperationException();
-        var apiKey = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_API_KEY") ?? throw new InvalidOperationException();
-        var httpClientFactory = Substitute.For<IHttpClientFactory>();
-        httpClientFactory.CreateClient().ReturnsForAnyArgs(x => new HttpClient());
-        var service = new AzureComputerVisionService(httpClientFactory, endpoint, apiKey);
+        using var httpClient = new HttpClient();
+        var service = new AzureComputerVisionService(httpClient, endpoint, new DefaultAzureCredential());
         var text = "Hello world";
         var result = await service.VectorizeTextAsync(text);
 

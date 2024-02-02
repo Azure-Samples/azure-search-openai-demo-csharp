@@ -4,12 +4,12 @@ namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService
 {
-    private readonly SearchClient _searchClient;
+    private readonly IDocumentService _searchClient;
     private readonly IKernel _kernel;
     private readonly IConfiguration _configuration;
 
     public ReadRetrieveReadChatService(
-        SearchClient searchClient,
+        IDocumentService searchClient,
         OpenAIClient client,
         IConfiguration configuration)
     {
@@ -45,7 +45,7 @@ public class ReadRetrieveReadChatService
         var question = history.LastOrDefault()?.User is { } userQuestion
             ? userQuestion
             : throw new InvalidOperationException("Use question is null");
-        if (overrides?.RetrievalMode != "Text" && embedding is not null)
+        if (overrides?.RetrievalMode != RetrievalMode.Text && embedding is not null)
         {
             embeddings = (await embedding.GenerateEmbeddingAsync(question, cancellationToken: cancellationToken)).ToArray();
         }
@@ -53,7 +53,7 @@ public class ReadRetrieveReadChatService
         // step 1
         // use llm to get query if retrieval mode is not vector
         string? query = null;
-        if (overrides?.RetrievalMode != "Vector")
+        if (overrides?.RetrievalMode != RetrievalMode.Vector)
         {
             var getQueryChat = chat.CreateNewChat(@"You are a helpful AI assistant, generate search query for followup question.
 Make your respond simple and precise. Return the query only, do not return any other text.

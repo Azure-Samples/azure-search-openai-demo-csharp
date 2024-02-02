@@ -1,16 +1,30 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿using Azure;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
+using Shared.Models;
 
-namespace MinimalApi.Extensions;
-
-internal static class SearchClientExtensions
+public interface IDocumentService
 {
-    internal static async Task<SupportingContentRecord[]> QueryDocumentsAsync(
-        this SearchClient searchClient,
+    Task<SupportingContentRecord[]> QueryDocumentsAsync(
+               string? query = null,
+               float[]? embedding = null,
+               RequestOverrides? overrides = null,
+               CancellationToken cancellationToken = default);
+}
+
+public class AzureDocumentService(SearchClient searchClient) : IDocumentService
+{
+    public async Task<SupportingContentRecord[]> QueryDocumentsAsync(
         string? query = null,
         float[]? embedding = null,
         RequestOverrides? overrides = null,
         CancellationToken cancellationToken = default)
     {
+        if (query is null && embedding is null)
+        {
+            throw new ArgumentException("Either query or embedding must be provided");
+        }
+
         var documentContents = string.Empty;
         var top = overrides?.Top ?? 3;
         var exclude_category = overrides?.ExcludeCategory;
@@ -100,7 +114,7 @@ internal static class SearchClientExtensions
             if (sourcePageValue is string sourcePage && contentValue is string content)
             {
                 content = content.Replace('\r', ' ').Replace('\n', ' ');
-                sb.Add(new SupportingContentRecord(sourcePage,content));
+                sb.Add(new SupportingContentRecord(sourcePage, content));
             }
         }
 

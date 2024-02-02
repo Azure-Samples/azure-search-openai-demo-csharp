@@ -27,18 +27,19 @@ internal static class ServiceCollectionExtensions
             return sp.GetRequiredService<BlobServiceClient>().GetBlobContainerClient(azureStorageContainer);
         });
 
-        services.AddSingleton<SearchClient>(sp =>
+        services.AddSingleton<IDocumentService, AzureDocumentService>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var (azureSearchServiceEndpoint, azureSearchIndex) =
-                (config["AzureSearchServiceEndpoint"], config["AzureSearchIndex"]);
-
+            var azureSearchServiceEndpoint = config["AzureSearchServiceEndpoint"];
             ArgumentNullException.ThrowIfNullOrEmpty(azureSearchServiceEndpoint);
 
-            var searchClient = new SearchClient(
-                new Uri(azureSearchServiceEndpoint), azureSearchIndex, s_azureCredential);
+            var azureSearchIndex = config["AzureSearchIndex"];
+            ArgumentNullException.ThrowIfNullOrEmpty(azureSearchIndex);
 
-            return searchClient;
+            var searchClient = new SearchClient(
+                               new Uri(azureSearchServiceEndpoint), azureSearchIndex, s_azureCredential);
+
+            return new AzureDocumentService(searchClient);
         });
 
         services.AddSingleton<DocumentAnalysisClient>(sp =>
