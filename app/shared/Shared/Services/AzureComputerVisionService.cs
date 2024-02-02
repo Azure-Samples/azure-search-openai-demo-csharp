@@ -18,7 +18,7 @@ public class AzureComputerVisionService(HttpClient client, string endPoint, Toke
             using var request = new HttpRequestMessage(HttpMethod.Post, api);
 
             // set authorization header
-            request.Headers.Add("Authorization", "Bearer " + token.Token);
+            request.Headers.Add("Authorization", $"Bearer {token.Token}");
 
             // set body
             var bytes = await File.ReadAllBytesAsync(imagePathOrUrl, ct);
@@ -44,7 +44,7 @@ public class AzureComputerVisionService(HttpClient client, string endPoint, Toke
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             // set authorization header
-            request.Headers.Add("Authorization", "Bearer " + token.Token);
+            request.Headers.Add("Authorization", $"Bearer {token.Token}");
 
             // set body
             var body = new { url = imagePathOrUrl };
@@ -73,7 +73,7 @@ public class AzureComputerVisionService(HttpClient client, string endPoint, Toke
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         // set authorization header
-        request.Headers.Add("Authorization", "Bearer " + token.Token);
+        request.Headers.Add("Authorization", $"Bearer {token.Token}");
 
         // set body
         var body = new { text };
