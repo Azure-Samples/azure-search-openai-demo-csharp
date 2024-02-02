@@ -18,7 +18,7 @@ public class AzureComputerVisionService(HttpClient client, string endPoint, Toke
             using var request = new HttpRequestMessage(HttpMethod.Post, api);
 
             // set authorization header
-            request.Headers.Add("Authorization", "Bearer " + token.Token);
+            request.Headers.Add("Authorization", $"Bearer {token.Token}");
 
             // set body
             var bytes = await File.ReadAllBytesAsync(imagePathOrUrl, ct);
