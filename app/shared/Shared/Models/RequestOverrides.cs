@@ -1,13 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 namespace Shared.Models;
-
-public enum RetrievalMode
-{
-    Text = 0,
-    Vector,
-    Hybrid,
-}
 public record RequestOverrides
 {
     public bool SemanticRanker { get; set; } = false;
