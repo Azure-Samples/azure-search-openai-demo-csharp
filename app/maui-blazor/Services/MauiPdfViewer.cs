@@ -6,6 +6,6 @@ public class MauiPdfViewer : IPdfViewer
 {
     public async ValueTask ShowDocumentAsync(string name, string baseUrl)
     {
-        await Application.Current!.MainPage!.DisplayAlert(name, $"Displaying PDF: {baseUrl}/{name}", "OK");
+        await Browser.Default.OpenAsync($"{baseUrl}/{name}");
     }
 }
