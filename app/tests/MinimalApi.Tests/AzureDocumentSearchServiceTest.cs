@@ -21,7 +21,7 @@ public class AzureDocumentSearchServiceTest
         var index = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new InvalidOperationException();
         var endpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
         var searchClient = new SearchClient(new Uri(endpoint), index, new DefaultAzureCredential());
-        var service = new AzureDocumentService(searchClient);
+        var service = new AzureSearchService(searchClient);
 
         // query only
         var option = new RequestOverrides
@@ -49,7 +49,7 @@ public class AzureDocumentSearchServiceTest
         var embeddingResponse = await openAIClient.GetEmbeddingsAsync(openAiEmbeddingDeployment, new EmbeddingsOptions(query));
         var embedding = embeddingResponse.Value.Data.First().Embedding;
         var searchClient = new SearchClient(new Uri(searchServceEndpoint), index, new DefaultAzureCredential());
-        var service = new AzureDocumentService(searchClient);
+        var service = new AzureSearchService(searchClient);
 
         // query only
         var option = new RequestOverrides
@@ -62,5 +62,31 @@ public class AzureDocumentSearchServiceTest
 
         var records = await service.QueryDocumentsAsync(query: query, embedding: embedding.ToArray(), overrides: option);
         records.Count().Should().Be(3);
+    }
+
+    [EnvironmentVariablesFact(
+        "AZURE_SEARCH_INDEX",
+        "AZURE_SEARCH_SERVICE_ENDPOINT",
+        "AZURE_COMPUTER_VISION_ENDPOINT")]
+    public async Task QueryImagesTestAsync()
+    {
+        var index = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new InvalidOperationException();
+        var searchServceEndpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
+        var computerVisionEndpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new InvalidOperationException();
+        var searchClient = new SearchClient(new Uri(searchServceEndpoint), index, new DefaultAzureCredential());
+        using var httpClient = new System.Net.Http.HttpClient();
+        var computerVisionService = new AzureComputerVisionService(httpClient, computerVisionEndpoint, new DefaultAzureCredential());
+        var service = new AzureSearchService(searchClient);
+
+        var query = "financial report";
+        var queryEmbedding = await computerVisionService.VectorizeTextAsync(query);
+        var option = new RequestOverrides
+        {
+            Top = 3,
+        };
+
+        var records = await service.QueryImagesAsync(query: query, embedding: queryEmbedding.vector, overrides: option);
+        records.Count().Should().Be(3);
+        records[0].Title.Should().Contain("Financial Market Analysis Report");
     }
 }

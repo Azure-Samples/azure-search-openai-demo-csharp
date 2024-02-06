@@ -3,16 +3,7 @@ using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Shared.Models;
 
-public interface IDocumentService
-{
-    Task<SupportingContentRecord[]> QueryDocumentsAsync(
-               string? query = null,
-               float[]? embedding = null,
-               RequestOverrides? overrides = null,
-               CancellationToken cancellationToken = default);
-}
-
-public class AzureDocumentService(SearchClient searchClient) : IDocumentService
+public class AzureSearchService(SearchClient searchClient) : ISearchService
 {
     public async Task<SupportingContentRecord[]> QueryDocumentsAsync(
         string? query = null,
@@ -115,6 +106,66 @@ public class AzureDocumentService(SearchClient searchClient) : IDocumentService
             {
                 content = content.Replace('\r', ' ').Replace('\n', ' ');
                 sb.Add(new SupportingContentRecord(sourcePage, content));
+            }
+        }
+
+        return [.. sb];
+    }
+
+    /// <summary>
+    /// query images.
+    /// </summary>
+    /// <param name="embedding">embedding for imageEmbedding</param>
+    public async Task<SupportingImageRecord[]> QueryImagesAsync(
+        string? query = null,
+        float[]? embedding = null,
+        RequestOverrides? overrides = null,
+        CancellationToken cancellationToken = default)
+    {
+        var top = overrides?.Top ?? 3;
+        var exclude_category = overrides?.ExcludeCategory;
+        var filter = exclude_category == null ? string.Empty : $"category ne '{exclude_category}'";
+
+        var searchOptions = new SearchOptions
+        {
+            Filter = filter,
+            Size = top,
+        };
+
+        if (embedding != null)
+        {
+            var vectorQuery = new VectorizedQuery(embedding)
+            {
+                KNearestNeighborsCount = top,
+            };
+            vectorQuery.Fields.Add("imageEmbedding");
+            searchOptions.VectorSearch = new();
+            searchOptions.VectorSearch.Queries.Add(vectorQuery);
+        }
+
+        var searchResultResponse = await searchClient.SearchAsync<SearchDocument>(
+                       query, searchOptions, cancellationToken);
+
+        if (searchResultResponse.Value is null)
+        {
+            throw new InvalidOperationException("fail to get search result");
+        }
+
+        SearchResults<SearchDocument> searchResult = searchResultResponse.Value;
+        var sb = new List<SupportingImageRecord>();
+
+        foreach (var doc in searchResult.GetResults())
+        {
+            doc.Document.TryGetValue("sourcefile", out var sourceFileValue);
+            doc.Document.TryGetValue("imageEmbedding", out var imageEmbeddingValue);
+            doc.Document.TryGetValue("category", out var categoryValue);
+            doc.Document.TryGetValue("content", out var imageName);
+            if (sourceFileValue is string url &&
+                imageName is string name &&
+                categoryValue is string category &&
+                category == "image")
+            {
+                sb.Add(new SupportingImageRecord(name, url));
             }
         }
 

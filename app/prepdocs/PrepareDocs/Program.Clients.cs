@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-
-using EmbedFunctions.Services;
-
 internal static partial class Program
 {
     private static BlobContainerClient? s_corpusContainerClient;
@@ -30,8 +27,19 @@ internal static partial class Program
             var openAIClient = await GetAzureOpenAIClientAsync(o);
             var embeddingModelName = o.EmbeddingModelName ?? throw new ArgumentNullException(nameof(o.EmbeddingModelName));
             var searchIndexName = o.SearchIndexName ?? throw new ArgumentNullException(nameof(o.SearchIndexName));
+            var computerVisionService = await GetComputerVisionServiceAsync(o);
 
-            return new AzureSearchEmbedService(openAIClient, embeddingModelName, searchClient, searchIndexName, searchIndexClient, documentClient, blobContainerClient, null);
+            return new AzureSearchEmbedService(
+                openAIClient: openAIClient,
+                embeddingModelName: embeddingModelName,
+                searchClient: searchClient,
+                searchIndexName: searchIndexName,
+                searchIndexClient: searchIndexClient,
+                documentAnalysisClient: documentClient,
+                corpusContainerClient: blobContainerClient,
+                computerVisionService: computerVisionService,
+                includeImageEmbeddingsField: computerVisionService != null,
+                logger: null);
         });
 
     private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options) =>
@@ -137,6 +145,20 @@ internal static partial class Program
             await Task.CompletedTask;
 
             return s_searchClient;
+        });
+
+    private static Task<IComputerVisionService?> GetComputerVisionServiceAsync(AppOptions options) =>
+        GetLazyClientAsync<IComputerVisionService?>(options, s_openAILock, async o =>
+        {
+            await Task.CompletedTask;
+            var endpoint = o.ComputerVisionServiceEndpoint;
+
+            if (string.IsNullOrEmpty(endpoint))
+            {
+                return null;
+            }
+
+            return new AzureComputerVisionService(new HttpClient(), endpoint, DefaultCredential);
         });
 
     private static Task<OpenAIClient> GetAzureOpenAIClientAsync(AppOptions options) =>

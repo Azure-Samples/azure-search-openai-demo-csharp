@@ -52,17 +52,28 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
 
     Get-Location | Select-Object -ExpandProperty Path
 
-    $dotnetArguments = @"
-    run --project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" "./data/*.pdf" --storageendpoint $($env:AZURE_STORAGE_BLOB_ENDPOINT) --container $($env:AZURE_STORAGE_CONTAINER) --searchendpoint $($env:AZURE_SEARCH_SERVICE_ENDPOINT) --searchindex $($env:AZURE_SEARCH_INDEX) --openaiendpoint $($env:AZURE_OPENAI_ENDPOINT) --embeddingmodel $($env:AZURE_OPENAI_EMBEDDING_DEPLOYMENT) --formrecognizerendpoint $($env:AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT) --tenantid $($env:AZURE_TENANT_ID) --verbose
-"@
+    $dotnetArguments = "run --project app/prepdocs/PrepareDocs/PrepareDocs.csproj ./data/**/* " +
+    "--storageendpoint $($env:AZURE_STORAGE_BLOB_ENDPOINT) " +
+    "--container $($env:AZURE_STORAGE_CONTAINER) " +
+    "--searchendpoint $($env:AZURE_SEARCH_SERVICE_ENDPOINT) " +
+    "--searchindex $($env:AZURE_SEARCH_INDEX) " +
+    "--openaiendpoint $($env:AZURE_OPENAI_ENDPOINT) " +
+    "--embeddingmodel $($env:AZURE_OPENAI_EMBEDDING_DEPLOYMENT) " +
+    "--formrecognizerendpoint $($env:AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT) " +
+    "--tenantid $($env:AZURE_TENANT_ID) " +
+    "--verbose"
+
+    if ($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT -and $env:USE_GPT4V) {
+        Write-Host "Using GPT-4 Vision"
+        $dotnetArguments += " --computervisionendpoint $($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT)"
+    }
     
+    Write-Host "dotnet $dotnetArguments"
     $output = Invoke-ExternalCommand -Command "dotnet" -Arguments $dotnetArguments
     Write-Host $output
 
     Invoke-ExternalCommand -Command ($azdCmd).Source -Arguments @"
     env set AZD_PREPDOCS_RAN "true"
-"@
-
 }
 else {
     Write-Host "AZD_PREPDOCS_RAN is set to true. Skipping the run."
