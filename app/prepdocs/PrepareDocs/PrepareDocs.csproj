@@ -20,7 +20,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\functions\EmbedFunctions\EmbedFunctions.csproj" />
+    <ProjectReference Include="..\..\shared\Shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>

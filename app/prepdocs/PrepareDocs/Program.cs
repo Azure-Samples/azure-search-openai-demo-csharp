@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using EmbedFunctions.Services;
+using System.Diagnostics;
 
 s_rootCommand.SetHandler(
     async (context) =>
@@ -15,7 +15,6 @@ s_rootCommand.SetHandler(
         {
             var searchIndexName = options.SearchIndexName ?? throw new ArgumentNullException(nameof(options.SearchIndexName));
             var embedService = await GetAzureSearchEmbedService(options);
-
             await embedService.EnsureSearchIndexAsync(options.SearchIndexName);
 
             Matcher matcher = new();
@@ -190,7 +189,7 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
                 // revert stream position
                 stream.Position = 0;
 
-                await embeddingService.EmbedBlobAsync(stream, documentName);
+                await embeddingService.EmbedPDFBlobAsync(stream, documentName);
             }
             finally
             {
@@ -198,11 +197,18 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
             }
         }
     }
+    // if it's an img (end with .png/.jpg/.jpeg), upload it to blob storage and embed it.
+    else if (Path.GetExtension(fileName).Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+        Path.GetExtension(fileName).Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+        Path.GetExtension(fileName).Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
+    {
+        await embeddingService.EmbedImageBlobAsync(File.OpenRead(fileName), fileName);
+    }
     else
     {
         var blobName = BlobNameFromFilePage(fileName);
         await UploadBlobAsync(fileName, blobName, container);
-        await embeddingService.EmbedBlobAsync(File.OpenRead(fileName), blobName);
+        await embeddingService.EmbedPDFBlobAsync(File.OpenRead(fileName), blobName);
     }
 }
 

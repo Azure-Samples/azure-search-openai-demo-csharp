@@ -14,7 +14,7 @@ public sealed class EmbeddingAggregateService(
             var embeddingType = GetEmbeddingType();
             var embedService = embedServiceFactory.GetEmbedService(embeddingType);
 
-            var result = await embedService.EmbedBlobAsync(blobStream, blobName);
+            var result = await embedService.EmbedPDFBlobAsync(blobStream, blobName);
 
             var status = result switch
             {
