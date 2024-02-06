@@ -5,8 +5,10 @@ using System.Text;
 using System.Text.Json;
 using Azure.Core;
 
-public class AzureComputerVisionService(HttpClient client, string endPoint, TokenCredential tokenCredential)
+public class AzureComputerVisionService(HttpClient client, string endPoint, TokenCredential tokenCredential) : IComputerVisionService
 {
+    public int Dimension => 1024;
+
     // add virtual keyword to make it mockable
     public async Task<ImageEmbeddingResponse> VectorizeImageAsync(string imagePathOrUrl, CancellationToken ct = default)
     {

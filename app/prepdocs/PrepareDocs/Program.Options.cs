@@ -41,6 +41,9 @@ internal static partial class Program
     private static readonly Option<string> s_formRecognizerServiceEndpoint =
         new(name: "--formrecognizerendpoint", description: "Optional. The Azure Form Recognizer service endpoint which will be used to extract text, tables and layout from the documents (must exist already)");
 
+    private static readonly Option<string> s_computerVisionServiceEndpoint =
+        new(name: "--computervisionendpoint", description: "Optional. The Azure Computer Vision service endpoint which will be used to vectorize image and query");
+
     private static readonly Option<bool> s_verbose =
        new(aliases: new[] { "--verbose", "-v" }, description: "Verbose output");
 
@@ -49,11 +52,23 @@ internal static partial class Program
         Prepare documents by extracting content from PDFs, splitting content into sections,
         uploading to blob storage, and indexing in a search index.
         """)
-    {
-        s_files, s_category, s_skipBlobs, s_storageEndpoint,
-        s_container, s_tenantId, s_searchService, s_searchIndexName, s_azureOpenAIService, s_embeddingModelName,
-        s_remove, s_removeAll, s_formRecognizerServiceEndpoint, s_verbose
-    };
+        {
+            s_files,
+            s_category,
+            s_skipBlobs,
+            s_storageEndpoint,
+            s_container,
+            s_tenantId,
+            s_searchService,
+            s_searchIndexName,
+            s_azureOpenAIService,
+            s_embeddingModelName,
+            s_remove,
+            s_removeAll,
+            s_formRecognizerServiceEndpoint,
+            s_computerVisionServiceEndpoint,
+            s_verbose,
+        };
 
     private static AppOptions GetParsedAppOptions(InvocationContext context) => new(
             Files: context.ParseResult.GetValueForArgument(s_files),
@@ -69,6 +84,7 @@ internal static partial class Program
             Remove: context.ParseResult.GetValueForOption(s_remove),
             RemoveAll: context.ParseResult.GetValueForOption(s_removeAll),
             FormRecognizerServiceEndpoint: context.ParseResult.GetValueForOption(s_formRecognizerServiceEndpoint),
+            ComputerVisionServiceEndpoint: context.ParseResult.GetValueForOption(s_computerVisionServiceEndpoint),
             Verbose: context.ParseResult.GetValueForOption(s_verbose),
             Console: context.Console);
 }

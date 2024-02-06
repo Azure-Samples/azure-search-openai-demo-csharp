@@ -2,16 +2,6 @@
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Shared.Models;
-
-public interface IDocumentService
-{
-    Task<SupportingContentRecord[]> QueryDocumentsAsync(
-               string? query = null,
-               float[]? embedding = null,
-               RequestOverrides? overrides = null,
-               CancellationToken cancellationToken = default);
-}
-
 public class AzureDocumentService(SearchClient searchClient) : IDocumentService
 {
     public async Task<SupportingContentRecord[]> QueryDocumentsAsync(
