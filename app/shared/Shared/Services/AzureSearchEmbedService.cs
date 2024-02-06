@@ -14,7 +14,6 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Shared.Models;
-using PDFiumCore;
 
 public sealed partial class AzureSearchEmbedService(
     OpenAIClient openAIClient,
@@ -100,8 +99,13 @@ public sealed partial class AzureSearchEmbedService(
 
         // step 2
         // get image embeddings
-        var imageUrl = blobClient.Uri.AbsoluteUri;
-        var embeddings = await computerVisionService.VectorizeImageAsync(imageUrl, ct);
+        imageStream.Position = 0;
+        var tempPath = Path.GetTempFileName();
+        await using var tempStream = File.OpenWrite(tempPath);
+        await imageStream.CopyToAsync(tempStream, ct);
+        tempStream.Close();
+
+        var embeddings = await computerVisionService.VectorizeImageAsync(tempPath, ct);
 
         // id can only contain letters, digits, underscore (_), dash (-), or equal sign (=).
         var imageId = MatchInSetRegex().Replace(imageName, "_").TrimStart('_');
@@ -115,7 +119,7 @@ public sealed partial class AzureSearchEmbedService(
                 ["content"] = imageName,
                 ["category"] = "image",
                 ["imageEmbedding"] = embeddings.vector,
-                ["sourcefile"] = imageUrl,
+                ["sourcefile"] = blobClient.Uri.ToString(),
             });
 
         var batch = new IndexDocumentsBatch<SearchDocument>();
