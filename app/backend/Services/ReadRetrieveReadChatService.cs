@@ -1,11 +1,15 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace MinimalApi.Services;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Embeddings;
 
+namespace MinimalApi.Services;
+#pragma warning disable SKEXP0011 // Mark members as static
+#pragma warning disable SKEXP0001 // Mark members as static
 public class ReadRetrieveReadChatService
 {
     private readonly ISearchService _searchClient;
-    private readonly IKernel _kernel;
+    private readonly Kernel _kernel;
     private readonly IConfiguration _configuration;
 
     public ReadRetrieveReadChatService(
@@ -17,13 +21,13 @@ public class ReadRetrieveReadChatService
         var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
         ArgumentNullException.ThrowIfNullOrWhiteSpace(deployedModelName);
 
-        var kernelBuilder = Kernel.Builder.WithAzureChatCompletionService(deployedModelName, client);
+        var kernelBuilder = Kernel.CreateBuilder().AddAzureOpenAIChatCompletion(deployedModelName, client);
         var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
         if (!string.IsNullOrEmpty(embeddingModelName))
         {
             var endpoint = configuration["AzureOpenAiServiceEndpoint"];
             ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint);
-            kernelBuilder = kernelBuilder.WithAzureTextEmbeddingGenerationService(embeddingModelName, endpoint, new DefaultAzureCredential());
+            kernelBuilder = kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(embeddingModelName, endpoint, new DefaultAzureCredential());
         }
         _kernel = kernelBuilder.Build();
         _configuration = configuration;
@@ -39,8 +43,8 @@ public class ReadRetrieveReadChatService
         var useSemanticRanker = overrides?.SemanticRanker ?? false;
         var excludeCategory = overrides?.ExcludeCategory ?? null;
         var filter = excludeCategory is null ? null : $"category ne '{excludeCategory}'";
-        IChatCompletion chat = _kernel.GetService<IChatCompletion>();
-        ITextEmbeddingGeneration? embedding = _kernel.GetService<ITextEmbeddingGeneration>();
+        var chat = _kernel.GetRequiredService<IChatCompletionService>();
+        var embedding = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
         float[]? embeddings = null;
         var question = history.LastOrDefault()?.User is { } userQuestion
             ? userQuestion
@@ -55,7 +59,7 @@ public class ReadRetrieveReadChatService
         string? query = null;
         if (overrides?.RetrievalMode != RetrievalMode.Vector)
         {
-            var getQueryChat = chat.CreateNewChat(@"You are a helpful AI assistant, generate search query for followup question.
+            var getQueryChat = new ChatHistory(@"You are a helpful AI assistant, generate search query for followup question.
 Make your respond simple and precise. Return the query only, do not return any other text.
 e.g.
 Northwind Health Plus AND standard plan.
@@ -63,16 +67,11 @@ standard plan AND dental AND employee benefit.
 ");
 
             getQueryChat.AddUserMessage(question);
-            var result = await chat.GetChatCompletionsAsync(
+            var result = await chat.GetChatMessageContentAsync(
                 getQueryChat,
                 cancellationToken: cancellationToken);
 
-            if (result.Count != 1)
-            {
-                throw new InvalidOperationException("Failed to get search query");
-            }
-
-            query = result[0].ModelResult.GetOpenAIChatResult().Choice.Message.Content;
+            query = result.Content ?? throw new InvalidOperationException("Failed to get search query");
         }
 
         // step 2
@@ -92,7 +91,7 @@ standard plan AND dental AND employee benefit.
         Console.WriteLine(documentContents);
         // step 3
         // put together related docs and conversation history to generate answer
-        var answerChat = chat.CreateNewChat(
+        var answerChat = new ChatHistory(
             "You are a system assistant who helps the company employees with their healthcare " +
             "plan questions, and questions about the employee handbook. Be brief in your answers");
 
@@ -118,10 +117,10 @@ You answer needs to be a json object with the following format.
 }}");
 
         // get answer
-        var answer = await chat.GetChatCompletionsAsync(
+        var answer = await chat.GetChatMessageContentAsync(
                        answerChat,
                        cancellationToken: cancellationToken);
-        var answerJson = answer[0].ModelResult.GetOpenAIChatResult().Choice.Message.Content;
+        var answerJson = answer.Content ?? throw new InvalidOperationException("Failed to get search query");
         var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
         var ans = answerObject.GetProperty("answer").GetString() ?? throw new InvalidOperationException("Failed to get answer");
         var thoughts = answerObject.GetProperty("thoughts").GetString() ?? throw new InvalidOperationException("Failed to get thoughts");
@@ -130,7 +129,7 @@ You answer needs to be a json object with the following format.
         // add follow up questions if requested
         if (overrides?.SuggestFollowupQuestions is true)
         {
-            var followUpQuestionChat = chat.CreateNewChat(@"You are a helpful AI assistant");
+            var followUpQuestionChat = new ChatHistory(@"You are a helpful AI assistant");
             followUpQuestionChat.AddUserMessage($@"Generate three follow-up question based on the answer you just generated.
 # Answer
 {ans}
@@ -144,11 +143,11 @@ e.g.
     ""What is the out-of-pocket maximum?""
 ]");
 
-            var followUpQuestions = await chat.GetChatCompletionsAsync(
+            var followUpQuestions = await chat.GetChatMessageContentAsync(
                 followUpQuestionChat,
                 cancellationToken: cancellationToken);
 
-            var followUpQuestionsJson = followUpQuestions[0].ModelResult.GetOpenAIChatResult().Choice.Message.Content;
+            var followUpQuestionsJson = followUpQuestions.Content ?? throw new InvalidOperationException("Failed to get search query");
             var followUpQuestionsObject = JsonSerializer.Deserialize<JsonElement>(followUpQuestionsJson);
             var followUpQuestionsList = followUpQuestionsObject.EnumerateArray().Select(x => x.GetString()).ToList();
             foreach (var followUpQuestion in followUpQuestionsList)
