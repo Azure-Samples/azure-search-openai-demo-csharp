@@ -60,18 +60,20 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
     "--openaiendpoint $($env:AZURE_OPENAI_ENDPOINT) " +
     "--embeddingmodel $($env:AZURE_OPENAI_EMBEDDING_DEPLOYMENT) " +
     "--formrecognizerendpoint $($env:AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT) " +
-    "--computervisionendpoint $($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT) " +
     "--tenantid $($env:AZURE_TENANT_ID) " +
     "--verbose"
+
+    if ($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT -and $env:USE_GPT4V) {
+        Write-Host "Using GPT-4 Vision"
+        $dotnetArguments += " --computervisionendpoint $($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT)"
+    }
     
     Write-Host "dotnet $dotnetArguments"
     $output = Invoke-ExternalCommand -Command "dotnet" -Arguments $dotnetArguments
     Write-Host $output
 
-#     Invoke-ExternalCommand -Command ($azdCmd).Source -Arguments @"
-#     env set AZD_PREPDOCS_RAN "true"
-# "@
-
+    Invoke-ExternalCommand -Command ($azdCmd).Source -Arguments @"
+    env set AZD_PREPDOCS_RAN "true"
 }
 else {
     Write-Host "AZD_PREPDOCS_RAN is set to true. Skipping the run."
