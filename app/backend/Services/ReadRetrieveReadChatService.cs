@@ -4,12 +4,12 @@ namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService
 {
-    private readonly IDocumentService _searchClient;
+    private readonly ISearchService _searchClient;
     private readonly IKernel _kernel;
     private readonly IConfiguration _configuration;
 
     public ReadRetrieveReadChatService(
-        IDocumentService searchClient,
+        ISearchService searchClient,
         OpenAIClient client,
         IConfiguration configuration)
     {
@@ -158,6 +158,7 @@ e.g.
         }
         return new ApproachResponse(
             DataPoints: documentContentList,
+            Images: null,
             Answer: ans,
             Thoughts: thoughts,
             CitationBaseUrl: _configuration.ToCitationBaseUrl());

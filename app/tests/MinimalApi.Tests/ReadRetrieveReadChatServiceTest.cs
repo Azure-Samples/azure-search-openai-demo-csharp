@@ -21,7 +21,7 @@ public class ReadRetrieveReadChatServiceTest
     [EnvironmentVariablesFact("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "AZURE_OPENAI_CHATGPT_DEPLOYMENT")]
     public async Task NorthwindHealthQuestionTest_TextOnlyAsync()
     {
-        var documentSearchService = Substitute.For<IDocumentService>();
+        var documentSearchService = Substitute.For<ISearchService>();
         documentSearchService.QueryDocumentsAsync(Arg.Any<string?>(), Arg.Any<float[]?>(), Arg.Any<RequestOverrides?>(), Arg.Any<CancellationToken>())
                 .Returns(new SupportingContentRecord[]
                 {
