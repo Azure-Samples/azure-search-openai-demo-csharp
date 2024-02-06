@@ -150,6 +150,7 @@ internal static partial class Program
     private static Task<IComputerVisionService?> GetComputerVisionServiceAsync(AppOptions options) =>
         GetLazyClientAsync<IComputerVisionService?>(options, s_openAILock, async o =>
         {
+            await Task.CompletedTask;
             var endpoint = o.ComputerVisionServiceEndpoint;
 
             if (string.IsNullOrEmpty(endpoint))
