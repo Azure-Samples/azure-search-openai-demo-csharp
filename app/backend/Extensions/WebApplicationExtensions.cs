@@ -42,38 +42,37 @@ internal static class WebApplicationExtensions
         IConfiguration config,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
-        var response = await client.GetChatCompletionsStreamingAsync(
-            deploymentId, new ChatCompletionsOptions
-            {
-                Messages =
-                {
-                    new ChatMessage(ChatRole.System, """
-                        You're an AI assistant for developers, helping them write code more efficiently.
-                        You're name is **Blazor 📎 Clippy** and you're an expert Blazor developer.
-                        You're also an expert in ASP.NET Core, C#, TypeScript, and even JavaScript.
-                        You will always reply with a Markdown formatted response.
-                        """),
-
-                    new ChatMessage(ChatRole.User, "What's your name?"),
-
-                    new ChatMessage(ChatRole.Assistant,
-                        "Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
-
-                    new ChatMessage(ChatRole.User, prompt.Prompt)
-                }
-            }, cancellationToken);
-
-        using var completions = response.Value;
-        await foreach (var choice in completions.GetChoicesStreaming(cancellationToken))
+        var chatCompletionsOptions = new ChatCompletionsOptions
         {
-            await foreach (var message in choice.GetMessageStreaming(cancellationToken))
+            DeploymentName = "gpt-3.5-turbo", // Use DeploymentName for "model" with non-Azure clients
+            Messages =
             {
-                if (message is { Content.Length: > 0 })
-                {
-                    var (length, content) = (message.Content.Length, message.Content);
-                    yield return new ChatChunkResponse(length, content);
-                }
+                new ChatRequestSystemMessage("""
+                    You're an AI assistant for developers, helping them write code more efficiently.
+                    You're name is **Blazor 📎 Clippy** and you're an expert Blazor developer.
+                    You're also an expert in ASP.NET Core, C#, TypeScript, and even JavaScript.
+                    You will always reply with a Markdown formatted response.
+                    """),
+
+                new ChatRequestUserMessage("What's your name?"),
+
+                new ChatRequestAssistantMessage("Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
+
+                new ChatRequestUserMessage(prompt.Prompt)
+            }
+        };
+
+        //var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
+        var response = await client.GetChatCompletionsAsync(chatCompletionsOptions, cancellationToken);
+
+        foreach (var choice in response.Value.Choices)
+        {
+            var message = choice.Message;
+
+            if (message is { Content.Length: > 0 })
+            {
+                var (length, content) = (message.Content.Length, message.Content);
+                yield return new ChatChunkResponse(length, content);
             }
         }
     }
@@ -157,6 +156,9 @@ internal static class WebApplicationExtensions
         var result = await client.GetImageGenerationsAsync(new ImageGenerationOptions
         {
             Prompt = prompt.Prompt,
+            Size = ImageSize.Size1024x1024,
+            DeploymentName = "Dalle3",
+            Quality = ImageGenerationQuality.Standard
         },
         cancellationToken);
 

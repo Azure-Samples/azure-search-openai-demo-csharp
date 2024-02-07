@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Azure.AI.OpenAI;
+using EmbedFunctions.Services.Interfaces;
 
 namespace EmbedFunctions.Services;
 
@@ -14,8 +15,7 @@ public sealed partial class AzureSearchEmbedService(
     BlobContainerClient corpusContainerClient,
     ILogger<AzureSearchEmbedService>? logger) : IEmbedService
 {
-    [GeneratedRegex("[^0-9a-zA-Z_-]")]
-    private static partial Regex MatchInSetRegex();
+    #region Public Methods
 
     public async Task<bool> EmbedBlobAsync(Stream blobStream, string blobName)
     {
@@ -50,67 +50,16 @@ public sealed partial class AzureSearchEmbedService(
         }
     }
 
-    public async Task CreateSearchIndexAsync(string searchIndexName)
-    {
-        string vectorSearchConfigName = "my-vector-config";
-        string vectorSearchProfile = "my-vector-profile";
-        var index = new SearchIndex(searchIndexName)
-        {
-            VectorSearch = new()
-            {
-                Algorithms =
-                {
-                    new HnswAlgorithmConfiguration(vectorSearchConfigName)
-                },
-                Profiles =
-                {
-                    new VectorSearchProfile(vectorSearchProfile, vectorSearchConfigName)
-                }
-            },
-            Fields =
-            {
-                new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
-                new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
-                new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
-                new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
-                new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
-                new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
-                {
-                    VectorSearchDimensions = 1536,
-                    IsSearchable = true,
-                    VectorSearchProfileName = vectorSearchProfile,
-                }
-            },
-            SemanticSearch = new()
-            {
-                Configurations =
-                {
-                    new SemanticConfiguration("default", new()
-                    {
-                        ContentFields =
-                        {
-                            new SemanticField("content")
-                        }
-                    })
-                }
-            }
-        };
-
-        logger?.LogInformation(
-            "Creating '{searchIndexName}' search index", searchIndexName);
-
-        await searchIndexClient.CreateIndexAsync(index);
-    }
-
     public async Task EnsureSearchIndexAsync(string searchIndexName)
     {
         var indexNames = searchIndexClient.GetIndexNamesAsync();
+
         await foreach (var page in indexNames.AsPages())
         {
             if (page.Values.Any(indexName => indexName == searchIndexName))
             {
-                logger?.LogWarning(
-                    "Search index '{SearchIndexName}' already exists", searchIndexName);
+                logger?.LogWarning("Search index '{SearchIndexName}' already exists", searchIndexName);
+
                 return;
             }
         }
@@ -118,71 +67,18 @@ public sealed partial class AzureSearchEmbedService(
         await CreateSearchIndexAsync(searchIndexName);
     }
 
-    private async Task<IReadOnlyList<PageDetail>> GetDocumentTextAsync(Stream blobStream, string blobName)
-    {
-        logger?.LogInformation(
-            "Extracting text from '{Blob}' using Azure Form Recognizer", blobName);
+    #endregion Public Methods
 
-        Console.WriteLine($"Extracting text from '{blobName}' using Azure Form Recognizer");
-        using var ms = new MemoryStream();
-        blobStream.CopyTo(ms);
-        ms.Position = 0;
-        AnalyzeDocumentOperation operation = documentAnalysisClient.AnalyzeDocument(
-            WaitUntil.Started, "prebuilt-layout", ms);
+    #region Private Methods
 
-        var offset = 0;
-        List<PageDetail> pageMap = [];
+    #region Static methods
 
-        var results = await operation.WaitForCompletionAsync();
-        var pages = results.Value.Pages;
-        for (var i = 0; i < pages.Count; i++)
-        {
-            IReadOnlyList<DocumentTable> tablesOnPage =
-                results.Value.Tables.Where(t => t.BoundingRegions[0].PageNumber == i + 1).ToList();
+    #region Regex
 
-            // Mark all positions of the table spans in the page
-            int pageIndex = pages[i].Spans[0].Index;
-            int pageLength = pages[i].Spans[0].Length;
-            int[] tableChars = Enumerable.Repeat(-1, pageLength).ToArray();
-            for (var tableId = 0; tableId < tablesOnPage.Count; tableId++)
-            {
-                foreach (DocumentSpan span in tablesOnPage[tableId].Spans)
-                {
-                    // Replace all table spans with "tableId" in tableChars array
-                    for (var j = 0; j < span.Length; j++)
-                    {
-                        int index = span.Index - pageIndex + j;
-                        if (index >= 0 && index < pageLength)
-                        {
-                            tableChars[index] = tableId;
-                        }
-                    }
-                }
-            }
+    [GeneratedRegex("[^0-9a-zA-Z_-]")]
+    private static partial Regex MatchInSetRegex();
 
-            // Build page text by replacing characters in table spans with table HTML
-            StringBuilder pageText = new();
-            HashSet<int> addedTables = [];
-            for (int j = 0; j < tableChars.Length; j++)
-            {
-                if (tableChars[j] == -1)
-                {
-                    pageText.Append(results.Value.Content[pageIndex + j]);
-                }
-                else if (!addedTables.Contains(tableChars[j]))
-                {
-                    pageText.Append(TableToHtml(tablesOnPage[tableChars[j]]));
-                    addedTables.Add(tableChars[j]);
-                }
-            }
-
-            pageText.Append(' ');
-            pageMap.Add(new PageDetail(i, offset, pageText.ToString()));
-            offset += pageText.Length;
-        }
-        Console.WriteLine($"Extracted {pageMap.Count} pages from '{blobName}'");
-        return pageMap.AsReadOnly();
-    }
+    #endregion Regex
 
     private static string TableToHtml(DocumentTable table)
     {
@@ -225,6 +121,96 @@ public sealed partial class AzureSearchEmbedService(
         tableHtml.Append("</table>");
 
         return tableHtml.ToString();
+    }
+
+    private static int FindPage(IReadOnlyList<PageDetail> pageMap, int offset)
+    {
+        var length = pageMap.Count;
+        for (var i = 0; i < length - 1; i++)
+        {
+            if (offset >= pageMap[i].Offset && offset < pageMap[i + 1].Offset)
+            {
+                return i;
+            }
+        }
+
+        return length - 1;
+    }
+
+    private static string BlobNameFromFilePage(string blobName, int page = 0) => blobName;
+
+    #endregion Static methods
+
+    private async Task<IReadOnlyList<PageDetail>> GetDocumentTextAsync(Stream blobStream, string blobName)
+    {
+        var logText = $"Extracting text from '{blobName}' using Azure Form Recognizer";
+        logger?.LogInformation(logText);
+        Console.WriteLine(logText);
+
+        using var ms = new MemoryStream();
+        blobStream.CopyTo(ms);
+        ms.Position = 0;
+
+        AnalyzeDocumentOperation operation = documentAnalysisClient
+            .AnalyzeDocument(WaitUntil.Started, "prebuilt-layout", ms);
+
+        var offset = 0;
+        List<PageDetail> pageMap = [];
+
+        var results = await operation.WaitForCompletionAsync();
+        var pages = results.Value.Pages;
+
+        for (var i = 0; i < pages.Count; i++)
+        {
+            IReadOnlyList<DocumentTable> tablesOnPage =
+                results.Value.Tables.Where(t => t.BoundingRegions[0].PageNumber == i + 1).ToList();
+
+            // Mark all positions of the table spans in the page
+            int pageIndex = pages[i].Spans[0].Index;
+            int pageLength = pages[i].Spans[0].Length;
+            int[] tableChars = Enumerable.Repeat(-1, pageLength).ToArray();
+
+            for (var tableId = 0; tableId < tablesOnPage.Count; tableId++)
+            {
+                foreach (DocumentSpan span in tablesOnPage[tableId].Spans)
+                {
+                    // Replace all table spans with "tableId" in tableChars array
+                    for (var j = 0; j < span.Length; j++)
+                    {
+                        int index = span.Index - pageIndex + j;
+                        if (index >= 0 && index < pageLength)
+                        {
+                            tableChars[index] = tableId;
+                        }
+                    }
+                }
+            }
+
+            // Build page text by replacing characters in table spans with table HTML
+            StringBuilder pageText = new();
+            HashSet<int> addedTables = [];
+
+            for (int j = 0; j < tableChars.Length; j++)
+            {
+                if (tableChars[j] == -1)
+                {
+                    pageText.Append(results.Value.Content[pageIndex + j]);
+                }
+                else if (!addedTables.Contains(tableChars[j]))
+                {
+                    pageText.Append(TableToHtml(tablesOnPage[tableChars[j]]));
+                    addedTables.Add(tableChars[j]);
+                }
+            }
+
+            pageText.Append(' ');
+            pageMap.Add(new PageDetail(i, offset, pageText.ToString()));
+
+            offset += pageText.Length;
+        }
+
+        Console.WriteLine($"Extracted {pageMap.Count} pages from '{blobName}'");
+        return pageMap.AsReadOnly();
     }
 
     private async Task UploadCorpusAsync(string corpusBlobName, string text)
@@ -356,22 +342,6 @@ public sealed partial class AzureSearchEmbedService(
         }
     }
 
-    private static int FindPage(IReadOnlyList<PageDetail> pageMap, int offset)
-    {
-        var length = pageMap.Count;
-        for (var i = 0; i < length - 1; i++)
-        {
-            if (offset >= pageMap[i].Offset && offset < pageMap[i + 1].Offset)
-            {
-                return i;
-            }
-        }
-
-        return length - 1;
-    }
-
-    private static string BlobNameFromFilePage(string blobName, int page = 0) => blobName;
-
     private async Task IndexSectionsAsync(string searchIndexName, IEnumerable<Section> sections, string blobName)
     {
         var infoLoggingEnabled = logger?.IsEnabled(LogLevel.Information);
@@ -388,7 +358,7 @@ public sealed partial class AzureSearchEmbedService(
         var batch = new IndexDocumentsBatch<SearchDocument>();
         foreach (var section in sections)
         {
-            var embeddings = await openAIClient.GetEmbeddingsAsync(embeddingModelName, new Azure.AI.OpenAI.EmbeddingsOptions(section.Content.Replace('\r', ' ')));
+            var embeddings = await openAIClient.GetEmbeddingsAsync(new EmbeddingsOptions(embeddingModelName, new[] { section.Content.Replace('\r', ' ').Replace('\n', ' ') }));
             var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
             batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
                 IndexActionType.MergeOrUpload,
@@ -437,4 +407,62 @@ public sealed partial class AzureSearchEmbedService(
             }
         }
     }
+
+    #region AI Search methods
+
+    private async Task CreateSearchIndexAsync(string searchIndexName)
+    {
+        string vectorSearchConfigName = "my-vector-config";
+        string vectorSearchProfile = "my-vector-profile";
+        var index = new SearchIndex(searchIndexName)
+        {
+            VectorSearch = new()
+            {
+                Algorithms =
+                {
+                    new HnswAlgorithmConfiguration(vectorSearchConfigName)
+                },
+                Profiles =
+                {
+                    new VectorSearchProfile(vectorSearchProfile, vectorSearchConfigName)
+                }
+            },
+            Fields =
+            {
+                new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
+                new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
+                new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
+                new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
+                new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
+                new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
+                {
+                    VectorSearchDimensions = 1536,
+                    IsSearchable = true,
+                    VectorSearchProfileName = vectorSearchProfile,
+                }
+            },
+            SemanticSearch = new()
+            {
+                Configurations =
+                {
+                    new SemanticConfiguration("default", new()
+                    {
+                        ContentFields =
+                        {
+                            new SemanticField("content")
+                        }
+                    })
+                }
+            }
+        };
+
+        logger?.LogInformation(
+            "Creating '{searchIndexName}' search index", searchIndexName);
+
+        await searchIndexClient.CreateIndexAsync(index);
+    }
+
+    #endregion AI Search methods
+
+    #endregion Private Methods
 }
