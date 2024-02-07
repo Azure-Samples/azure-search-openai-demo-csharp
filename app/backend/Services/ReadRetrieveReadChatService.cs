@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Core;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
 
 namespace MinimalApi.Services;
@@ -11,26 +13,47 @@ public class ReadRetrieveReadChatService
     private readonly ISearchService _searchClient;
     private readonly Kernel _kernel;
     private readonly IConfiguration _configuration;
+    private readonly IComputerVisionService? _visionService;
+    private readonly TokenCredential? _tokenCredential;
 
     public ReadRetrieveReadChatService(
         ISearchService searchClient,
         OpenAIClient client,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IComputerVisionService? visionService = null,
+        TokenCredential? tokenCredential = null)
     {
         _searchClient = searchClient;
-        var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(deployedModelName);
+        var kernelBuilder = Kernel.CreateBuilder();
 
-        var kernelBuilder = Kernel.CreateBuilder().AddAzureOpenAIChatCompletion(deployedModelName, client);
-        var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
-        if (!string.IsNullOrEmpty(embeddingModelName))
+        if (configuration["UseAOAI"] != "true")
         {
-            var endpoint = configuration["AzureOpenAiServiceEndpoint"];
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint);
-            kernelBuilder = kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(embeddingModelName, endpoint, new DefaultAzureCredential());
+            var deployment = configuration["OpenAiChatGptDeployment"];
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(deployment);
+            kernelBuilder = kernelBuilder.AddOpenAIChatCompletion(deployment, client);
+
+            var embeddingModelName = configuration["OpenAiEmbeddingDeployment"];
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(embeddingModelName);
+            kernelBuilder = kernelBuilder.AddOpenAITextEmbeddingGeneration(embeddingModelName, client);
         }
+        else
+        {
+            var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(deployedModelName);
+            var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
+            if (!string.IsNullOrEmpty(embeddingModelName))
+            {
+                var endpoint = configuration["AzureOpenAiServiceEndpoint"];
+                ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint);
+                kernelBuilder = kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(embeddingModelName, endpoint, tokenCredential ?? new DefaultAzureCredential());
+                kernelBuilder = kernelBuilder.AddAzureOpenAIChatCompletion(deployedModelName, endpoint, tokenCredential ?? new DefaultAzureCredential());
+            }
+        }
+
         _kernel = kernelBuilder.Build();
         _configuration = configuration;
+        _visionService = visionService;
+        _tokenCredential = tokenCredential;
     }
 
     public async Task<ApproachResponse> ReplyAsync(
@@ -88,12 +111,19 @@ standard plan AND dental AND employee benefit.
             documentContents = string.Join("\r", documentContentList.Select(x =>$"{x.Title}:{x.Content}"));
         }
 
-        Console.WriteLine(documentContents);
+        // step 2.5
+        // retrieve images if _visionService is available
+        SupportingImageRecord[]? images = default;
+        if (_visionService is not null)
+        {
+            var queryEmbeddings = await _visionService.VectorizeTextAsync(query ?? question, cancellationToken);
+            images = await _searchClient.QueryImagesAsync(query, queryEmbeddings.vector, overrides, cancellationToken);
+        }
+
         // step 3
         // put together related docs and conversation history to generate answer
         var answerChat = new ChatHistory(
-            "You are a system assistant who helps the company employees with their healthcare " +
-            "plan questions, and questions about the employee handbook. Be brief in your answers");
+            "You are a system assistant who helps the company employees with their questions. Be brief in your answers");
 
         // add chat history
         foreach (var turn in history)
@@ -105,8 +135,33 @@ standard plan AND dental AND employee benefit.
             }
         }
 
-        // format prompt
-        answerChat.AddUserMessage(@$" ## Source ##
+        
+        if (images != null)
+        {
+            var prompt = @$"## Source ##
+{documentContents}
+## End ##
+
+Answer question based on available source and images.
+Your answer needs to be a json object with answer and thoughts field.
+Don't put your answer between ```json and ```, return the json string directly. e.g {{""answer"": ""I don't know"", ""thoughts"": ""I don't know""}}";
+
+            var tokenRequestContext = new TokenRequestContext(new[] { "https://storage.azure.com/.default" });
+            var sasToken = await (_tokenCredential?.GetTokenAsync(tokenRequestContext, cancellationToken) ?? throw new InvalidOperationException("Failed to get token"));
+            var sasTokenString = sasToken.Token;
+            var imageUrls = images.Select(x => $"{x.Url}?{sasTokenString}").ToArray();
+            var collection = new ChatMessageContentItemCollection();
+            collection.Add(new TextContent(prompt));
+            foreach (var imageUrl in imageUrls)
+            {
+                collection.Add(new ImageContent(new Uri(imageUrl)));
+            }
+
+            answerChat.AddUserMessage(collection);
+        }
+        else
+        {
+            var prompt = @$" ## Source ##
 {documentContents}
 ## End ##
 
@@ -114,11 +169,20 @@ You answer needs to be a json object with the following format.
 {{
     ""answer"": // the answer to the question, add a source reference to the end of each sentence. e.g. Apple is a fruit [reference1.pdf][reference2.pdf]. If no source available, put the answer as I don't know.
     ""thoughts"": // brief thoughts on how you came up with the answer, e.g. what sources you used, what you thought about, etc.
-}}");
+}}";
+            answerChat.AddUserMessage(prompt);
+        }
+
+        var promptExecutingSetting = new OpenAIPromptExecutionSettings
+        {
+            MaxTokens = 1024,
+            Temperature = overrides?.Temperature ?? 0.7,
+        };
 
         // get answer
         var answer = await chat.GetChatMessageContentAsync(
                        answerChat,
+                       promptExecutingSetting,
                        cancellationToken: cancellationToken);
         var answerJson = answer.Content ?? throw new InvalidOperationException("Failed to get search query");
         var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
@@ -157,7 +221,7 @@ e.g.
         }
         return new ApproachResponse(
             DataPoints: documentContentList,
-            Images: null,
+            Images: images,
             Answer: ans,
             Thoughts: thoughts,
             CitationBaseUrl: _configuration.ToCitationBaseUrl());

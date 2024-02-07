@@ -293,7 +293,10 @@ public class AzureSearchEmbedServiceTest
             var imageBlobName = "Financial Market Analysis Report 2023-04.png";
             var imagePath = Path.Combine("data", "imgs", imageBlobName);
             using var stream = File.OpenRead(imagePath);
-            var isSucceed = await service.EmbedImageBlobAsync(stream, imageBlobName);
+            var client = containerClient.GetBlobClient(imageBlobName);
+            await client.UploadAsync(stream, true);
+            var url = client.Uri.AbsoluteUri;
+            var isSucceed = await service.EmbedImageBlobAsync(stream, url);
             isSucceed.Should().BeTrue();
 
             // check if the image is uploaded to blob
