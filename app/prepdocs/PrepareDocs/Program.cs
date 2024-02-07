@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using EmbedFunctions.Services;
+using EmbedFunctions.Services.Interfaces;
 
 s_rootCommand.SetHandler(
     async (context) =>

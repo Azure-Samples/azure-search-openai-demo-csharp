@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace EmbedFunctions.Services;
+namespace EmbedFunctions.Services.Interfaces;
 
 public interface IEmbedService
 {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Azure.AI.OpenAI;
+using EmbedFunctions.Services.Interfaces;
 
 var host = new HostBuilder()
     .ConfigureServices(services =>
