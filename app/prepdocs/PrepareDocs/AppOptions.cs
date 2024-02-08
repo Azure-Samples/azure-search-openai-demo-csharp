@@ -16,6 +16,7 @@ internal record class AppOptions(
     bool Remove,
     bool RemoveAll,
     string? FormRecognizerServiceEndpoint,
+    string? ComputerVisionServiceEndpoint,
     bool Verbose,
     IConsole Console) : AppConsole(Console);
 

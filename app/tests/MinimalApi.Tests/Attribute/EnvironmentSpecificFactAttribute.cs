@@ -29,11 +29,11 @@ public abstract class EnvironmentSpecificFactAttribute : FactAttribute
     protected abstract bool IsEnvironmentSupported();
 }
 
-public sealed class ApiKeyFactAttribute : EnvironmentSpecificFactAttribute
+public sealed class EnvironmentVariablesFactAttribute : EnvironmentSpecificFactAttribute
 {
     private readonly string[] _envVariableNames;
     
-    public ApiKeyFactAttribute(params string[] envVariableNames) : base($"{string.Join(", ", envVariableNames)} is not found in env")
+    public EnvironmentVariablesFactAttribute(params string[] envVariableNames) : base($"{string.Join(", ", envVariableNames)} is not found in env")
     {
         _envVariableNames = envVariableNames;
     }

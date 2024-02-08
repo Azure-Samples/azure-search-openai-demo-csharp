@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-
-using EmbedFunctions.Services;
+using System.Threading.Tasks;
 
 internal static partial class Program
 {
@@ -36,8 +35,19 @@ internal static partial class Program
             var searchIndexClient = await GetSearchIndexClientAsync(o);
             var documentClient = await GetFormRecognizerClientAsync(o);
             var blobContainerClient = await GetCorpusBlobContainerClientAsync(o);
+            var computerVisionService = await GetComputerVisionServiceAsync(o);
 
-            return new AzureSearchEmbedService(openAIClient, embeddingModelName, searchClient, searchIndexName, searchIndexClient, documentClient, blobContainerClient, null);
+            return new AzureSearchEmbedService(
+                openAIClient: openAIClient,
+                embeddingModelName: embeddingModelName,
+                searchClient: searchClient,
+                searchIndexName: searchIndexName,
+                searchIndexClient: searchIndexClient,
+                documentAnalysisClient: documentClient,
+                corpusContainerClient: blobContainerClient,
+                computerVisionService: computerVisionService,
+                includeImageEmbeddingsField: computerVisionService != null,
+                logger: null);
         });
 
     #region Factory Methods
@@ -170,6 +180,20 @@ internal static partial class Program
             }
 
             return s_containerClient;
+        });
+
+    private static Task<IComputerVisionService?> GetComputerVisionServiceAsync(AppOptions options) =>
+        GetLazyClientAsync<IComputerVisionService?>(options, s_openAILock, async o =>
+        {
+            await Task.CompletedTask;
+            var endpoint = o.ComputerVisionServiceEndpoint;
+
+            if (string.IsNullOrEmpty(endpoint))
+            {
+                return null;
+            }
+
+            return new AzureComputerVisionService(new HttpClient(), endpoint, DefaultCredential);
         });
 
     #endregion Factory Methods
