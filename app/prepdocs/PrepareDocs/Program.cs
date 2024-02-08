@@ -202,7 +202,10 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
         Path.GetExtension(fileName).Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
         Path.GetExtension(fileName).Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
     {
-        await embeddingService.EmbedImageBlobAsync(File.OpenRead(fileName), fileName);
+        using var stream = File.OpenRead(fileName);
+        var blobName = BlobNameFromFilePage(fileName);
+        await UploadBlobAsync(fileName, blobName, container);
+        await embeddingService.EmbedImageBlobAsync(stream, fileName);
     }
     else
     {

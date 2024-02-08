@@ -73,7 +73,10 @@ public sealed partial class AzureSearchEmbedService(
         }
     }
 
-    public async Task<bool> EmbedImageBlobAsync(Stream imageStream, string imageName, CancellationToken ct = default)
+    public async Task<bool> EmbedImageBlobAsync(
+        Stream imageStream,
+        string imageUrl,
+        CancellationToken ct = default)
     {
         if (includeImageEmbeddingsField == false || computerVisionService is null)
         {
@@ -81,34 +84,10 @@ public sealed partial class AzureSearchEmbedService(
                 "Computer Vision service is required to include image embeddings field");
         }
 
-        // step 1
-        // upload image to blob storage
-        var blobClient = corpusContainerClient.GetBlobClient(imageName);
-        if (await blobClient.ExistsAsync())
-        {
-            logger?.LogWarning("Blob '{BlobName}' already exists", imageName);
-        }
-        else
-        {
-            logger?.LogInformation("Uploading image '{ImageName}'", imageName);
-            await blobClient.UploadAsync(imageStream, new BlobHttpHeaders
-            {
-                ContentType = "image"
-            });
-        }
-
-        // step 2
-        // get image embeddings
-        imageStream.Position = 0;
-        var tempPath = Path.GetTempFileName();
-        await using var tempStream = File.OpenWrite(tempPath);
-        await imageStream.CopyToAsync(tempStream, ct);
-        tempStream.Close();
-
-        var embeddings = await computerVisionService.VectorizeImageAsync(tempPath, ct);
+        var embeddings = await computerVisionService.VectorizeImageAsync(imageUrl, ct);
 
         // id can only contain letters, digits, underscore (_), dash (-), or equal sign (=).
-        var imageId = MatchInSetRegex().Replace(imageName, "_").TrimStart('_');
+        var imageId = MatchInSetRegex().Replace(imageUrl, "_").TrimStart('_');
         // step 3
         // index image embeddings
         var indexAction = new IndexDocumentsAction<SearchDocument>(
@@ -116,10 +95,10 @@ public sealed partial class AzureSearchEmbedService(
             new SearchDocument
             {
                 ["id"] = imageId,
-                ["content"] = imageName,
+                ["content"] = imageUrl,
                 ["category"] = "image",
                 ["imageEmbedding"] = embeddings.vector,
-                ["sourcefile"] = blobClient.Uri.ToString(),
+                ["sourcefile"] = imageUrl,
             });
 
         var batch = new IndexDocumentsBatch<SearchDocument>();
@@ -469,7 +448,7 @@ public sealed partial class AzureSearchEmbedService(
         var batch = new IndexDocumentsBatch<SearchDocument>();
         foreach (var section in sections)
         {
-            var embeddings = await openAIClient.GetEmbeddingsAsync(embeddingModelName, new Azure.AI.OpenAI.EmbeddingsOptions(section.Content.Replace('\r', ' ')));
+            var embeddings = await openAIClient.GetEmbeddingsAsync(new Azure.AI.OpenAI.EmbeddingsOptions(embeddingModelName, [section.Content.Replace('\r', ' ')]));
             var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
             batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
                 IndexActionType.MergeOrUpload,

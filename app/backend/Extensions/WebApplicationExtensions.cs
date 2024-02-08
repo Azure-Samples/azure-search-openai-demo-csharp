@@ -44,36 +44,28 @@ internal static class WebApplicationExtensions
     {
         var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
         var response = await client.GetChatCompletionsStreamingAsync(
-            deploymentId, new ChatCompletionsOptions
+            new ChatCompletionsOptions
             {
+                DeploymentName = deploymentId,
                 Messages =
                 {
-                    new ChatMessage(ChatRole.System, """
+                    new ChatRequestSystemMessage("""
                         You're an AI assistant for developers, helping them write code more efficiently.
                         You're name is **Blazor 📎 Clippy** and you're an expert Blazor developer.
                         You're also an expert in ASP.NET Core, C#, TypeScript, and even JavaScript.
                         You will always reply with a Markdown formatted response.
                         """),
-
-                    new ChatMessage(ChatRole.User, "What's your name?"),
-
-                    new ChatMessage(ChatRole.Assistant,
-                        "Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
-
-                    new ChatMessage(ChatRole.User, prompt.Prompt)
+                    new ChatRequestUserMessage("What's your name?"),
+                    new ChatRequestAssistantMessage("Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
+                    new ChatRequestUserMessage(prompt.Prompt)
                 }
             }, cancellationToken);
 
-        using var completions = response.Value;
-        await foreach (var choice in completions.GetChoicesStreaming(cancellationToken))
+        await foreach (var choice in response.WithCancellation(cancellationToken))
         {
-            await foreach (var message in choice.GetMessageStreaming(cancellationToken))
+            if (choice.ContentUpdate is { Length: > 0 })
             {
-                if (message is { Content.Length: > 0 })
-                {
-                    var (length, content) = (message.Content.Length, message.Content);
-                    yield return new ChatChunkResponse(length, content);
-                }
+                yield return new ChatChunkResponse(choice.ContentUpdate.Length, choice.ContentUpdate);
             }
         }
     }

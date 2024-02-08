@@ -72,8 +72,7 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
     $output = Invoke-ExternalCommand -Command "dotnet" -Arguments $dotnetArguments
     Write-Host $output
 
-    Invoke-ExternalCommand -Command ($azdCmd).Source -Arguments @"
-    env set AZD_PREPDOCS_RAN "true"
+    azd env set AZD_PREPDOCS_RAN "true"
 }
 else {
     Write-Host "AZD_PREPDOCS_RAN is set to true. Skipping the run."
