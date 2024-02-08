@@ -18,4 +18,25 @@
             <MudText Typo="Typo.body1">@((MarkupString)content!)</MudText>
         </MudListItem>
     }
+    <MudDivider />
+    @foreach (var (index, value) in Images.Select((item, i) => (i, item)))
+    {
+        var last = index == Images.Length - 1;
+        if (value is null)
+        {
+            continue;
+        }
+
+        (var title, var url) = value;
+
+        if (index is not 0 && last is false)
+        {
+            <MudDivider />
+        }
+
+        <MudListItem>
+            <MudText Typo="Typo.subtitle1" Class="pb-2" Style="font-weight: bold;" Color="Color.Primary">@title</MudText>
+            <ImageViewerDialog FileName="@title" Src="@url" />
+        </MudListItem>
+    }
 </MudList>

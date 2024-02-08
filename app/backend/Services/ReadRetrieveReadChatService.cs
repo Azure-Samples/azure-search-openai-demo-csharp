@@ -26,7 +26,7 @@ public class ReadRetrieveReadChatService
         _searchClient = searchClient;
         var kernelBuilder = Kernel.CreateBuilder();
 
-        if (configuration["UseAOAI"] != "true")
+        if (configuration["UseAOAI"] == "false")
         {
             var deployment = configuration["OpenAiChatGptDeployment"];
             ArgumentNullException.ThrowIfNullOrWhiteSpace(deployment);

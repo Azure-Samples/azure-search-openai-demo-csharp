@@ -101,7 +101,11 @@ public sealed partial class Docs : IDisposable
         }
     }
 
-    private void OnShowDocument(DocumentResponse document) => Dialog.Show<PdfViewerDialog>(
+    private void OnShowDocument(DocumentResponse document)
+    {
+        if (document.Name.EndsWith(".pdf"))
+        {
+            Dialog.Show<PdfViewerDialog>(
             $"📄 {document.Name}",
             new DialogParameters
             {
@@ -116,6 +120,36 @@ public sealed partial class Docs : IDisposable
                 CloseButton = true,
                 CloseOnEscapeKey = true
             });
+        }
+        else if (document.Name.EndsWith(".png") || document.Name.EndsWith(".jpg"))
+        {
+            Dialog.Show<ImageViewerDialog>(
+            $"📄 {document.Name}",
+            new DialogParameters
+            {
+                [nameof(ImageViewerDialog.FileName)] = document.Name,
+                [nameof(ImageViewerDialog.Src)] = document.Url.ToString(),
+            },
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Large,
+                FullWidth = true,
+                CloseButton = true,
+                CloseOnEscapeKey = true
+            });
+        }
+        else
+        {
+            Snackbar.Add(
+                "Unsupported file type.",
+                Severity.Error,
+                static options =>
+                {
+                    options.ShowCloseIcon = true;
+                    options.VisibleStateDuration = 10_000;
+                });
+        }
+    }
 
     public void Dispose() => _cancellationTokenSource.Cancel();
 }
