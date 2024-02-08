@@ -1,15 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using Azure.Identity;
-using Azure.Search.Documents.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MinimalApi.Services;
 using NSubstitute;

@@ -1,15 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Azure.Search.Documents;
 using FluentAssertions;
-using MinimalApi.Services;
 using Shared.Models;
 
 namespace MinimalApi.Tests;
@@ -46,7 +40,7 @@ public class AzureDocumentSearchServiceTest
         var openAiEmbeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new InvalidOperationException();
         var openAIClient = new OpenAIClient(new Uri(openAiEndpoint), new DefaultAzureCredential());
         var query = "What is included in my Northwind Health Plus plan that is not in standard?";
-        var embeddingResponse = await openAIClient.GetEmbeddingsAsync(openAiEmbeddingDeployment, new EmbeddingsOptions(query));
+        var embeddingResponse = await openAIClient.GetEmbeddingsAsync(new EmbeddingsOptions(openAiEmbeddingDeployment, new[] { query }));
         var embedding = embeddingResponse.Value.Data.First().Embedding;
         var searchClient = new SearchClient(new Uri(searchServceEndpoint), index, new DefaultAzureCredential());
         var service = new AzureSearchService(searchClient);

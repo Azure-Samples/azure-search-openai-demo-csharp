@@ -198,9 +198,9 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
         }
     }
     // if it's an img (end with .png/.jpg/.jpeg), upload it to blob storage and embed it.
-    else if (Path.GetExtension(fileName).Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-        Path.GetExtension(fileName).Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-        Path.GetExtension(fileName).Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
+    else if (Path.GetExtension(fileName).Equals(".png", StringComparison.OrdinalIgnoreCase)
+        || Path.GetExtension(fileName).Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+        || Path.GetExtension(fileName).Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
     {
         await embeddingService.EmbedImageBlobAsync(File.OpenRead(fileName), fileName);
     }

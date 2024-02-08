@@ -41,7 +41,7 @@ public sealed partial class Index : IDisposable
         _images.Enqueue(new("media/bing-create-9.jpg", "Artificial intelligence, geometric art, bright and vivid"));
         _images.Enqueue(new("media/bing-create-10.jpg", "Old 1950s computer on pick background, retro futurism"));
 
-        _ = UpdateImageAsync();
+        //_ = UpdateImageAsync();
     }
 
     public void Dispose()

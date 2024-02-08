@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure;
+
 namespace MinimalApi.Extensions;
 
 internal static class ServiceCollectionExtensions
@@ -56,11 +58,15 @@ internal static class ServiceCollectionExtensions
         {
             var config = sp.GetRequiredService<IConfiguration>();
             var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"];
+            var azureOpenAiApiKey = config["AzureOpenAiApiKey"];            
 
             ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
+            ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiApiKey);
 
             var openAIClient = new OpenAIClient(
-                new Uri(azureOpenAiServiceEndpoint), s_azureCredential);
+                new Uri(azureOpenAiServiceEndpoint), 
+                new AzureKeyCredential(azureOpenAiApiKey));
+                //s_azureCredential);
 
             return openAIClient;
         });

@@ -1,21 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Azure;
 using Azure.AI.FormRecognizer.DocumentAnalysis;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
-using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 
 namespace MinimalApi.Tests;
@@ -227,17 +220,25 @@ public class AzureSearchEmbedServiceTest
         try
         {
             await service.EnsureSearchIndexAsync(indexName);
+
             var benefitOptionsPDFName = "Benefit_Options.pdf";
             var benefitOptionsPDFPath = Path.Combine("data", benefitOptionsPDFName);
             using var stream = File.OpenRead(benefitOptionsPDFPath);
+
             var isSucceed = await service.EmbedPDFBlobAsync(stream, benefitOptionsPDFName);
             isSucceed.Should().BeTrue();
 
             // check if the document page is uploaded to blob
             var blobs = containerClient.GetBlobsAsync();
-            var blobNames = blobs.Select(b => b.Name).ToListAsync();
-            blobNames.Result.Count.Should().Be(4);
-            blobNames.Result.Should().BeEquivalentTo([ "Benefit_Options-0.txt", "Benefit_Options-1.txt", "Benefit_Options-2.txt", "Benefit_Options-3.txt" ]);
+            var blobNames = new List<string>();
+
+            await foreach (BlobItem blobItem in blobs)
+            {
+                blobNames.Add(blobItem.Name);
+            }
+
+            blobNames.Count.Should().Be(4);
+            blobNames.Should().BeEquivalentTo(["Benefit_Options-0.txt", "Benefit_Options-1.txt", "Benefit_Options-2.txt", "Benefit_Options-3.txt"]);
         }
         finally
         {
@@ -290,17 +291,25 @@ public class AzureSearchEmbedServiceTest
         try
         {
             await service.EnsureSearchIndexAsync(indexName);
+
             var imageBlobName = "Financial Market Analysis Report 2023-04.png";
             var imagePath = Path.Combine("data", "imgs", imageBlobName);
             using var stream = File.OpenRead(imagePath);
+
             var isSucceed = await service.EmbedImageBlobAsync(stream, imageBlobName);
             isSucceed.Should().BeTrue();
 
             // check if the image is uploaded to blob
             var blobs = containerClient.GetBlobsAsync();
-            var blobNames = blobs.Select(b => b.Name).ToListAsync();
-            blobNames.Result.Count.Should().Be(1);
-            blobNames.Result.Should().BeEquivalentTo([ imageBlobName ]);
+            var blobNames = new List<string>();
+
+            await foreach (BlobItem blobItem in blobs)
+            {
+                blobNames.Add(blobItem.Name);
+            }
+
+            blobNames.Count.Should().Be(1);
+            blobNames.Should().BeEquivalentTo([imageBlobName]);
         }
         finally
         {

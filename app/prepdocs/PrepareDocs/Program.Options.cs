@@ -67,7 +67,7 @@ internal static partial class Program
             s_removeAll,
             s_formRecognizerServiceEndpoint,
             s_computerVisionServiceEndpoint,
-            s_verbose,
+            s_verbose
         };
 
     private static AppOptions GetParsedAppOptions(InvocationContext context) => new(
