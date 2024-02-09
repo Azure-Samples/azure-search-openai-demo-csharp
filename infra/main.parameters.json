@@ -76,6 +76,24 @@
     },
     "useApplicationInsights": {
       "value": "${AZURE_USE_APPLICATION_INSIGHTS=true}"
+    },
+    "openAIApiKey": {
+      "value": "${OPENAI_API_KEY}"
+    },
+    "useAOAI": {
+      "value": "${USE_AOAI=true}"
+    },
+    "azureComputerVisionServiceEndpoint": {
+      "value": "${AZURE_COMPUTERVISION_SERVICE_ENDPOINT}"
+    },
+    "useGpt4V" : {
+      "value": "${USE_GPT4V}"
+    },
+    "openAiChatGptDeployment":{
+      "value": "${OPENAI_CHATGPT_DEPLOYMENT=gpt-3.5-turbo}"
+    },
+    "openAiEmbeddingDeployment":{
+      "value": "${OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-ada-002}"
     }
   }
 }

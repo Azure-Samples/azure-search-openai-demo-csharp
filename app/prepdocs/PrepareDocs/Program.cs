@@ -204,8 +204,8 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
     {
         using var stream = File.OpenRead(fileName);
         var blobName = BlobNameFromFilePage(fileName);
-        await UploadBlobAsync(fileName, blobName, container);
-        await embeddingService.EmbedImageBlobAsync(stream, fileName);
+        var url = await UploadBlobAsync(fileName, blobName, container);
+        await embeddingService.EmbedImageBlobAsync(stream, url);
     }
     else
     {
@@ -215,12 +215,14 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
     }
 }
 
-static async Task UploadBlobAsync(string fileName, string blobName, BlobContainerClient container)
+static async Task<string> UploadBlobAsync(string fileName, string blobName, BlobContainerClient container)
 {
     var blobClient = container.GetBlobClient(blobName);
+    var url = blobClient.Uri.AbsoluteUri;
+
     if (await blobClient.ExistsAsync())
     {
-        return;
+        return url;
     }
 
     var blobHttpHeaders = new BlobHttpHeaders
@@ -230,6 +232,9 @@ static async Task UploadBlobAsync(string fileName, string blobName, BlobContaine
 
     await using var fileStream = File.OpenRead(fileName);
     await blobClient.UploadAsync(fileStream, blobHttpHeaders);
+
+
+    return url;
 }
 
 static string GetContentType(string fileName)

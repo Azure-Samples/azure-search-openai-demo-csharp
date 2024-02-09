@@ -36,16 +36,16 @@ param appServicePlanName string = ''
 param chatGptDeploymentCapacity int = 30
 
 @description('Name of the chat GPT deployment')
-param chatGptDeploymentName string = 'chat'
+param azureChatGptDeploymentName string = 'chat'
 
 @description('Name of the embedding deployment. Default: embedding')
-param embeddingDeploymentName string = 'embedding'
+param azureEmbeddingDeploymentName string = 'embedding'
 
 @description('Capacity of the embedding deployment. Default: 30')
 param embeddingDeploymentCapacity int = 30
 
 @description('Name of the embedding model. Default: text-embedding-ada-002')
-param embeddingModelName string = 'text-embedding-ada-002'
+param azureEmbeddingModelName string = 'text-embedding-ada-002'
 
 @description('Name of the container apps environment')
 param containerAppsEnvironmentName string = ''
@@ -140,6 +140,23 @@ param webIdentityName string = ''
 @description('Name of the web app image')
 param webImageName string = ''
 
+@description('Use Azure OpenAI service')
+param useAOAI bool
+
+@description('OpenAI API Key')
+param openAIApiKey string
+
+@description('OpenAI Model')
+param openAiChatGptDeployment string
+
+@description('OpenAI Embedding Model')
+param openAiEmbeddingDeployment string
+
+@description('Use GPT-4V')
+param useGpt4V bool
+
+param azureComputerVisionServiceEndpoint string
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
@@ -191,19 +208,8 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
   params: {
     keyVaultName: keyVault.outputs.name
     tags: updatedTags
-    secrets: [
-      {
-        name: 'AzureOpenAiServiceEndpoint'
-        value: openAi.outputs.endpoint
-      }
-      {
-        name: 'AzureOpenAiChatGptDeployment'
-        value: chatGptDeploymentName
-      }
-      {
-        name: 'AzureOpenAiEmbeddingDeployment'
-        value: embeddingDeploymentName
-      }
+    secrets: concat([
+      
       {
         name: 'AzureSearchServiceEndpoint'
         value: searchService.outputs.endpoint
@@ -220,7 +226,48 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
         name: 'AzureStorageContainer'
         value: storageContainerName
       }
-    ]
+      {
+        name: 'UseAOAI'
+        value: useAOAI ? 'true' : 'false'
+      }
+      {
+        name: 'UseGPT4V'
+        value: useGpt4V ? 'true' : 'false'
+      }
+    ],
+    useAOAI ? [
+      {
+        name: 'AzureOpenAiServiceEndpoint'
+        value: openAi.outputs.endpoint
+      }
+      {
+        name: 'AzureOpenAiChatGptDeployment'
+        value: azureChatGptDeploymentName
+      }
+      {
+        name: 'AzureOpenAiEmbeddingDeployment'
+        value: azureEmbeddingDeploymentName
+      }
+    ] : [
+      {
+        name: 'OpenAIAPIKey'
+        value: openAIApiKey
+      }
+      {
+        name: 'OpenAiChatGptDeployment'
+        value: openAiChatGptDeployment
+      }
+      {
+        name: 'OpenAiEmbeddingDeployment'
+        value: openAiEmbeddingDeployment
+      }
+    ],
+    useGpt4V ? [
+      {
+        name: 'AzureComputerVisionServiceEndpoint'
+        value: azureComputerVisionServiceEndpoint
+      }
+    ] : [])
   }
 }
 
@@ -260,8 +307,8 @@ module web './app/web.bicep' = {
     searchIndexName: searchIndexName
     formRecognizerEndpoint: formRecognizer.outputs.endpoint
     openAiEndpoint: openAi.outputs.endpoint
-    openAiChatGptDeployment: chatGptDeploymentName
-    openAiEmbeddingDeployment: embeddingDeploymentName
+    openAiChatGptDeployment: azureChatGptDeploymentName
+    openAiEmbeddingDeployment: azureEmbeddingDeploymentName
     serviceBinds: []
   }
 }
@@ -299,7 +346,7 @@ module function './app/function.bicep' = {
       AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
       AZURE_SEARCH_INDEX: searchIndexName
       AZURE_STORAGE_BLOB_ENDPOINT: storage.outputs.primaryEndpoints.blob
-      AZURE_OPENAI_EMBEDDING_DEPLOYMENT: embeddingDeploymentName
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT: azureEmbeddingDeploymentName
       AZURE_OPENAI_ENDPOINT: openAi.outputs.endpoint      
     }
   }
@@ -320,7 +367,7 @@ module monitoring 'core/monitor/monitoring.bicep' = {
   }
 }
 
-module openAi 'core/ai/cognitiveservices.bicep' = {
+module openAi 'core/ai/cognitiveservices.bicep' = if (useAOAI) {
   name: 'openai'
   scope: openAiResourceGroup
   params: {
@@ -332,7 +379,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     }
     deployments: [
       {
-        name: chatGptDeploymentName
+        name: azureChatGptDeploymentName
         model: {
           format: 'OpenAI'
           name: chatGptModelName
@@ -344,10 +391,10 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
         }
       }
       {
-        name: embeddingDeploymentName
+        name: azureEmbeddingDeploymentName
         model: {
           format: 'OpenAI'
-          name: embeddingModelName
+          name: azureEmbeddingModelName
           version: '2'
         }
         sku: {
@@ -613,12 +660,11 @@ output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_RESOURCE_GROUP string = keyVaultResourceGroup.name
 output AZURE_LOCATION string = location
 output AZURE_OPENAI_RESOURCE_LOCATION string = openAiResourceGroupLocation
-output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
-output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingDeploymentName
+output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = azureChatGptDeploymentName
+output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = azureEmbeddingDeploymentName
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
 output AZURE_OPENAI_SERVICE string = openAi.outputs.name
-// output AZURE_REDIS_CACHE string = redis.outputs.name
 output AZURE_RESOURCE_GROUP string = resourceGroup.name
 output AZURE_SEARCH_INDEX string = searchIndexName
 output AZURE_SEARCH_SERVICE string = searchService.outputs.name
@@ -632,3 +678,6 @@ output AZURE_TENANT_ID string = tenant().tenantId
 output SERVICE_WEB_IDENTITY_NAME string = web.outputs.SERVICE_WEB_IDENTITY_NAME
 output SERVICE_WEB_NAME string = web.outputs.SERVICE_WEB_NAME
 output SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID string = function.outputs.SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID
+output USE_AOAI bool = useAOAI
+output USE_GPT4V bool = useGpt4V
+output OPENAI_EMBEDDING_DEPLOYMENT string = openAiEmbeddingDeployment

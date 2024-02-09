@@ -81,7 +81,7 @@ public sealed partial class AzureSearchEmbedService(
         if (includeImageEmbeddingsField == false || computerVisionService is null)
         {
             throw new InvalidOperationException(
-                "Computer Vision service is required to include image embeddings field");
+                "Computer Vision service is required to include image embeddings field, please enable GPT_4V support");
         }
 
         var embeddings = await computerVisionService.VectorizeImageAsync(imageUrl, ct);
