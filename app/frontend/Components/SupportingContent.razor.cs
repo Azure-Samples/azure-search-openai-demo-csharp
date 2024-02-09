@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Drawing;
-
 namespace ClientApp.Components;
 
 public sealed partial class SupportingContent
