@@ -4,7 +4,7 @@ namespace ClientApp.Components;
 
 public sealed partial class Answer
 {
-    [Parameter, EditorRequired] public required ApproachResponse Report { get; set; }
+    [Parameter, EditorRequired] public required ApproachResponse Retort { get; set; }
     [Parameter, EditorRequired] public required EventCallback<string> FollowupQuestionClicked { get; set; }
 
     [Inject] public required IDialogService Dialog { get; set; }
@@ -14,7 +14,7 @@ public sealed partial class Answer
     protected override void OnParametersSet()
     {
         _parsedAnswer = ParseAnswerToHtml(
-            Report.Answer, Report.CitationBaseUrl);
+            Retort.Answer, Retort.CitationBaseUrl);
 
         base.OnParametersSet();
     }

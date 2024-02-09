@@ -103,7 +103,8 @@ public sealed partial class Docs : IDisposable
 
     private void OnShowDocument(DocumentResponse document)
     {
-        if (document.Name.EndsWith(".pdf"))
+        var extension = Path.GetExtension(document.Name);
+        if (extension is ".pdf")
         {
             Dialog.Show<PdfViewerDialog>(
             $"📄 {document.Name}",
@@ -121,7 +122,7 @@ public sealed partial class Docs : IDisposable
                 CloseOnEscapeKey = true
             });
         }
-        else if (document.Name.EndsWith(".png") || document.Name.EndsWith(".jpg"))
+        else if (extension is ".png" or ".jpg" or ".jpeg")
         {
             Dialog.Show<ImageViewerDialog>(
             $"📄 {document.Name}",
@@ -141,7 +142,7 @@ public sealed partial class Docs : IDisposable
         else
         {
             Snackbar.Add(
-                "Unsupported file type.",
+                $"Unsupported file type: '{extension}'",
                 Severity.Error,
                 static options =>
                 {
