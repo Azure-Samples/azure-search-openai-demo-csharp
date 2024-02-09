@@ -57,8 +57,6 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
     "--container $($env:AZURE_STORAGE_CONTAINER) " +
     "--searchendpoint $($env:AZURE_SEARCH_SERVICE_ENDPOINT) " +
     "--searchindex $($env:AZURE_SEARCH_INDEX) " +
-    "--openaiendpoint $($env:AZURE_OPENAI_ENDPOINT) " +
-    "--embeddingmodel $($env:AZURE_OPENAI_EMBEDDING_DEPLOYMENT) " +
     "--formrecognizerendpoint $($env:AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT) " +
     "--tenantid $($env:AZURE_TENANT_ID) " +
     "--verbose"
@@ -66,6 +64,16 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
     if ($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT -and $env:USE_GPT4V) {
         Write-Host "Using GPT-4 Vision"
         $dotnetArguments += " --computervisionendpoint $($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT)"
+    }
+
+    if ($env:USE_AOAI -eq "true") {
+        Write-Host "Using Azure OpenAI"
+        $dotnetArguments += " --openaiendpoint $($env:AZURE_OPENAI_ENDPOINT) "
+        $dotnetArguments += " --embeddingmodel $($env:AZURE_OPENAI_EMBEDDING_DEPLOYMENT) "
+    }
+    else{
+        Write-Host "Using OpenAI"
+        $dotnetArguments += " --embeddingmodel $($env:OPENAI_EMBEDDING_DEPLOYMENT) "
     }
     
     Write-Host "dotnet $dotnetArguments"

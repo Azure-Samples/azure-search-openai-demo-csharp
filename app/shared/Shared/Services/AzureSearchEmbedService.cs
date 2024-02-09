@@ -76,12 +76,13 @@ public sealed partial class AzureSearchEmbedService(
     public async Task<bool> EmbedImageBlobAsync(
         Stream imageStream,
         string imageUrl,
+        string imageName,
         CancellationToken ct = default)
     {
         if (includeImageEmbeddingsField == false || computerVisionService is null)
         {
             throw new InvalidOperationException(
-                "Computer Vision service is required to include image embeddings field");
+                "Computer Vision service is required to include image embeddings field, please enable GPT_4V support");
         }
 
         var embeddings = await computerVisionService.VectorizeImageAsync(imageUrl, ct);
@@ -95,7 +96,7 @@ public sealed partial class AzureSearchEmbedService(
             new SearchDocument
             {
                 ["id"] = imageId,
-                ["content"] = imageUrl,
+                ["content"] = imageName,
                 ["category"] = "image",
                 ["imageEmbedding"] = embeddings.vector,
                 ["sourcefile"] = imageUrl,

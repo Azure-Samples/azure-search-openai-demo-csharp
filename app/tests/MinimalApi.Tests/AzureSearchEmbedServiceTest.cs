@@ -296,7 +296,7 @@ public class AzureSearchEmbedServiceTest
             var client = containerClient.GetBlobClient(imageBlobName);
             await client.UploadAsync(stream, true);
             var url = client.Uri.AbsoluteUri;
-            var isSucceed = await service.EmbedImageBlobAsync(stream, url);
+            var isSucceed = await service.EmbedImageBlobAsync(stream, imageBlobName, url);
             isSucceed.Should().BeTrue();
 
             // check if the image is uploaded to blob

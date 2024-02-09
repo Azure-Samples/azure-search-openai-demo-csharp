@@ -24,7 +24,7 @@ internal static partial class Program
             var searchClient = await GetSearchClientAsync(o);
             var documentClient = await GetFormRecognizerClientAsync(o);
             var blobContainerClient = await GetCorpusBlobContainerClientAsync(o);
-            var openAIClient = await GetAzureOpenAIClientAsync(o);
+            var openAIClient = await GetOpenAIClientAsync(o);
             var embeddingModelName = o.EmbeddingModelName ?? throw new ArgumentNullException(nameof(o.EmbeddingModelName));
             var searchIndexName = o.SearchIndexName ?? throw new ArgumentNullException(nameof(o.SearchIndexName));
             var computerVisionService = await GetComputerVisionServiceAsync(o);
@@ -161,16 +161,26 @@ internal static partial class Program
             return new AzureComputerVisionService(new HttpClient(), endpoint, DefaultCredential);
         });
 
-    private static Task<OpenAIClient> GetAzureOpenAIClientAsync(AppOptions options) =>
+    private static Task<OpenAIClient> GetOpenAIClientAsync(AppOptions options) =>
        GetLazyClientAsync<OpenAIClient>(options, s_openAILock, async o =>
        {
            if (s_openAIClient is null)
            {
-               var endpoint = o.AzureOpenAIServiceEndpoint;
-               ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
-               s_openAIClient = new OpenAIClient(
-                   new Uri(endpoint),
-                   DefaultCredential);
+               var useAOAI = Environment.GetEnvironmentVariable("UseAOAI") == "true";
+               if (!useAOAI)
+               {
+                     var openAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+                     ArgumentNullException.ThrowIfNullOrEmpty(openAIApiKey);
+                     s_openAIClient = new OpenAIClient(openAIApiKey);
+               }
+               else
+               {
+                   var endpoint = o.AzureOpenAIServiceEndpoint;
+                   ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+                   s_openAIClient = new OpenAIClient(
+                       new Uri(endpoint),
+                       DefaultCredential);
+               }
            }
            await Task.CompletedTask;
            return s_openAIClient;
