@@ -10,7 +10,7 @@ internal sealed class QdrantEmbedService : IEmbedService
         throw new NotImplementedException();
     }
 
-    public Task<bool> EmbedImageBlobAsync(Stream imageStream, string imageName, CancellationToken ct = default)
+    public Task<bool> EmbedImageBlobAsync(Stream imageStream, string imageUrl, string imageName, CancellationToken ct = default)
     {
         throw new NotImplementedException();
     }
