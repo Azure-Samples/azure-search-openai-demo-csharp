@@ -61,8 +61,7 @@ internal static class ServiceCollectionExtensions
                 var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"];
                 ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
 
-                var openAIClient = new OpenAIClient(
-                                       new Uri(azureOpenAiServiceEndpoint), s_azureCredential);
+                var openAIClient = new OpenAIClient(new Uri(azureOpenAiServiceEndpoint), s_azureCredential);
 
                 return openAIClient;
             }
