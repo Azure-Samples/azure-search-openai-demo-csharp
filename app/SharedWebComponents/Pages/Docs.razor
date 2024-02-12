@@ -17,19 +17,20 @@
                 </MudCardHeader>
                 <MudCardContent>
                     <MudText Class="pb-4">
-                        Select up to ten PDF documents to upload, or explore the existing documents that have already been processed.
+                        Select up to ten documents to upload, or explore the existing documents that have already been processed.
+                        The document can be either a PDF file or an image file.
                         Each file cannot exceed a file size of @(MaxIndividualFileSize.ToHumanReadableSize())
                     </MudText>
                     <MudFileUpload @ref="_fileUpload" T="IReadOnlyList<IBrowserFile>"
-                                   Accept=".pdf" MaximumFileCount="10" FilesChanged=@(files => StateHasChanged())
-                                   Required="true" RequiredError="You must select at least one PDF file to upload.">
+                                   Accept=".pdf, .png, .jpg, .jpeg" MaximumFileCount="10" FilesChanged=@(files => StateHasChanged())
+                                   Required="true" RequiredError="You must select at least one file to upload.">
                         <ButtonTemplate>
                             <MudButton HtmlTag="label"
                                        Variant="Variant.Filled"
                                        StartIcon="@Icons.Material.Filled.FileOpen"
                                        Size="Size.Large"
                                        for="@context">
-                                Select PDF Documents
+                                Select Documents
                             </MudButton>
                         </ButtonTemplate>
                         <SelectedTemplate>
@@ -50,7 +51,7 @@
                                             }
                                             else
                                             {
-                                                <MudText>No PDF files selected.</MudText>
+                                                <MudText>No files selected.</MudText>
                                             }
                                         </div>
                                     </TitleContent>

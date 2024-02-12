@@ -59,7 +59,7 @@
                          ToolTip="Show the supporting content." Disabled="@(Retort is { DataPoints: null } or { DataPoints.Length: 0 })">
                 <ChildContent>
                     <MudPaper Class="pa-2" Elevation="3">
-                        <SupportingContent DataPoints="Retort.DataPoints" />
+                        <SupportingContent DataPoints="Retort.DataPoints" Images="Retort.Images ?? []" />
                     </MudPaper>
                 </ChildContent>
             </MudTabPanel>

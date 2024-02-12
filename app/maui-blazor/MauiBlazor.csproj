@@ -22,7 +22,7 @@
         <Nullable>enable</Nullable>
 
         <!-- Display name -->
-        <ApplicationTitle>MauiBlazor</ApplicationTitle>
+        <ApplicationTitle>Blazor OpenAI</ApplicationTitle>
 
         <!-- App Identifier -->
         <ApplicationId>com.companyname.mauiblazor</ApplicationId>

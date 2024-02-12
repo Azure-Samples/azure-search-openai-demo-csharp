@@ -101,7 +101,8 @@ public sealed partial class Docs : IDisposable
         }
     }
 
-    private ValueTask OnShowDocumentAsync(DocumentResponse document) => PdfViewer.ShowDocumentAsync(document.Name, document.Url.ToString().Replace($"/{document.Name}", ""));
+    private ValueTask OnShowDocumentAsync(DocumentResponse document) =>
+        PdfViewer.ShowDocumentAsync(document.Name, document.Url.ToString());
 
     public void Dispose() => _cancellationTokenSource.Cancel();
 }

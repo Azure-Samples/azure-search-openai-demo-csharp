@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using Azure.Identity;
+using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,10 @@ using Shared.Models;
 namespace MinimalApi.Tests;
 public class ReadRetrieveReadChatServiceTest
 {
-    [EnvironmentVariablesFact("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "AZURE_OPENAI_CHATGPT_DEPLOYMENT")]
+    [EnvironmentVariablesFact(
+        "AZURE_OPENAI_ENDPOINT",
+        "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
+        "AZURE_OPENAI_CHATGPT_DEPLOYMENT")]
     public async Task NorthwindHealthQuestionTest_TextOnlyAsync()
     {
         var documentSearchService = Substitute.For<ISearchService>();
@@ -40,6 +44,7 @@ public class ReadRetrieveReadChatServiceTest
         configuration["AzureOpenAiServiceEndpoint"].Returns(openAIEndpoint);
         configuration["AzureStorageAccountEndpoint"].Returns("https://northwindhealth.blob.core.windows.net/");
         configuration["AzureStorageContainer"].Returns("northwindhealth");
+        configuration["UseAOAI"].Returns("true");
 
         var chatService = new ReadRetrieveReadChatService(documentSearchService, openAIClient, configuration);
 
@@ -64,8 +69,68 @@ public class ReadRetrieveReadChatServiceTest
         // - has correct answer
         // - has has correct format for source reference.
 
-        response.DataPoints.Count().Should().Be(2);
+        response.DataPoints?.Count().Should().Be(2);
         response.Answer.Should().NotBeNullOrEmpty();
         response.CitationBaseUrl.Should().Be("https://northwindhealth.blob.core.windows.net/northwindhealth");
+    }
+
+    [EnvironmentVariablesFact(
+        "OPENAI_API_KEY",
+        "AZURE_SEARCH_INDEX",
+        "AZURE_COMPUTER_VISION_ENDPOINT",
+        "AZURE_SEARCH_SERVICE_ENDPOINT")]
+    public async Task FinancialReportTestAsync()
+    {
+        var azureSearchServiceEndpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
+        var azureSearchIndex = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new InvalidOperationException();
+        var azureCredential = new DefaultAzureCredential();
+        var azureSearchService = new AzureSearchService(new SearchClient(new Uri(azureSearchServiceEndpoint), azureSearchIndex, azureCredential));
+        
+        var openAIAPIKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? throw new InvalidOperationException();
+        var openAIClient = new OpenAIClient(openAIAPIKey);
+
+        var azureComputerVisionEndpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new InvalidOperationException();
+        using var httpClient = new HttpClient();
+        var azureComputerVisionService = new AzureComputerVisionService(httpClient, azureComputerVisionEndpoint, azureCredential);
+
+        var configuration = Substitute.For<IConfiguration>();
+        configuration["UseAOAI"].Returns("false");
+        configuration["OpenAiChatGptDeployment"].Returns("gpt-4-vision-preview");
+        configuration["OpenAiEmbeddingDeployment"].Returns("text-embedding-ada-002");
+        configuration["AzureStorageAccountEndpoint"].Returns("https://northwindhealth.blob.core.windows.net/");
+        configuration["AzureStorageContainer"].Returns("northwindhealth");
+
+        var chatService = new ReadRetrieveReadChatService(
+            azureSearchService,
+            openAIClient,
+            configuration,
+            azureComputerVisionService,
+            azureCredential);
+
+        var history = new ChatTurn[]
+        {
+            new ChatTurn("What's 2023 financial report", "user"),
+        };
+        var overrides = new RequestOverrides
+        {
+            RetrievalMode = RetrievalMode.Hybrid,
+            Top = 2,
+            SemanticCaptions = true,
+            SemanticRanker = true,
+            SuggestFollowupQuestions = false,
+            Temperature = 0,
+        };
+
+        var response = await chatService.ReplyAsync(history, overrides);
+
+        // TODO
+        // use AutoGen agents to evaluate if answer
+        // - has follow up question
+        // - has correct answer
+        // - has has correct format for source reference.
+
+        response.DataPoints?.Count().Should().Be(0);
+        response.Images?.Count().Should().Be(2);
+        response.Answer.Should().NotBeNullOrEmpty();
     }
 }

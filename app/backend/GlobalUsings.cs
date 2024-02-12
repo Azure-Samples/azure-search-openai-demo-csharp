@@ -13,8 +13,6 @@ global using Azure.Storage.Blobs.Models;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Mvc.RazorPages;
 global using Microsoft.SemanticKernel;
-global using Microsoft.SemanticKernel.AI.ChatCompletion;
-global using Microsoft.SemanticKernel.AI.Embeddings;
 global using MinimalApi.Extensions;
 global using MinimalApi.Services;
 global using PdfSharpCore.Pdf;
