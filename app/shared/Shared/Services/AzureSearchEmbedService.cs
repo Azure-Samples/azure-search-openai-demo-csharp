@@ -1,29 +1,42 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using Azure;
+using Azure.AI.FormRecognizer.DocumentAnalysis;
 using Azure.AI.OpenAI;
-
-namespace EmbedFunctions.Services;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents.Indexes.Models;
+using Azure.Search.Documents.Models;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Microsoft.Extensions.Logging;
+using Shared.Models;
 
 public sealed partial class AzureSearchEmbedService(
     OpenAIClient openAIClient,
     string embeddingModelName,
-    SearchClient indexSectionClient,
+    SearchClient searchClient,
     string searchIndexName,
     SearchIndexClient searchIndexClient,
     DocumentAnalysisClient documentAnalysisClient,
     BlobContainerClient corpusContainerClient,
-    ILogger<AzureSearchEmbedService>? logger) : IEmbedService
+    IComputerVisionService? computerVisionService = null,
+    bool includeImageEmbeddingsField = false,
+    ILogger<AzureSearchEmbedService>? logger = null) : IEmbedService
 {
     [GeneratedRegex("[^0-9a-zA-Z_-]")]
     private static partial Regex MatchInSetRegex();
 
-    public async Task<bool> EmbedBlobAsync(Stream blobStream, string blobName)
+    public async Task<bool> EmbedPDFBlobAsync(Stream pdfBlobStream, string blobName)
     {
         try
         {
             await EnsureSearchIndexAsync(searchIndexName);
             Console.WriteLine($"Embedding blob '{blobName}'");
-            var pageMap = await GetDocumentTextAsync(blobStream, blobName);
+            var pageMap = await GetDocumentTextAsync(pdfBlobStream, blobName);
 
             var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(blobName);
 
@@ -40,7 +53,17 @@ public sealed partial class AzureSearchEmbedService(
 
             var sections = CreateSections(pageMap, blobName);
 
-            await IndexSectionsAsync(searchIndexName, sections, blobName);
+            var infoLoggingEnabled = logger?.IsEnabled(LogLevel.Information);
+            if (infoLoggingEnabled is true)
+            {
+                logger?.LogInformation("""
+                Indexing sections from '{BlobName}' into search index '{SearchIndexName}'
+                """,
+                    blobName,
+                    searchIndexName);
+            }
+
+            await IndexSectionsAsync(sections);
 
             return true;
         }
@@ -49,11 +72,47 @@ public sealed partial class AzureSearchEmbedService(
             logger?.LogError(
                 exception, "Failed to embed blob '{BlobName}'", blobName);
 
-            return false;
+            throw;
         }
     }
 
-    public async Task CreateSearchIndexAsync(string searchIndexName)
+    public async Task<bool> EmbedImageBlobAsync(
+        Stream imageStream,
+        string imageUrl,
+        string imageName,
+        CancellationToken ct = default)
+    {
+        if (includeImageEmbeddingsField == false || computerVisionService is null)
+        {
+            throw new InvalidOperationException(
+                "Computer Vision service is required to include image embeddings field, please enable GPT_4V support");
+        }
+
+        var embeddings = await computerVisionService.VectorizeImageAsync(imageUrl, ct);
+
+        // id can only contain letters, digits, underscore (_), dash (-), or equal sign (=).
+        var imageId = MatchInSetRegex().Replace(imageUrl, "_").TrimStart('_');
+        // step 3
+        // index image embeddings
+        var indexAction = new IndexDocumentsAction<SearchDocument>(
+            IndexActionType.MergeOrUpload,
+            new SearchDocument
+            {
+                ["id"] = imageId,
+                ["content"] = imageName,
+                ["category"] = "image",
+                ["imageEmbedding"] = embeddings.vector,
+                ["sourcefile"] = imageUrl,
+            });
+
+        var batch = new IndexDocumentsBatch<SearchDocument>();
+        batch.Actions.Add(indexAction);
+        await searchClient.IndexDocumentsAsync(batch, cancellationToken: ct);
+
+        return true;
+    }
+
+    public async Task CreateSearchIndexAsync(string searchIndexName, CancellationToken ct = default)    
     {
         string vectorSearchConfigName = "my-vector-config";
         string vectorSearchProfile = "my-vector-profile";
@@ -102,10 +161,24 @@ public sealed partial class AzureSearchEmbedService(
         logger?.LogInformation(
             "Creating '{searchIndexName}' search index", searchIndexName);
 
+        if (includeImageEmbeddingsField)
+        {
+            if (computerVisionService is null)
+            {
+                throw new InvalidOperationException("Computer Vision service is required to include image embeddings field");
+            }
+
+            index.Fields.Add(new SearchField("imageEmbedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
+            {
+                VectorSearchDimensions = computerVisionService.Dimension,
+                IsSearchable = true,
+                VectorSearchProfileName = vectorSearchProfile,
+            });
+        }
         await searchIndexClient.CreateIndexAsync(index);
     }
 
-    public async Task EnsureSearchIndexAsync(string searchIndexName)
+    public async Task EnsureSearchIndexAsync(string searchIndexName, CancellationToken ct = default)
     {
         var indexNames = searchIndexClient.GetIndexNamesAsync();
         await foreach (var page in indexNames.AsPages())
@@ -118,15 +191,14 @@ public sealed partial class AzureSearchEmbedService(
             }
         }
 
-        await CreateSearchIndexAsync(searchIndexName);
+        await CreateSearchIndexAsync(searchIndexName, ct);
     }
 
-    private async Task<IReadOnlyList<PageDetail>> GetDocumentTextAsync(Stream blobStream, string blobName)
+    public async Task<IReadOnlyList<PageDetail>> GetDocumentTextAsync(Stream blobStream, string blobName)
     {
         logger?.LogInformation(
             "Extracting text from '{Blob}' using Azure Form Recognizer", blobName);
 
-        Console.WriteLine($"Extracting text from '{blobName}' using Azure Form Recognizer");
         using var ms = new MemoryStream();
         blobStream.CopyTo(ms);
         ms.Position = 0;
@@ -183,7 +255,6 @@ public sealed partial class AzureSearchEmbedService(
             pageMap.Add(new PageDetail(i, offset, pageText.ToString()));
             offset += pageText.Length;
         }
-        Console.WriteLine($"Extracted {pageMap.Count} pages from '{blobName}'");
         return pageMap.AsReadOnly();
     }
 
@@ -247,7 +318,7 @@ public sealed partial class AzureSearchEmbedService(
         });
     }
 
-    private IEnumerable<Section> CreateSections(
+    public IEnumerable<Section> CreateSections(
         IReadOnlyList<PageDetail> pageMap, string blobName)
     {
         const int MaxSectionLength = 1_000;
@@ -375,23 +446,13 @@ public sealed partial class AzureSearchEmbedService(
 
     private static string BlobNameFromFilePage(string blobName, int page = 0) => blobName;
 
-    private async Task IndexSectionsAsync(string searchIndexName, IEnumerable<Section> sections, string blobName)
+    private async Task IndexSectionsAsync(IEnumerable<Section> sections)
     {
-        var infoLoggingEnabled = logger?.IsEnabled(LogLevel.Information);
-        if (infoLoggingEnabled is true)
-        {
-            logger?.LogInformation("""
-                Indexing sections from '{BlobName}' into search index '{SearchIndexName}'
-                """,
-                blobName,
-                searchIndexName);
-        }
-
         var iteration = 0;
         var batch = new IndexDocumentsBatch<SearchDocument>();
         foreach (var section in sections)
         {
-            var embeddings = await openAIClient.GetEmbeddingsAsync(embeddingModelName, new Azure.AI.OpenAI.EmbeddingsOptions(section.Content.Replace('\r', ' ')));
+            var embeddings = await openAIClient.GetEmbeddingsAsync(new Azure.AI.OpenAI.EmbeddingsOptions(embeddingModelName, [section.Content.Replace('\r', ' ')]));
             var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
             batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
                 IndexActionType.MergeOrUpload,
@@ -409,9 +470,9 @@ public sealed partial class AzureSearchEmbedService(
             if (iteration % 1_000 is 0)
             {
                 // Every one thousand documents, batch create.
-                IndexDocumentsResult result = await indexSectionClient.IndexDocumentsAsync(batch);
+                IndexDocumentsResult result = await searchClient.IndexDocumentsAsync(batch);
                 int succeeded = result.Results.Count(r => r.Succeeded);
-                if (infoLoggingEnabled is true)
+                if (logger?.IsEnabled(LogLevel.Information) is true)
                 {
                     logger?.LogInformation("""
                         Indexed {Count} sections, {Succeeded} succeeded
@@ -427,17 +488,14 @@ public sealed partial class AzureSearchEmbedService(
         if (batch is { Actions.Count: > 0 })
         {
             // Any remaining documents, batch create.
-            var index = new SearchIndex($"index-{batch.Actions.Count}");
-            IndexDocumentsResult result = await indexSectionClient.IndexDocumentsAsync(batch);
+            IndexDocumentsResult result = await searchClient.IndexDocumentsAsync(batch);
             int succeeded = result.Results.Count(r => r.Succeeded);
             if (logger?.IsEnabled(LogLevel.Information) is true)
             {
-                logger?.LogInformation("""
-                    Indexed {Count} sections, {Succeeded} succeeded
-                    """,
-                batch.Actions.Count,
-                succeeded);
+                var message = $"Indexed {batch.Actions.Count} sections, {succeeded} succeeded";
+                logger?.LogInformation(message);
             }
         }
     }
+
 }

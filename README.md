@@ -1,7 +1,10 @@
 ---
 page_type: sample
 languages:
+- azdeveloper
 - csharp
+- html
+- bicep
 products:
 - ai-services
 - azure-blob-storage
@@ -12,7 +15,11 @@ products:
 - blazor
 - defender-for-cloud
 - azure-monitor
+urlFragment: azure-search-openai-demo-csharp
+name: ChatGPT + Enterprise data (csharp)
+description: A csharp sample app that chats with your data using OpenAI and AI Search.
 ---
+<!-- YAML front-matter schema: https://review.learn.microsoft.com/en-us/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
 
 ## Table of Contents
 

@@ -55,17 +55,62 @@ var host = new HostBuilder()
         {
             var searchIndexName = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new ArgumentNullException("AZURE_SEARCH_INDEX is null");
             var embeddingModelName = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new ArgumentNullException("AZURE_OPENAI_EMBEDDING_DEPLOYMENT is null");
-            var openaiEndPoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new ArgumentNullException("AZURE_OPENAI_ENDPOINT is null");
+            var useAOAI = Environment.GetEnvironmentVariable("USE_AOAI") == "true";
+            var useVision = Environment.GetEnvironmentVariable("USE_VISION") == "true";
 
-            var openAIClient = new OpenAIClient(new Uri(openaiEndPoint), new DefaultAzureCredential());
+            OpenAIClient? openAIClient = null;
+
+            if (useAOAI)
+            {
+                var openaiEndPoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new ArgumentNullException("AZURE_OPENAI_ENDPOINT is null");
+
+                openAIClient = new OpenAIClient(new Uri(openaiEndPoint), new DefaultAzureCredential());
+            }
+            else
+            {
+                var openaiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? throw new ArgumentNullException("OPENAI_API_KEY is null");
+                openAIClient = new OpenAIClient(openaiKey);
+            }
 
             var searchClient = provider.GetRequiredService<SearchClient>();
             var searchIndexClient = provider.GetRequiredService<SearchIndexClient>();
-            var blobContainerClient = provider.GetRequiredService<BlobContainerClient>();
+            var corpusContainer = provider.GetRequiredService<BlobContainerClient>();
             var documentClient = provider.GetRequiredService<DocumentAnalysisClient>();
             var logger = provider.GetRequiredService<ILogger<AzureSearchEmbedService>>();
 
-            return new AzureSearchEmbedService(openAIClient, embeddingModelName, searchClient, searchIndexName, searchIndexClient, documentClient, blobContainerClient, logger);
+            if (useVision)
+            {
+                var visionEndpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new ArgumentNullException("AZURE_COMPUTER_VISION_ENDPOINT is null");
+                var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient();
+                var visionClient = new AzureComputerVisionService(httpClient, visionEndpoint, new DefaultAzureCredential());
+
+                return new AzureSearchEmbedService(
+                    openAIClient: openAIClient,
+                    embeddingModelName: embeddingModelName,
+                    searchClient: searchClient,
+                    searchIndexName: searchIndexName,
+                    searchIndexClient: searchIndexClient,
+                    documentAnalysisClient: documentClient,
+                    corpusContainerClient: corpusContainer,
+                    computerVisionService: visionClient,
+                    includeImageEmbeddingsField: true,
+                    logger: logger);
+            }
+            else
+            {
+                return new AzureSearchEmbedService(
+                openAIClient: openAIClient,
+                embeddingModelName: embeddingModelName,
+                searchClient: searchClient,
+                searchIndexName: searchIndexName,
+                searchIndexClient: searchIndexClient,
+                documentAnalysisClient: documentClient,
+                corpusContainerClient: corpusContainer,
+                computerVisionService: null,
+                includeImageEmbeddingsField: false,
+                logger: logger);
+            }
         });
     })
     .ConfigureFunctionsWorkerDefaults()

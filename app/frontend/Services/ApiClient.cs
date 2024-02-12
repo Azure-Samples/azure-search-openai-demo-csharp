@@ -125,6 +125,7 @@ public sealed class ApiClient(HttpClient httpClient)
                 $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}",
                 null,
                 [],
+                null,
                 "Unable to retrieve valid response from the server.");
 
             return result with
