@@ -148,8 +148,7 @@ public class MauiLocalStorageService : ILocalStorageService
 
     public string? Key(double index) => default;
 
-    public void RemoveItem(string key) =>
-        _prefs.Remove(key);
+    public void RemoveItem(string key) => prefs.Remove(key);
 
     public void SetItem<TValue>(string key, TValue value, JsonSerializerOptions? options = null)
     {
