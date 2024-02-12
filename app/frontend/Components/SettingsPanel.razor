@@ -27,13 +27,13 @@
 
         <MudText Typo="Typo.subtitle1">Retrieval Mode</MudText>
         <MudRadioGroup Required="true" @bind-SelectedOption="@Settings.Overrides.RetrievalMode" Class="pa-2">
-            <MudRadio T="string" Option="@("Text")" Color="Color.Primary">
+            <MudRadio T="RetrievalMode" Option="@RetrievalMode.Text" Color="Color.Primary">
                 Text
             </MudRadio>
-            <MudRadio T="string" Option="@("Hybrid")" Color="Color.Primary">
+            <MudRadio T="RetrievalMode" Option="@RetrievalMode.Hybrid" Color="Color.Primary">
                 Hybrid
             </MudRadio>
-            <MudRadio T="string" Option="@("Vector")" Color="Color.Primary">
+            <MudRadio T="RetrievalMode" Option="@RetrievalMode.Vector" Color="Color.Primary">
                 Vector
             </MudRadio>
         </MudRadioGroup>
