@@ -54,20 +54,21 @@ var host = new HostBuilder()
         services.AddSingleton<IEmbedService, AzureSearchEmbedService>(provider =>
         {
             var searchIndexName = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new ArgumentNullException("AZURE_SEARCH_INDEX is null");
-            var embeddingModelName = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new ArgumentNullException("AZURE_OPENAI_EMBEDDING_DEPLOYMENT is null");
-            var useAOAI = Environment.GetEnvironmentVariable("USE_AOAI") == "true";
-            var useVision = Environment.GetEnvironmentVariable("USE_VISION") == "true";
+            var useAOAI = Environment.GetEnvironmentVariable("USE_AOAI")?.ToLower() == "true";
+            var useVision = Environment.GetEnvironmentVariable("USE_VISION")?.ToLower() == "true";
 
             OpenAIClient? openAIClient = null;
+            string? embeddingModelName = null;
 
             if (useAOAI)
             {
                 var openaiEndPoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new ArgumentNullException("AZURE_OPENAI_ENDPOINT is null");
-
+                embeddingModelName = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new ArgumentNullException("AZURE_OPENAI_EMBEDDING_DEPLOYMENT is null");
                 openAIClient = new OpenAIClient(new Uri(openaiEndPoint), new DefaultAzureCredential());
             }
             else
             {
+                embeddingModelName = Environment.GetEnvironmentVariable("OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new ArgumentNullException("OPENAI_EMBEDDING_DEPLOYMENT is null");
                 var openaiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? throw new ArgumentNullException("OPENAI_API_KEY is null");
                 openAIClient = new OpenAIClient(openaiKey);
             }

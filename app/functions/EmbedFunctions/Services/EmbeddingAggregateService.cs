@@ -14,19 +14,43 @@ public sealed class EmbeddingAggregateService(
             var embeddingType = GetEmbeddingType();
             var embedService = embedServiceFactory.GetEmbedService(embeddingType);
 
-            var result = await embedService.EmbedPDFBlobAsync(blobStream, blobName);
-
-            var status = result switch
+            if (Path.GetExtension(blobName) is ".png" or ".jpg" or ".jpeg" or ".gif")
             {
-                true => DocumentProcessingStatus.Succeeded,
-                _ => DocumentProcessingStatus.Failed
-            };
+                logger.LogInformation("Embedding image: {Name}", blobName);
+                var result = await embedService.EmbedImageBlobAsync(blobStream, blobName, blobName);
+                var status = result switch
+                {
+                    true => DocumentProcessingStatus.Succeeded,
+                    _ => DocumentProcessingStatus.Failed
+                };
 
-            await client.SetMetadataAsync(new Dictionary<string, string>
+                await client.SetMetadataAsync(new Dictionary<string, string>
+                {
+                    [nameof(DocumentProcessingStatus)] = status.ToString(),
+                    [nameof(EmbeddingType)] = embeddingType.ToString()
+                });
+            }
+            else if (Path.GetExtension(blobName) is ".pdf")
             {
-                [nameof(DocumentProcessingStatus)] = status.ToString(),
-                [nameof(EmbeddingType)] = embeddingType.ToString()
-            });
+                logger.LogInformation("Embedding pdf: {Name}", blobName);
+                var result = await embedService.EmbedPDFBlobAsync(blobStream, blobName);
+
+                var status = result switch
+                {
+                    true => DocumentProcessingStatus.Succeeded,
+                    _ => DocumentProcessingStatus.Failed
+                };
+
+                await client.SetMetadataAsync(new Dictionary<string, string>
+                {
+                    [nameof(DocumentProcessingStatus)] = status.ToString(),
+                    [nameof(EmbeddingType)] = embeddingType.ToString()
+                });
+            }
+            else
+            {
+                throw new NotSupportedException("Unsupported file type.");
+            }
         }
         catch (Exception ex)
         {
