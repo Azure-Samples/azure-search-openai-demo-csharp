@@ -2,6 +2,7 @@
 
 global using System.Globalization;
 global using System.Net.Http.Json;
+global using System.Reflection.Metadata;
 global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices.JavaScript;
 global using System.Text;
@@ -20,3 +21,5 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.JSInterop;
 global using MudBlazor.Services;
 global using SharedWebComponents.Services;
+global using CommunityToolkit.Maui;
+global using CommunityToolkit.Maui.Media;

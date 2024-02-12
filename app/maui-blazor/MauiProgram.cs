@@ -1,7 +1,4 @@
-﻿using CommunityToolkit.Maui;
-using CommunityToolkit.Maui.Media;
-
-namespace MauiBlazor;
+﻿namespace MauiBlazor;
 
 public static class MauiProgram
 {
@@ -26,7 +23,8 @@ public static class MauiProgram
 
 		builder.Services.AddHttpClient<ApiClient>(client =>
 		{
-			// TODO: Configure this to point to your deployed API. For example, https://MY_HOSTED_APP.example.azurecontainerapps.io/
+			// TODO: Configure this to point to your deployed backend API.
+			// For example: https://MY_HOSTED_APP.example.azurecontainerapps.io/
 			client.BaseAddress = new Uri("TODO");
 		});
 		builder.Services.AddScoped<OpenAIPromptQueue>();
@@ -41,6 +39,7 @@ public static class MauiProgram
 
 		builder.Services.AddSingleton<IPreferences>(Preferences.Default);
 		builder.Services.AddSingleton<ISpeechToText>(SpeechToText.Default);
+		builder.Services.AddSingleton<ITextToSpeech>(TextToSpeech.Default);
 
 		return builder.Build();
 	}

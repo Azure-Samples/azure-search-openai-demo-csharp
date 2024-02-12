@@ -28,8 +28,12 @@ public sealed partial class VoiceDialog : IDisposable
         }
         catch
         {
-            // do nothing if the service does not support observation
-            // since the implementation checks for a specific type
+            // TODO: Find a better way to do this
+            // The Blazor.SpeechSynthesis.WebAssembly API supports listening to changes,
+            // however the underlying code does not do this using a DI-friendly way.
+            // The code assumes the concrete implementation for the ISpeechSynthesisService
+            // service is the concrete Web Assembly type which is not valid.
+            // There is no alternative API that MAUI apps can use.
         }
 
         _voicePreferences = new VoicePreferences(LocalStorage);
@@ -72,8 +76,12 @@ public sealed partial class VoiceDialog : IDisposable
         }
         catch
         {
-            // do nothing if the service does not support observation
-            // since the implementation checks for a specific type
+            // TODO: Find a better way to do this
+            // The Blazor.SpeechSynthesis.WebAssembly API supports listening to changes,
+            // however the underlying code does not do this using a DI-friendly way.
+            // The code assumes the concrete implementation for the ISpeechSynthesisService
+            // service is the concrete Web Assembly type which is not valid.
+            // There is no alternative API that MAUI apps can use.
         }
     }
 }

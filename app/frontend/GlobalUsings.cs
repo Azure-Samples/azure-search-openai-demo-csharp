@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+global using System.Collections.Concurrent;
 global using System.Runtime.InteropServices.JavaScript;
+global using ClientApp.Components;
 global using ClientApp.Interop;
 global using ClientApp.Options;
 global using SharedWebComponents.Services;

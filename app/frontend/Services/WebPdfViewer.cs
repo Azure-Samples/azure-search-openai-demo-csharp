@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using ClientApp.Components;
-
 namespace ClientApp.Services;
 
 public class WebPdfViewer(IDialogService dialog, ISnackbar snackbar) : IPdfViewer
