@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+global using System.Collections.Concurrent;
 global using System.Globalization;
 global using System.Net.Http.Json;
 global using System.Reflection.Metadata;
