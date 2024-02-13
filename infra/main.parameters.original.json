@@ -31,10 +31,16 @@
     },
     "openAiResourceGroupLocation":{
       "value": "${AZURE_OPENAI_RESOURCE_LOCATION=${AZURE_LOCATION}}"
-    },    
+    },
+	"chatGptModelName":{
+		"value": "${AZURE_OPENAI_CHAT_GPT_MODEL_NAME=gpt-4}"
+	},
     "chatGptDeploymentName":{
       "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT=chat}"
     },
+	"embeddingModelName":{
+	  "value": "${AZURE_OPENAI_EMBEDDING_MODEL_NAME=text-embedding-ada-002}"
+	},
     "embeddingDeploymentName":{
       "value": "${AZURE_OPENAI_EMBEDDING_DEPLOYMENT=embedding}"
     },
@@ -56,6 +62,9 @@
     "searchServiceName": {
       "value": "${AZURE_SEARCH_SERVICE}"
     },
+	"searchServiceResourceGroupLocation": {
+      "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP_LOCATION}"
+    },
     "searchServiceResourceGroupName": {
       "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP}"
     },
@@ -68,6 +77,9 @@
     "storageResourceGroupName": {
       "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
     },
+	"storageSku": {
+	  "value": "${AZURE_STORAGE_SKU=Standard_ZRS}"
+	}
     "webAppExists": {
       "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}"
     },
