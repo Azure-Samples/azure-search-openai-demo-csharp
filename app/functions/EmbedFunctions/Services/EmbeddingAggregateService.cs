@@ -4,7 +4,8 @@ namespace EmbedFunctions.Services;
 
 public sealed class EmbeddingAggregateService(
     EmbedServiceFactory embedServiceFactory,
-    BlobContainerClient client,
+    BlobServiceClient blobServiceClient,
+    BlobContainerClient corpusClient,
     ILogger<EmbeddingAggregateService> logger)
 {
     internal async Task EmbedBlobAsync(Stream blobStream, string blobName)
@@ -17,14 +18,17 @@ public sealed class EmbeddingAggregateService(
             if (Path.GetExtension(blobName) is ".png" or ".jpg" or ".jpeg" or ".gif")
             {
                 logger.LogInformation("Embedding image: {Name}", blobName);
-                var result = await embedService.EmbedImageBlobAsync(blobStream, blobName, blobName);
+                var contentContainer = blobServiceClient.GetBlobContainerClient("content");
+                var blobClient = contentContainer.GetBlobClient(blobName);
+                var uri = blobClient.Uri.AbsoluteUri ?? throw new InvalidOperationException("Blob URI is null.");
+                var result = await embedService.EmbedImageBlobAsync(blobStream, uri, blobName);
                 var status = result switch
                 {
                     true => DocumentProcessingStatus.Succeeded,
                     _ => DocumentProcessingStatus.Failed
                 };
 
-                await client.SetMetadataAsync(new Dictionary<string, string>
+                await corpusClient.SetMetadataAsync(new Dictionary<string, string>
                 {
                     [nameof(DocumentProcessingStatus)] = status.ToString(),
                     [nameof(EmbeddingType)] = embeddingType.ToString()
@@ -41,7 +45,7 @@ public sealed class EmbeddingAggregateService(
                     _ => DocumentProcessingStatus.Failed
                 };
 
-                await client.SetMetadataAsync(new Dictionary<string, string>
+                await corpusClient.SetMetadataAsync(new Dictionary<string, string>
                 {
                     [nameof(DocumentProcessingStatus)] = status.ToString(),
                     [nameof(EmbeddingType)] = embeddingType.ToString()
@@ -55,6 +59,7 @@ public sealed class EmbeddingAggregateService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to embed: {Name}, error: {Message}", blobName, ex.Message);
+            throw;
         }
     }
 

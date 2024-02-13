@@ -368,7 +368,7 @@ module function './app/function.bicep' = {
       AZURE_OPENAI_ENDPOINT: useAOAI ? azureOpenAi.outputs.endpoint : ''
       USE_VISION: string(useVision)
       USE_AOAI: string(useAOAI)
-      AZURE_COMPUTERVISION_SERVICE_ENDPOINT: useVision ? computerVision.outputs.endpoint : ''
+      AZURE_COMPUTER_VISION_ENDPOINT: useVision ? computerVision.outputs.endpoint : ''
       OPENAI_API_KEY: useAOAI ? '' : openAIApiKey
     }
   }

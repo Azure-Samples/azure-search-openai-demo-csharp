@@ -48,6 +48,12 @@ var host = new HostBuilder()
             return containerClient;
         });
 
+        services.AddSingleton<BlobServiceClient>(_ =>
+        {
+            return new BlobServiceClient(
+                GetUriFromEnvironment("AZURE_STORAGE_BLOB_ENDPOINT"), credential);
+        });
+
         services.AddSingleton<EmbedServiceFactory>();
         services.AddSingleton<EmbeddingAggregateService>();
 
@@ -82,8 +88,7 @@ var host = new HostBuilder()
             if (useVision)
             {
                 var visionEndpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new ArgumentNullException("AZURE_COMPUTER_VISION_ENDPOINT is null");
-                var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
-                var httpClient = httpClientFactory.CreateClient();
+                var httpClient = new HttpClient();
                 var visionClient = new AzureComputerVisionService(httpClient, visionEndpoint, new DefaultAzureCredential());
 
                 return new AzureSearchEmbedService(
