@@ -47,7 +47,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<DocumentAnalysisClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"] ?? throw new ArgumentNullException();
+            var azureOpenAiServiceEndpoint = config["AZURE_OPENAI_ENDPOINT"] ?? throw new ArgumentNullException();
 
             var documentAnalysisClient = new DocumentAnalysisClient(
                 new Uri(azureOpenAiServiceEndpoint), s_azureCredential);
@@ -57,16 +57,16 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<OpenAIClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"];
-            var azureOpenAiApiKey = config["AzureOpenAiApiKey"];            
+            var azureOpenAiServiceEndpoint = config["AZURE_OPENAI_ENDPOINT"];
+            //var azureOpenAiApiKey = config["AzureOpenAiApiKey"];            
 
             ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
-            ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiApiKey);
+            //ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiApiKey);
 
             var openAIClient = new OpenAIClient(
                 new Uri(azureOpenAiServiceEndpoint), 
-                new AzureKeyCredential(azureOpenAiApiKey));
-                //s_azureCredential);
+                //new AzureKeyCredential(azureOpenAiApiKey));
+                s_azureCredential);
 
             return openAIClient;
         });
