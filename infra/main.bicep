@@ -109,6 +109,7 @@ param searchServiceName string = ''
 
 @description('Location of the resource group for the Azure Cognitive Search service')
 param searchServiceResourceGroupLocation string = location
+//param searchServiceResourceGroupLocation string = 'eastus2'
 
 @description('Name of the resource group for the Azure Cognitive Search service')
 param searchServiceResourceGroupName string = ''
@@ -401,7 +402,7 @@ module storage 'core/storage/storage-account.bicep' = {
     tags: updatedTags
     publicNetworkAccess: 'Enabled'
     sku: {
-      name: 'Standard_ZRS'
+      name: 'Standard_LRS'
     }
     deleteRetentionPolicy: {
       enabled: true

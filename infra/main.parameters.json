@@ -62,6 +62,9 @@
     "searchServiceName": {
       "value": "pztestaisearch"
     },
+	"searchServiceResourceGroupLocation": {
+      "value": "eastus2"
+    },
     "searchServiceResourceGroupName": {
       "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP}"
     },
