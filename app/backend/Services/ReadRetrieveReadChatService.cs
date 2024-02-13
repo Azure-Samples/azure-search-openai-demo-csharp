@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Embeddings;
-
 namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService
@@ -30,7 +27,7 @@ public class ReadRetrieveReadChatService
 
         var kernelBuilder = Kernel.CreateBuilder();
 
-        kernelBuilder.Services.AddAzureOpenAIChatCompletion(
+        kernelBuilder.AddAzureOpenAIChatCompletion(
             deployedModelName,  // The name of your deployment (e.g., "gpt-35-turbo")
             client
         );
@@ -38,11 +35,11 @@ public class ReadRetrieveReadChatService
         var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
         if (!string.IsNullOrEmpty(embeddingModelName))
         {
-            var endpoint = configuration["AzureOpenAiServiceEndpoint"];
+            var endpoint = configuration["AZURE_OPENAI_ENDPOINT"];
             ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint);
 
 #pragma warning disable SKEXP0011 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-            kernelBuilder.Services.AddAzureOpenAITextEmbeddingGeneration(
+            kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(
                 embeddingModelName, endpoint, new DefaultAzureCredential()
             );
 #pragma warning restore SKEXP0011 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

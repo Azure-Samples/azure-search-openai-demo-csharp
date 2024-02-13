@@ -30,7 +30,7 @@ public class ReadRetrieveReadChatServiceTest
         var configuration = Substitute.For<IConfiguration>();
         configuration["AzureOpenAiChatGptDeployment"].Returns(openAIChatGptDeployment);
         configuration["AzureOpenAiEmbeddingDeployment"].Returns(openAiEmbeddingDeployment);
-        configuration["AzureOpenAiServiceEndpoint"].Returns(openAIEndpoint);
+        configuration["AzureOpenAiServiceEndpoint"].Returns(openAIEndpoint); //AZURE_OPENAI_ENDPOINT???
         configuration["AzureStorageAccountEndpoint"].Returns("https://northwindhealth.blob.core.windows.net/");
         configuration["AzureStorageContainer"].Returns("northwindhealth");
 

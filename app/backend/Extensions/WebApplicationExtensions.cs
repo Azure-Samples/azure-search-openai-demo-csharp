@@ -42,9 +42,10 @@ internal static class WebApplicationExtensions
         IConfiguration config,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
         var chatCompletionsOptions = new ChatCompletionsOptions
         {
-            DeploymentName = "gpt-3.5-turbo", // Use DeploymentName for "model" with non-Azure clients
+            DeploymentName = deploymentId, // Use DeploymentName for "model" with non-Azure clients
             Messages =
             {
                 new ChatRequestSystemMessage("""
@@ -62,7 +63,6 @@ internal static class WebApplicationExtensions
             }
         };
 
-        //var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
         var response = await client.GetChatCompletionsAsync(chatCompletionsOptions, cancellationToken);
 
         foreach (var choice in response.Value.Choices)
