@@ -79,7 +79,7 @@
     },
 	"storageSku": {
 	  "value": "Standard_LRS"
-	}
+	},
     "webAppExists": {
       "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}"
     },
