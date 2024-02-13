@@ -129,6 +129,10 @@ param storageResourceGroupLocation string = location
 @description('Name of the resource group for the storage account')
 param storageResourceGroupName string = ''
 
+@description('SKU for the storage account')
+@allowed([ 'Standard_LRS', 'Standard_ZRS' ])
+param storageSku string = 'Standard_ZRS'
+
 @description('Specifies if the web app exists')
 param webAppExists bool = false
 
@@ -402,7 +406,7 @@ module storage 'core/storage/storage-account.bicep' = {
     tags: updatedTags
     publicNetworkAccess: 'Enabled'
     sku: {
-      name: 'Standard_LRS'
+      name: storageSku
     }
     deleteRetentionPolicy: {
       enabled: true
