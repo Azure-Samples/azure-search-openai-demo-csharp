@@ -35,13 +35,13 @@
 	"chatGptModelName":{
 		"value": "${AZURE_OPENAI_CHAT_GPT_MODEL_NAME=gpt-4}"
 	},
-    "chatGptDeploymentName":{
+    "azureChatGptDeploymentName":{
       "value": "GPT_4_0613"
     },
-	"embeddingModelName":{
+	"azureEmbeddingModelName":{
 	  "value": "${AZURE_OPENAI_EMBEDDING_MODEL_NAME=text-embedding-ada-002}"
 	},
-    "embeddingDeploymentName":{
+    "azureEmbeddingDeploymentName":{
       "value": "Text-Embedding-ADA-002"
     },
     "openAiServiceName": {
