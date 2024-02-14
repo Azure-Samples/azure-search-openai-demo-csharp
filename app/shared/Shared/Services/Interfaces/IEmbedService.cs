@@ -20,6 +20,7 @@ public interface IEmbedService
     /// </summary>
     Task<bool> EmbedImageBlobAsync(
         Stream imageStream,
+        string imageUrl,
         string imageName,
         CancellationToken ct = default);
 
