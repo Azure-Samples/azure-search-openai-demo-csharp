@@ -6,6 +6,8 @@ public sealed partial class SupportingContent
 {
     [Parameter, EditorRequired] public required SupportingContentRecord[] DataPoints { get; set; }
 
+    [Parameter, EditorRequired] public required SupportingImageRecord[] Images { get; set; }
+
     private ParsedSupportingContentItem[] _supportingContent = [];
 
     protected override void OnParametersSet()
