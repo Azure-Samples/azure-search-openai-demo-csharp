@@ -3,7 +3,7 @@
 namespace MauiBlazor.Services;
 
 public class MauiSpeechSynthesisService(ITextToSpeech textToSpeech)
-    : ISpeechSynthesisService, IVoiceChangesListener
+    : ISpeechSynthesisService, ITextToSpeechPreferencesListener
 {
     private CancellationTokenSource? _cts;
     private Task? _speakTask;
@@ -30,7 +30,7 @@ public class MauiSpeechSynthesisService(ITextToSpeech textToSpeech)
         return ValueTask.FromResult<SpeechSynthesisVoice[]>([voice]);
     }
 
-    public void OnListenForVoiceChanges(Func<Task> onVoicesChanged)
+    public void OnAvailableVoicesChanged(Func<Task> onVoicesChanged)
     {
         _ = onVoicesChanged;
     }
@@ -84,7 +84,7 @@ public class MauiSpeechSynthesisService(ITextToSpeech textToSpeech)
         }, _cts.Token);
     }
 
-    public void UnsubscribeFromVoiceChanges()
+    public void UnsubscribeFromAvailableVoicesChanged()
     {
         
     }

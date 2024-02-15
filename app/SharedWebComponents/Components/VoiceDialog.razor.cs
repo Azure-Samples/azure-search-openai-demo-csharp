@@ -12,7 +12,7 @@ public sealed partial class VoiceDialog : IDisposable
 
     [Inject] public required ISpeechSynthesisService SpeechSynthesis { get; set; }
 
-    [Inject] public required IVoiceChangesListener VoiceChangesListener { get; set; }
+    [Inject] public required ITextToSpeechPreferencesListener VoiceChangesListener { get; set; }
 
     [Inject] public required ILocalStorageService LocalStorage { get; set; }
 
@@ -24,7 +24,7 @@ public sealed partial class VoiceDialog : IDisposable
 
         await GetVoicesAsync();
 
-        VoiceChangesListener.OnListenForVoiceChanges(() => GetVoicesAsync(true));
+        VoiceChangesListener.OnAvailableVoicesChanged(() => GetVoicesAsync(true));
 
         _voicePreferences = new VoicePreferences(LocalStorage);
 
@@ -60,7 +60,7 @@ public sealed partial class VoiceDialog : IDisposable
 
     public void Dispose()
     {
-        VoiceChangesListener.UnsubscribeFromVoiceChanges();
+        VoiceChangesListener.UnsubscribeFromAvailableVoicesChanged();
     }
 }
 
