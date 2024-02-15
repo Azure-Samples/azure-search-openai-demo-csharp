@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazor.LocalStorage.WebAssembly" />
+    <PackageReference Include="Blazor.SessionStorage.WebAssembly" />
+    <PackageReference Include="Blazor.SpeechRecognition.WebAssembly" />
+    <PackageReference Include="Blazor.SpeechSynthesis.WebAssembly" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="MudBlazor" />
+    <PackageReference Include="System.Linq.Async" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\shared\Shared\Shared.csproj" />
+  </ItemGroup>
+
+</Project>

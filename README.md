@@ -245,6 +245,18 @@ If you have existing resources in Azure that you wish to use, you can configure 
 
 Navigate to <http://localhost:7181>, and test out the app.
 
+#### Running locally with the .NET MAUI client
+
+This sample includes a .NET MAUI client, packaging the experience as an app that can run on a Windows/macOS desktop or on Android and iOS devices. The MAUI client here is implemented using Blazor hybrid, letting it share most code with the website frontend.
+
+1. Open _app/app-maui.sln_ to open the solution that includes the MAUI client
+
+1. Edit _app/maui-blazor/MauiProgram.cs_, updating `client.BaseAddress` with the URL for the backend.
+
+   If it's running in Azure, use the URL for the service backend from the steps above. If running locally, use <http://localhost:7181>.
+
+1. Set **MauiBlazor** as the startup project and run the app
+
 #### Sharing Environments
 
 Run the following if you want to give someone else access to the deployed and existing environment.

@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <MauiVersion>8.0.6</MauiVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Azure.AI.FormRecognizer" Version="4.1.0" />
@@ -16,12 +17,15 @@
     <PackageVersion Include="Blazor.SpeechRecognition.WebAssembly" Version="8.0.0" />
     <PackageVersion Include="Blazor.SpeechSynthesis.WebAssembly" Version="8.0.0" />
     <PackageVersion Include="bunit" Version="1.25.3" />
+    <PackageVersion Include="CommunityToolkit.Maui" Version="7.0.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="Markdig" Version="0.33.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0-beta3" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="6.2.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.16.2" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="1.20.0" />
@@ -30,7 +34,10 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
     <PackageVersion Include="Microsoft.ML" Version="3.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Microsoft.SemanticKernel" Version="1.3.0" />
