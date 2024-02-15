@@ -177,6 +177,7 @@ You answer needs to be a json object with the following format.
         {
             MaxTokens = 1024,
             Temperature = overrides?.Temperature ?? 0.7,
+            StopSequences = [],
         };
 
         // get answer
@@ -199,7 +200,7 @@ You answer needs to be a json object with the following format.
 {ans}
 
 # Format of the response
-Return the follow-up question as a json string list.
+Return the follow-up question as a json string list. Don't put your answer between ```json and ```, return the json string directly.
 e.g.
 [
     ""What is the deductible?"",
@@ -209,6 +210,7 @@ e.g.
 
             var followUpQuestions = await chat.GetChatMessageContentAsync(
                 followUpQuestionChat,
+                promptExecutingSetting,
                 cancellationToken: cancellationToken);
 
             var followUpQuestionsJson = followUpQuestions.Content ?? throw new InvalidOperationException("Failed to get search query");
