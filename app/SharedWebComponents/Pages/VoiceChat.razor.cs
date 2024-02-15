@@ -79,28 +79,11 @@ public sealed partial class VoiceChat : IDisposable
                                 Name = voice
                             };
                         }
-                        try
-                        {
-                            SpeechSynthesis.Speak(utterance, duration =>
-                            {
-                                _isReadingResponse = false;
-                                StateHasChanged();
-                            });
-                        }
-                        catch
-                        {
-                            // TODO: Find a better way to do this
-                            // The Blazor.SpeechSynthesis.WebAssembly API supports the callback,
-                            // however the underlying code does not do this using a DI-friendly way.
-                            // The code assumes the concrete implementation for the ISpeechSynthesisService
-                            // service is the concrete Web Assembly type which is not valid. However, the
-                            // alternate API is something MAUI can implement.
 
-                            SpeechSynthesis.Speak(utterance);
+                        SpeechSynthesis.Speak(utterance);
 
-                            _isReadingResponse = false;
-                            StateHasChanged();
-                        }
+                        _isReadingResponse = false;
+                        StateHasChanged();
                     }
                 }
 
