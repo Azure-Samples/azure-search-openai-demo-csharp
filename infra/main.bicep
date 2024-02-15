@@ -21,7 +21,9 @@ param openAiResourceGroupLocation string
 
 @description('Name of the chat GPT model. Default: gpt-35-turbo')
 @allowed([ 'gpt-35-turbo', 'gpt-4', 'gpt-35-turbo-16k', 'gpt-4-16k' ])
-param chatGptModelName string = 'gpt-35-turbo'
+param azureOpenAIChatGptModelName string = 'gpt-35-turbo'
+
+param azureOpenAIChatGptModelVersion string ='0613'
 
 @description('Name of the Azure Application Insights dashboard')
 param applicationInsightsDashboardName string = ''
@@ -32,8 +34,8 @@ param applicationInsightsName string = ''
 @description('Name of the Azure App Service Plan')
 param appServicePlanName string = ''
 
-@description('Capacity of the chat GPT deployment. Default: 30')
-param chatGptDeploymentCapacity int = 30
+@description('Capacity of the chat GPT deployment. Default: 10')
+param chatGptDeploymentCapacity int = 10
 
 @description('Name of the chat GPT deployment')
 param azureChatGptDeploymentName string = 'chat'
@@ -399,19 +401,8 @@ module azureOpenAi 'core/ai/cognitiveservices.bicep' = if (useAOAI) {
     sku: {
       name: openAiSkuName
     }
-    deployments: [
-      {
-        name: azureChatGptDeploymentName
-        model: {
-          format: 'OpenAI'
-          name: chatGptModelName
-          version: '1106'
-        }
-        sku: {
-          name: 'Standard'
-          capacity: chatGptDeploymentCapacity
-        }
-      }
+    deployments: concat([
+      
       {
         name: azureEmbeddingDeploymentName
         model: {
@@ -424,7 +415,33 @@ module azureOpenAi 'core/ai/cognitiveservices.bicep' = if (useAOAI) {
           capacity: embeddingDeploymentCapacity
         }
       }
-    ]
+    ], useVision ? [
+      {
+        name: azureChatGptDeploymentName
+        model: {
+          format: 'OpenAI'
+          name: azureOpenAIChatGptModelName
+          version: 'vision-preview'
+        }
+        sku: {
+          name: 'Standard'
+          capacity: chatGptDeploymentCapacity
+        }
+      }
+    ] : [
+      {
+        name: azureChatGptDeploymentName
+        model: {
+          format: 'OpenAI'
+          name: azureOpenAIChatGptModelName
+          version: azureOpenAIChatGptModelVersion
+        }
+        sku: {
+          name: 'Standard'
+          capacity: chatGptDeploymentCapacity
+        }
+      }
+    ])
   }
 }
 
@@ -751,3 +768,5 @@ output SERVICE_FUNCTION_IDENTITY_PRINCIPAL_ID string = function.outputs.SERVICE_
 output USE_AOAI bool = useAOAI
 output USE_VISION bool = useVision
 output OPENAI_EMBEDDING_DEPLOYMENT string = openAiEmbeddingDeployment
+output AZURE_OPENAI_CHATGPT_MODEL_VERSION string = azureOpenAIChatGptModelVersion
+output AZURE_OPENAI_CHATGPT_MODEL_NAME string = azureOpenAIChatGptModelName
