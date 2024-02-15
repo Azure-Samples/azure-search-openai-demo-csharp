@@ -1,56 +1,61 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Core;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+
 namespace MinimalApi.Services;
 
 public class ReadRetrieveReadChatService
 {
-    #region Fields
-
     private readonly ISearchService _searchClient;
-    private readonly IConfiguration _configuration;
     private readonly Kernel _kernel;
-
-    #endregion Fields
-
-    #region Contructor/s
+    private readonly IConfiguration _configuration;
+    private readonly IComputerVisionService? _visionService;
+    private readonly TokenCredential? _tokenCredential;
 
     public ReadRetrieveReadChatService(
         ISearchService searchClient,
         OpenAIClient client,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IComputerVisionService? visionService = null,
+        TokenCredential? tokenCredential = null)
     {
         _searchClient = searchClient;
-        _configuration = configuration;
-
-        var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(deployedModelName);
-
         var kernelBuilder = Kernel.CreateBuilder();
 
-        kernelBuilder.AddAzureOpenAIChatCompletion(
-            deployedModelName,  // The name of your deployment (e.g., "gpt-35-turbo")
-            client
-        );
-
-        var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
-        if (!string.IsNullOrEmpty(embeddingModelName))
+        if (configuration["UseAOAI"] == "false")
         {
-            var endpoint = configuration["AZURE_OPENAI_ENDPOINT"];
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint);
+            var deployment = configuration["OpenAiChatGptDeployment"];
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(deployment);
+            kernelBuilder = kernelBuilder.AddOpenAIChatCompletion(deployment, client);
 
+            var embeddingModelName = configuration["OpenAiEmbeddingDeployment"];
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(embeddingModelName);
 #pragma warning disable SKEXP0011 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-            kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(
-                embeddingModelName, endpoint, new DefaultAzureCredential()
-            );
+            kernelBuilder = kernelBuilder.AddOpenAITextEmbeddingGeneration(embeddingModelName, client);
 #pragma warning restore SKEXP0011 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        }
+        else
+        {
+            var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(deployedModelName);
+            var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
+            if (!string.IsNullOrEmpty(embeddingModelName))
+            {
+                var endpoint = configuration["AzureOpenAiServiceEndpoint"];
+                ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint);
+#pragma warning disable SKEXP0011 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                kernelBuilder = kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(embeddingModelName, endpoint, tokenCredential ?? new DefaultAzureCredential());
+#pragma warning restore SKEXP0011 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                kernelBuilder = kernelBuilder.AddAzureOpenAIChatCompletion(deployedModelName, endpoint, tokenCredential ?? new DefaultAzureCredential());
+            }
         }
 
         _kernel = kernelBuilder.Build();
+        _configuration = configuration;
+        _visionService = visionService;
+        _tokenCredential = tokenCredential;
     }
-
-    #endregion Contructor/s
-
-    #region Public Methods
 
     public async Task<ApproachResponse> ReplyAsync(
         ChatTurn[] history,
@@ -62,44 +67,40 @@ public class ReadRetrieveReadChatService
         var useSemanticRanker = overrides?.SemanticRanker ?? false;
         var excludeCategory = overrides?.ExcludeCategory ?? null;
         var filter = excludeCategory is null ? null : $"category ne '{excludeCategory}'";
-        IChatCompletionService chat = _kernel.GetRequiredService<IChatCompletionService>();
+        var chat = _kernel.GetRequiredService<IChatCompletionService>();
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        ITextEmbeddingGenerationService? embedding = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+        var embedding = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
         float[]? embeddings = null;
         var question = history.LastOrDefault()?.User is { } userQuestion
             ? userQuestion
             : throw new InvalidOperationException("Use question is null");
-
-#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         if (overrides?.RetrievalMode != RetrievalMode.Text && embedding is not null)
         {
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             embeddings = (await embedding.GenerateEmbeddingAsync(question, cancellationToken: cancellationToken)).ToArray();
-        }
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        }
 
         // step 1
         // use llm to get query if retrieval mode is not vector
         string? query = null;
         if (overrides?.RetrievalMode != RetrievalMode.Vector)
         {
-            var chatHistory = new ChatHistory(@"You are a helpful AI assistant, generate search query for followup question.
-                Make your respond simple and precise. Return the query only, do not return any other text.
-                e.g.
-                Northwind Health Plus AND standard plan.
-                standard plan AND dental AND employee benefit.");
-            chatHistory.AddUserMessage(question);
+            var getQueryChat = new ChatHistory(@"You are a helpful AI assistant, generate search query for followup question.
+Make your respond simple and precise. Return the query only, do not return any other text.
+e.g.
+Northwind Health Plus AND standard plan.
+standard plan AND dental AND employee benefit.
+");
 
+            getQueryChat.AddUserMessage(question);
             var result = await chat.GetChatMessageContentAsync(
-                chatHistory,
+                getQueryChat,
                 cancellationToken: cancellationToken);
 
-            if (result is null)
-            {
-                throw new InvalidOperationException("Failed to get search query");
-            }
-
-            query = result.Content;
+            query = result.Content ?? throw new InvalidOperationException("Failed to get search query");
         }
 
         // step 2
@@ -116,40 +117,82 @@ public class ReadRetrieveReadChatService
             documentContents = string.Join("\r", documentContentList.Select(x => $"{x.Title}:{x.Content}"));
         }
 
-        Console.WriteLine(documentContents);
+        // step 2.5
+        // retrieve images if _visionService is available
+        SupportingImageRecord[]? images = default;
+        if (_visionService is not null)
+        {
+            var queryEmbeddings = await _visionService.VectorizeTextAsync(query ?? question, cancellationToken);
+            images = await _searchClient.QueryImagesAsync(query, queryEmbeddings.vector, overrides, cancellationToken);
+        }
+
         // step 3
         // put together related docs and conversation history to generate answer
-        var answerChatHistory = new ChatHistory(
-            "You are a system assistant who helps the company employees with their healthcare " +
-            "plan questions, and questions about the employee handbook. Be brief in your answers");
+        var answerChat = new ChatHistory(
+            "You are a system assistant who helps the company employees with their questions. Be brief in your answers");
 
         // add chat history
         foreach (var turn in history)
         {
-            answerChatHistory.AddUserMessage(turn.User);
+            answerChat.AddUserMessage(turn.User);
             if (turn.Bot is { } botMessage)
             {
-                answerChatHistory.AddAssistantMessage(botMessage);
+                answerChat.AddAssistantMessage(botMessage);
             }
         }
 
-        // format prompt
-        answerChatHistory.AddUserMessage(@$" ## Source ##
-            {documentContents}
-            ## End ##
 
-            You answer needs to be a json object with the following format.
-            {{
-                ""answer"": // the answer to the question, add a source reference to the end of each sentence. e.g. Apple is a fruit [reference1.pdf][reference2.pdf]. If no source available, put the answer as I don't know.
-                ""thoughts"": // brief thoughts on how you came up with the answer, e.g. what sources you used, what you thought about, etc.
-            }}");
+        if (images != null)
+        {
+            var prompt = @$"## Source ##
+                {documentContents}
+                ## End ##
+
+                Answer question based on available source and images.
+                Your answer needs to be a json object with answer and thoughts field.
+                Don't put your answer between ```json and ```, return the json string directly. e.g {{""answer"": ""I don't know"", ""thoughts"": ""I don't know""}}";
+
+            var tokenRequestContext = new TokenRequestContext(new[] { "https://storage.azure.com/.default" });
+            var sasToken = await (_tokenCredential?.GetTokenAsync(tokenRequestContext, cancellationToken) ?? throw new InvalidOperationException("Failed to get token"));
+            var sasTokenString = sasToken.Token;
+            var imageUrls = images.Select(x => $"{x.Url}?{sasTokenString}").ToArray();
+
+            var collection = new ChatMessageContentItemCollection();
+            collection.Add(new TextContent(prompt));
+
+            foreach (var imageUrl in imageUrls)
+            {
+                collection.Add(new ImageContent(new Uri(imageUrl)));
+            }
+
+            answerChat.AddUserMessage(collection);
+        }
+        else
+        {
+            var prompt = @$" ## Source ##
+                {documentContents}
+                ## End ##
+
+                You answer needs to be a json object with the following format.
+                {{
+                    ""answer"": // the answer to the question, add a source reference to the end of each sentence. e.g. Apple is a fruit [reference1.pdf][reference2.pdf]. If no source available, put the answer as I don't know.
+                    ""thoughts"": // brief thoughts on how you came up with the answer, e.g. what sources you used, what you thought about, etc.
+                }}";
+            answerChat.AddUserMessage(prompt);
+        }
+
+        var promptExecutingSetting = new OpenAIPromptExecutionSettings
+        {
+            MaxTokens = 1024,
+            Temperature = overrides?.Temperature ?? 0.7,
+        };
 
         // get answer
         var answer = await chat.GetChatMessageContentAsync(
-                       answerChatHistory,
-                       cancellationToken: cancellationToken);
-
-        var answerJson = answer.Content ?? "{}";
+            answerChat,
+            promptExecutingSetting,
+            cancellationToken: cancellationToken);
+        var answerJson = answer.Content ?? throw new InvalidOperationException("Failed to get search query");
         var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
         var ans = answerObject.GetProperty("answer").GetString() ?? throw new InvalidOperationException("Failed to get answer");
         var thoughts = answerObject.GetProperty("thoughts").GetString() ?? throw new InvalidOperationException("Failed to get thoughts");
@@ -158,8 +201,8 @@ public class ReadRetrieveReadChatService
         // add follow up questions if requested
         if (overrides?.SuggestFollowupQuestions is true)
         {
-            var followUpQuestionChatHistory = new ChatHistory(@"You are a helpful AI assistant");
-            followUpQuestionChatHistory.AddUserMessage($@"Generate three follow-up question based on the answer you just generated.
+            var followUpQuestionChat = new ChatHistory(@"You are a helpful AI assistant");
+            followUpQuestionChat.AddUserMessage($@"Generate three follow-up question based on the answer you just generated.
                 # Answer
                 {ans}
 
@@ -173,25 +216,23 @@ public class ReadRetrieveReadChatService
                 ]");
 
             var followUpQuestions = await chat.GetChatMessageContentAsync(
-                followUpQuestionChatHistory,
+                followUpQuestionChat,
                 cancellationToken: cancellationToken);
 
-            var followUpQuestionsJson = followUpQuestions.Content ?? "{}";
+            var followUpQuestionsJson = followUpQuestions.Content ?? throw new InvalidOperationException("Failed to get search query");
             var followUpQuestionsObject = JsonSerializer.Deserialize<JsonElement>(followUpQuestionsJson);
             var followUpQuestionsList = followUpQuestionsObject.EnumerateArray().Select(x => x.GetString()).ToList();
+
             foreach (var followUpQuestion in followUpQuestionsList)
             {
                 ans += $" <<{followUpQuestion}>> ";
             }
         }
-
         return new ApproachResponse(
             DataPoints: documentContentList,
-            Images: null,
+            Images: images,
             Answer: ans,
             Thoughts: thoughts,
             CitationBaseUrl: _configuration.ToCitationBaseUrl());
     }
-
-    #endregion Public Methods
 }

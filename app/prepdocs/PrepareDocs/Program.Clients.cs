@@ -28,7 +28,7 @@ internal static partial class Program
     private static Task<AzureSearchEmbedService> GetAzureSearchEmbedService(AppOptions options) =>
         GetLazyClientAsync<AzureSearchEmbedService>(options, s_embeddingLock, async o =>
         {
-            var openAIClient = await GetAzureOpenAIClientAsync(o);
+            var openAIClient = await GetOpenAIClientAsync(o);
             var embeddingModelName = o.EmbeddingModelName ?? throw new ArgumentNullException(nameof(o.EmbeddingModelName));
             var searchClient = await GetSearchClientAsync(o);
             var searchIndexName = o.SearchIndexName ?? throw new ArgumentNullException(nameof(o.SearchIndexName));
@@ -53,17 +53,27 @@ internal static partial class Program
     #region Factory Methods
 
     // The Azure OpenAI service client.
-    private static Task<OpenAIClient> GetAzureOpenAIClientAsync(AppOptions options) =>
+    private static Task<OpenAIClient> GetOpenAIClientAsync(AppOptions options) =>
        GetLazyClientAsync<OpenAIClient>(options, s_openAILock, async o =>
        {
            if (s_openAIClient is null)
            {
-               var endpoint = o.AzureOpenAIServiceEndpoint;
-               ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
-
-               s_openAIClient = new OpenAIClient(
-                   new Uri(endpoint),
-                   DefaultCredential);
+               var useAOAI = Environment.GetEnvironmentVariable("USE_AOAI") == "true";
+               if (!useAOAI)
+               {
+                   var openAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+                   Console.WriteLine("useAOAI value is: " + useAOAI.ToString());
+                   ArgumentNullException.ThrowIfNullOrEmpty(openAIApiKey);
+                   s_openAIClient = new OpenAIClient(openAIApiKey);
+               }
+               else
+               {
+                   var endpoint = o.AzureOpenAIServiceEndpoint;
+                   ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+                   s_openAIClient = new OpenAIClient(
+                       new Uri(endpoint),
+                       DefaultCredential);
+               }
            }
 
            await Task.CompletedTask;

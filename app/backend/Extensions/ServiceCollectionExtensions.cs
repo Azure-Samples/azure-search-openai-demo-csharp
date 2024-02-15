@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Azure;
-
 namespace MinimalApi.Extensions;
 
 internal static class ServiceCollectionExtensions
@@ -47,7 +45,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<DocumentAnalysisClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiServiceEndpoint = config["AZURE_OPENAI_ENDPOINT"] ?? throw new ArgumentNullException();
+            var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"] ?? throw new ArgumentNullException();
 
             var documentAnalysisClient = new DocumentAnalysisClient(
                 new Uri(azureOpenAiServiceEndpoint), s_azureCredential);
@@ -57,22 +55,47 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<OpenAIClient>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureOpenAiServiceEndpoint = config["AZURE_OPENAI_ENDPOINT"];
-            //var azureOpenAiApiKey = config["AzureOpenAiApiKey"];            
+            var useAOAI = config["UseAOAI"] == "true";
+            if (useAOAI)
+            {
+                var azureOpenAiServiceEndpoint = config["AzureOpenAiServiceEndpoint"];
+                ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
 
-            ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiServiceEndpoint);
-            //ArgumentNullException.ThrowIfNullOrEmpty(azureOpenAiApiKey);
+                var openAIClient = new OpenAIClient(new Uri(azureOpenAiServiceEndpoint), s_azureCredential);
 
-            var openAIClient = new OpenAIClient(
-                new Uri(azureOpenAiServiceEndpoint), 
-                //new AzureKeyCredential(azureOpenAiApiKey));
-                s_azureCredential);
+                return openAIClient;
+            }
+            else
+            {
+                var openAIApiKey = config["OpenAIApiKey"];
+                ArgumentNullException.ThrowIfNullOrEmpty(openAIApiKey);
 
-            return openAIClient;
+                var openAIClient = new OpenAIClient(openAIApiKey);
+                return openAIClient;
+            }
         });
 
         services.AddSingleton<AzureBlobStorageService>();
-        services.AddSingleton<ReadRetrieveReadChatService>();
+        services.AddSingleton<ReadRetrieveReadChatService>(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var useGPT4V = config["UseGPT4V"] == "true";
+            var openAIClient = sp.GetRequiredService<OpenAIClient>();
+            var searchClient = sp.GetRequiredService<ISearchService>();
+            if (useGPT4V)
+            {
+                var azureComputerVisionServiceEndpoint = config["AzureComputerVisionServiceEndpoint"];
+                ArgumentNullException.ThrowIfNullOrEmpty(azureComputerVisionServiceEndpoint);
+                var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+
+                var visionService = new AzureComputerVisionService(httpClient, azureComputerVisionServiceEndpoint, s_azureCredential);
+                return new ReadRetrieveReadChatService(searchClient, openAIClient, config, visionService, s_azureCredential);
+            }
+            else
+            {
+                return new ReadRetrieveReadChatService(searchClient, openAIClient, config, tokenCredential: s_azureCredential);
+            }
+        });
 
         return services;
     }

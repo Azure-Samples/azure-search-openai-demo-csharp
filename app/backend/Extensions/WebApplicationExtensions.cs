@@ -43,36 +43,29 @@ internal static class WebApplicationExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
-        var chatCompletionsOptions = new ChatCompletionsOptions
-        {
-            DeploymentName = deploymentId, // Use DeploymentName for "model" with non-Azure clients
-            Messages =
+        var response = await client.GetChatCompletionsStreamingAsync(
+            new ChatCompletionsOptions
             {
-                new ChatRequestSystemMessage("""
-                    You're an AI assistant for developers, helping them write code more efficiently.
-                    You're name is **Blazor 📎 Clippy** and you're an expert Blazor developer.
-                    You're also an expert in ASP.NET Core, C#, TypeScript, and even JavaScript.
-                    You will always reply with a Markdown formatted response.
-                    """),
+                DeploymentName = deploymentId,
+                Messages =
+                {
+                    new ChatRequestSystemMessage("""
+                        You're an AI assistant for developers, helping them write code more efficiently.
+                        You're name is **Blazor 📎 Clippy** and you're an expert Blazor developer.
+                        You're also an expert in ASP.NET Core, C#, TypeScript, and even JavaScript.
+                        You will always reply with a Markdown formatted response.
+                        """),
+                    new ChatRequestUserMessage("What's your name?"),
+                    new ChatRequestAssistantMessage("Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
+                    new ChatRequestUserMessage(prompt.Prompt)
+                }
+            }, cancellationToken);
 
-                new ChatRequestUserMessage("What's your name?"),
-
-                new ChatRequestAssistantMessage("Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
-
-                new ChatRequestUserMessage(prompt.Prompt)
-            }
-        };
-
-        var response = await client.GetChatCompletionsAsync(chatCompletionsOptions, cancellationToken);
-
-        foreach (var choice in response.Value.Choices)
+        await foreach (var choice in response.WithCancellation(cancellationToken))
         {
-            var message = choice.Message;
-
-            if (message is { Content.Length: > 0 })
+            if (choice.ContentUpdate is { Length: > 0 })
             {
-                var (length, content) = (message.Content.Length, message.Content);
-                yield return new ChatChunkResponse(length, content);
+                yield return new ChatChunkResponse(choice.ContentUpdate.Length, choice.ContentUpdate);
             }
         }
     }
@@ -156,9 +149,6 @@ internal static class WebApplicationExtensions
         var result = await client.GetImageGenerationsAsync(new ImageGenerationOptions
         {
             Prompt = prompt.Prompt,
-            Size = ImageSize.Size1024x1024,
-            DeploymentName = "Dalle3",
-            Quality = ImageGenerationQuality.Standard
         },
         cancellationToken);
 
