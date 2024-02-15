@@ -42,7 +42,7 @@ internal static class WebApplicationExtensions
         IConfiguration config,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
+        var deploymentId = config["AzureOpenAiChatGptDeployment"];
         var response = await client.GetChatCompletionsStreamingAsync(
             new ChatCompletionsOptions
             {

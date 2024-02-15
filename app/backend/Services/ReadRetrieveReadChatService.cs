@@ -228,6 +228,7 @@ standard plan AND dental AND employee benefit.
                 ans += $" <<{followUpQuestion}>> ";
             }
         }
+
         return new ApproachResponse(
             DataPoints: documentContentList,
             Images: images,
