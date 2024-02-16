@@ -33,6 +33,7 @@ public static class MauiProgram
 		builder.Services.AddSingleton<ISessionStorageService, MauiSessionStorageService>();
 		builder.Services.AddSingleton<ISpeechRecognitionService, MauiSpeechRecognitionService>();
 		builder.Services.AddSingleton<ISpeechSynthesisService, MauiSpeechSynthesisService>();
+        builder.Services.AddSingleton<ITextToSpeechPreferencesListener, MauiSpeechSynthesisService>();
 		builder.Services.AddTransient<IPdfViewer, MauiPdfViewer>();
 
 		builder.Services.AddMudServices();

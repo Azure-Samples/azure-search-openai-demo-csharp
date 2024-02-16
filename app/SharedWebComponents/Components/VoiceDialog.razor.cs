@@ -12,6 +12,8 @@ public sealed partial class VoiceDialog : IDisposable
 
     [Inject] public required ISpeechSynthesisService SpeechSynthesis { get; set; }
 
+    [Inject] public required ITextToSpeechPreferencesListener VoiceChangesListener { get; set; }
+
     [Inject] public required ILocalStorageService LocalStorage { get; set; }
 
     [CascadingParameter] public required MudDialogInstance Dialog { get; set; }
@@ -22,19 +24,7 @@ public sealed partial class VoiceDialog : IDisposable
 
         await GetVoicesAsync();
 
-        try
-        {
-            SpeechSynthesis.OnVoicesChanged(() => GetVoicesAsync(true));
-        }
-        catch
-        {
-            // TODO: Find a better way to do this
-            // The Blazor.SpeechSynthesis.WebAssembly API supports listening to changes,
-            // however the underlying code does not do this using a DI-friendly way.
-            // The code assumes the concrete implementation for the ISpeechSynthesisService
-            // service is the concrete Web Assembly type which is not valid.
-            // There is no alternative API that MAUI apps can use.
-        }
+        VoiceChangesListener.OnAvailableVoicesChanged(() => GetVoicesAsync(true));
 
         _voicePreferences = new VoicePreferences(LocalStorage);
 
@@ -70,19 +60,7 @@ public sealed partial class VoiceDialog : IDisposable
 
     public void Dispose()
     {
-        try
-        {
-            SpeechSynthesis.UnsubscribeFromVoicesChanged();
-        }
-        catch
-        {
-            // TODO: Find a better way to do this
-            // The Blazor.SpeechSynthesis.WebAssembly API supports listening to changes,
-            // however the underlying code does not do this using a DI-friendly way.
-            // The code assumes the concrete implementation for the ISpeechSynthesisService
-            // service is the concrete Web Assembly type which is not valid.
-            // There is no alternative API that MAUI apps can use.
-        }
+        VoiceChangesListener.UnsubscribeFromAvailableVoicesChanged();
     }
 }
 

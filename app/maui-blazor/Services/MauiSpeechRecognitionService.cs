@@ -2,12 +2,13 @@
 
 namespace MauiBlazor.Services;
 
-public class MauiSpeechRecognitionService(ISpeechToText speechToText) : ISpeechRecognitionService
+public sealed class MauiSpeechRecognitionService(ISpeechToText speechToText) : ISpeechRecognitionService
 {
     private SpeechRecognitionOperation? _current;
 
     public void CancelSpeechRecognition(bool isAborted)
     {
+        _ = isAborted;
         _current?.Dispose();
     }
 
@@ -19,6 +20,7 @@ public class MauiSpeechRecognitionService(ISpeechToText speechToText) : ISpeechR
 
     public Task InitializeModuleAsync(bool logModuleDetails = true)
     {
+        _ = logModuleDetails;
         return Task.CompletedTask;
     }
 

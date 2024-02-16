@@ -2,9 +2,11 @@
 
 namespace MauiBlazor.Services;
 
-public class MauiSpeechSynthesisService : ISpeechSynthesisService
+public class MauiSpeechSynthesisService(ITextToSpeech textToSpeech)
+    : ISpeechSynthesisService, ITextToSpeechPreferencesListener
 {
     private CancellationTokenSource? _cts;
+    private Task? _speakTask;
 
     public bool Paused => throw new NotImplementedException();
 
@@ -28,6 +30,11 @@ public class MauiSpeechSynthesisService : ISpeechSynthesisService
         return ValueTask.FromResult<SpeechSynthesisVoice[]>([voice]);
     }
 
+    public void OnAvailableVoicesChanged(Func<Task> onVoicesChanged)
+    {
+        _ = onVoicesChanged;
+    }
+
     public void Pause()
     {
         Cancel();
@@ -40,35 +47,44 @@ public class MauiSpeechSynthesisService : ISpeechSynthesisService
         // TODO: support pause & resume
     }
 
-    public async void Speak(SpeechSynthesisUtterance utterance)
+    public void Speak(SpeechSynthesisUtterance utterance)
     {
+        _cts?.Cancel();
         _cts = new();
 
-        var current = CultureInfo.CurrentUICulture.Name;
-
-        var locales = await TextToSpeech.Default.GetLocalesAsync();
-        var localeArray = locales.ToArray();
-        var locale = localeArray.FirstOrDefault(l => current == $"{l.Language}-{l.Country}");
-        if (locale is null)
+        _speakTask = Task.Run(async () =>
         {
-            // an exact match was not found, try just the lang
-            var split = current.Split('-');
-            if (split.Length == 1 || split.Length == 2)
-            {
-                // try the first part (or the whole thing if it is just lang)
-                locale = localeArray.FirstOrDefault(l => split[0] == $"{l.Language}");
-            }
-            else
-            {
-                // just go with the first one
-                locale = localeArray.FirstOrDefault();
-            }
-        }
+            var current = CultureInfo.CurrentUICulture.Name;
 
-        var options = new SpeechOptions
-        {
-            Locale = locale
-        };
-        await TextToSpeech.Default.SpeakAsync(utterance.Text, options, _cts.Token);
+            var locales = await textToSpeech.GetLocalesAsync();
+            var localeArray = locales.ToArray();
+            var locale = localeArray.FirstOrDefault(l => current == $"{l.Language}-{l.Country}");
+            if (locale is null)
+            {
+                // an exact match was not found, try just the lang
+                var split = current.Split('-');
+                if (split.Length is 1 or 2)
+                {
+                    // try the first part (or the whole thing if it is just lang)
+                    locale = localeArray.FirstOrDefault(l => split[0] == $"{l.Language}");
+                }
+                else
+                {
+                    // just go with the first one
+                    locale = localeArray.FirstOrDefault();
+                }
+            }
+
+            var options = new SpeechOptions
+            {
+                Locale = locale
+            };
+
+            await textToSpeech.SpeakAsync(utterance.Text, options, _cts.Token);
+        }, _cts.Token);
+    }
+
+    public void UnsubscribeFromAvailableVoicesChanged()
+    {
     }
 }
