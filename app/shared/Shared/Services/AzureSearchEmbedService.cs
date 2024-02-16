@@ -48,9 +48,6 @@ public sealed partial class AzureSearchEmbedService(
                 await UploadCorpusAsync(corpusName, page.Text);
             }
 
-            // todo
-            // if gpt-4v is enabled, create image embeddings for each page and indexing them.
-
             var sections = CreateSections(pageMap, blobName);
 
             var infoLoggingEnabled = logger?.IsEnabled(LogLevel.Information);
