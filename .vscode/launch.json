@@ -23,6 +23,12 @@
       "envFile": "${input:dotEnvFilePath}"
     },
     {
+      "name": "Frontend: .NET MAUI client",
+      "type": "maui",
+      "request": "launch",
+      "preLaunchTask": "maui: Build"
+    },
+    {
       "name": "Backend: Minimal API",
       "type": "coreclr",
       "request": "launch",

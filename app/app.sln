@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrepareDocs", "prepdocs\Pre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmbedFunctions", "functions\EmbedFunctions\EmbedFunctions.csproj", "{54099AF3-CFA8-4EA9-9118-A26E3E63745B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedWebComponents", "SharedWebComponents\SharedWebComponents.csproj", "{5781A638-C6A8-46A3-8C2E-2B442E58C74F}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinimalApi.Tests", "tests\MinimalApi.Tests\MinimalApi.Tests.csproj", "{C687997A-A569-47AA-A808-504F7DFCA97B}"
 EndProject
 Global
@@ -59,6 +61,10 @@ Global
 		{54099AF3-CFA8-4EA9-9118-A26E3E63745B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{54099AF3-CFA8-4EA9-9118-A26E3E63745B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{54099AF3-CFA8-4EA9-9118-A26E3E63745B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5781A638-C6A8-46A3-8C2E-2B442E58C74F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5781A638-C6A8-46A3-8C2E-2B442E58C74F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5781A638-C6A8-46A3-8C2E-2B442E58C74F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5781A638-C6A8-46A3-8C2E-2B442E58C74F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C687997A-A569-47AA-A808-504F7DFCA97B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C687997A-A569-47AA-A808-504F7DFCA97B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C687997A-A569-47AA-A808-504F7DFCA97B}.Release|Any CPU.ActiveCfg = Release|Any CPU
