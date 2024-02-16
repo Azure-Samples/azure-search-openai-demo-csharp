@@ -86,6 +86,5 @@ public class MauiSpeechSynthesisService(ITextToSpeech textToSpeech)
 
     public void UnsubscribeFromAvailableVoicesChanged()
     {
-        
     }
 }
