@@ -40,13 +40,10 @@
         <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticCaptions" Size="Size.Large"
                      Color="Color.Primary" 
                      Label="Use query-contrextual summaries instead of whole documents" />
-    
-        @if (_supportedSettings is not SupportedSettings.Chat)
-        {
-            <MudCheckBox @bind-Checked="@Settings.Overrides.SuggestFollowupQuestions" Size="Size.Large"
-                         Color="Color.Primary" Label="Suggest follow-up questions"
-                         aria-label="Suggest follow-up questions checkbox." />
-        }
+
+        <MudCheckBox @bind-Checked="@Settings.Overrides.SuggestFollowupQuestions" Size="Size.Large"
+                     Color="Color.Primary" Label="Suggest follow-up questions"
+                     aria-label="Suggest follow-up questions checkbox." />
     </div>
     <div class="d-flex align-content-end flex-wrap flex-grow-1 pa-6">
         <MudButton Variant="Variant.Filled" Color="Color.Secondary"

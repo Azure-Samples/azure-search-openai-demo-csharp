@@ -83,17 +83,26 @@
     "useAOAI": {
       "value": "${USE_AOAI=true}"
     },
-    "azureComputerVisionServiceEndpoint": {
-      "value": "${AZURE_COMPUTERVISION_SERVICE_ENDPOINT}"
+    "computerVisionServiceName": {
+      "value": "${AZURE_COMPUTERVISION_SERVICE_NAME}"
     },
-    "useGpt4V" : {
-      "value": "${USE_GPT4V}"
+    "useVision" : {
+      "value": "${USE_VISION=false}"
     },
     "openAiChatGptDeployment":{
       "value": "${OPENAI_CHATGPT_DEPLOYMENT=gpt-3.5-turbo}"
     },
     "openAiEmbeddingDeployment":{
       "value": "${OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-ada-002}"
+    },
+    "azureOpenAIChatGptModelVersion":{
+      "value": "${AZURE_OPENAI_CHATGPT_MODEL_VERSION=0613}"
+    },
+    "azureOpenAIChatGptModelName": {
+      "value": "${AZURE_OPENAI_CHATGPT_MODEL_NAME=gpt-3.5-turbo}"
+    },
+    "azureOpenAIChatGptDeploymentCapacity" : {
+      "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT_CAPACITY=30}"
     }
   }
 }

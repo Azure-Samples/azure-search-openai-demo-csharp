@@ -23,17 +23,25 @@ if [ -z "$AZD_PREPDOCS_RAN" ] || [ "$AZD_PREPDOCS_RAN" = "false" ]; then
       --storageendpoint "$AZURE_STORAGE_BLOB_ENDPOINT" \
       --container "$AZURE_STORAGE_CONTAINER" \
       --searchendpoint "$AZURE_SEARCH_SERVICE_ENDPOINT" \
-      --openaiendpoint "$AZURE_OPENAI_ENDPOINT" \
-      --embeddingmodel "$AZURE_OPENAI_EMBEDDING_DEPLOYMENT" \
       --searchindex "$AZURE_SEARCH_INDEX" \
       --formrecognizerendpoint "$AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT" \
       --tenantid "$AZURE_TENANT_ID" \
       -v"
 
-    # if USE_GPT4V and AZURE_COMPUTERVISION_SERVICE_ENDPOINT is set, add --computervisionendpoint "$AZURE_COMPUTERVISION_SERVICE_ENDPOINT" to the command above
-    if [ "$USE_GPT4V" = "true" ] && [ -n "$AZURE_COMPUTERVISION_SERVICE_ENDPOINT" ]; then
+    # if USE_VISION and AZURE_COMPUTERVISION_SERVICE_ENDPOINT is set, add --computervisionendpoint "$AZURE_COMPUTERVISION_SERVICE_ENDPOINT" to the command above
+    if [ "$USE_VISION" = "true" ] && [ -n "$AZURE_COMPUTERVISION_SERVICE_ENDPOINT" ]; then
         args = "$args --computervisionendpoint $AZURE_COMPUTERVISION_SERVICE_ENDPOINT"
     fi
+
+    # if USE_AOAI is true, add --openaiendpoint "$AZURE_OPENAI_ENDPOINT" to the command above
+    if [ "$USE_AOAI" = "true" ]; then
+        echo "use azure openai"
+        args = "$args --openaiendpoint $AZURE_OPENAI_ENDPOINT"
+        args = "$args --embeddingmodel $AZURE_OPENAI_EMBEDDING_DEPLOYMENT"
+    else
+        echo "use openai"
+        args = "$args --embeddingmodel $OPENAI_EMBEDDING_DEPLOYMENT"
+
 
     echo "Running: dotnet run $args"
     dotnet run $args

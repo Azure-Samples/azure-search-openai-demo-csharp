@@ -9,9 +9,11 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["Directory.Build.props", "."]
 COPY ["Directory.Packages.props", "."]
+COPY ["NuGet.config", "."]
 COPY ["backend/", "backend/"]
 COPY ["frontend/", "frontend/"]
 COPY ["shared/", "shared/"]
+COPY ["SharedWebComponents", "SharedWebComponents/"]
 RUN dotnet restore "backend/MinimalApi.csproj"
 
 WORKDIR "/src/backend"

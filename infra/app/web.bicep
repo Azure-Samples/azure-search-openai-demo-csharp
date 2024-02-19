@@ -44,6 +44,9 @@ param searchIndexName string
 @description('The Form Recognizer endpoint')
 param formRecognizerEndpoint string
 
+@description('The Computer Vision endpoint')
+param computerVisionEndpoint string
+
 @description('The OpenAI endpoint')
 param openAiEndpoint string
 
@@ -52,6 +55,12 @@ param openAiChatGptDeployment string
 
 @description('The OpenAI Embedding deployment name')
 param openAiEmbeddingDeployment string
+
+@description('use gpt-4v')
+param useVision bool = false
+
+@description('The OpenAI API key')
+param openAiApiKey string
 
 @description('An array of service binds')
 param serviceBinds array
@@ -127,6 +136,18 @@ module app '../core/host/container-app-upsert.bicep' = {
       {
         name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT'
         value: openAiEmbeddingDeployment
+      }
+      {
+        name: 'AZURE_COMPUTER_VISION_ENDPOINT'
+        value: computerVisionEndpoint
+      }
+      {
+        name: 'USE_VISION'
+        value: useVision ? 'true' : 'false'
+      }
+      {
+        name: 'OPENAI_API_KEY'
+        value: openAiApiKey
       }
     ]
     targetPort: 8080

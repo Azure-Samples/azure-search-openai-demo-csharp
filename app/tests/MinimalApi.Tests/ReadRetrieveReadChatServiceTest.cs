@@ -77,7 +77,7 @@ public class ReadRetrieveReadChatServiceTest
     [EnvironmentVariablesFact(
         "OPENAI_API_KEY",
         "AZURE_SEARCH_INDEX",
-        "AZURE_COMPUTER_VISION_ENDPOINT",
+        "AZURE_COMPUTERVISION_SERVICE_ENDPOINT",
         "AZURE_SEARCH_SERVICE_ENDPOINT")]
     public async Task FinancialReportTestAsync()
     {
@@ -89,7 +89,7 @@ public class ReadRetrieveReadChatServiceTest
         var openAIAPIKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? throw new InvalidOperationException();
         var openAIClient = new OpenAIClient(openAIAPIKey);
 
-        var azureComputerVisionEndpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new InvalidOperationException();
+        var azureComputerVisionEndpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTERVISION_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
         using var httpClient = new HttpClient();
         var azureComputerVisionService = new AzureComputerVisionService(httpClient, azureComputerVisionEndpoint, azureCredential);
 
@@ -117,7 +117,7 @@ public class ReadRetrieveReadChatServiceTest
             Top = 2,
             SemanticCaptions = true,
             SemanticRanker = true,
-            SuggestFollowupQuestions = false,
+            SuggestFollowupQuestions = true,
             Temperature = 0,
         };
 
