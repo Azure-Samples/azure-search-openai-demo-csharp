@@ -41,7 +41,7 @@ if [ -z "$AZD_PREPDOCS_RAN" ] || [ "$AZD_PREPDOCS_RAN" = "false" ]; then
     else
         echo "use openai"
         args = "$args --embeddingmodel $OPENAI_EMBEDDING_DEPLOYMENT"
-
+    fi
 
     echo "Running: dotnet run $args"
     dotnet run $args
