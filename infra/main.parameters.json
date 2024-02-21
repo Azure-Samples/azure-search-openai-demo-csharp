@@ -29,13 +29,13 @@
     "openAiResourceGroupName": {
       "value": "${AZURE_OPENAI_RESOURCE_GROUP}"
     },
-    "openAiResourceGroupLocation":{
+    "openAiResourceGroupLocation": {
       "value": "${AZURE_OPENAI_RESOURCE_LOCATION=${AZURE_LOCATION}}"
-    },    
-    "chatGptDeploymentName":{
+    },
+    "chatGptDeploymentName": {
       "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT=chat}"
     },
-    "embeddingDeploymentName":{
+    "embeddingDeploymentName": {
       "value": "${AZURE_OPENAI_EMBEDDING_DEPLOYMENT=embedding}"
     },
     "openAiServiceName": {
@@ -86,22 +86,22 @@
     "computerVisionServiceName": {
       "value": "${AZURE_COMPUTERVISION_SERVICE_NAME}"
     },
-    "useVision" : {
+    "useVision": {
       "value": "${USE_VISION=false}"
     },
-    "openAiChatGptDeployment":{
+    "openAiChatGptDeployment": {
       "value": "${OPENAI_CHATGPT_DEPLOYMENT=gpt-3.5-turbo}"
     },
-    "openAiEmbeddingDeployment":{
+    "openAiEmbeddingDeployment": {
       "value": "${OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-ada-002}"
     },
-    "azureOpenAIChatGptModelVersion":{
+    "azureOpenAIChatGptModelVersion": {
       "value": "${AZURE_OPENAI_CHATGPT_MODEL_VERSION=0613}"
     },
     "azureOpenAIChatGptModelName": {
-      "value": "${AZURE_OPENAI_CHATGPT_MODEL_NAME=gpt-3.5-turbo}"
+      "value": "${AZURE_OPENAI_CHATGPT_MODEL_NAME=gpt-35-turbo}"
     },
-    "azureOpenAIChatGptDeploymentCapacity" : {
+    "azureOpenAIChatGptDeploymentCapacity": {
       "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT_CAPACITY=30}"
     }
   }
