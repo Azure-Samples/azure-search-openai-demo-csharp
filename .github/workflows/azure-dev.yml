@@ -1,3 +1,4 @@
+name: Deploy to Azure
 on:
   workflow_dispatch:
     inputs:
@@ -86,10 +87,15 @@ jobs:
       - name: create azure-search-csharp env
         run: |
           azd env new azure-search-csharp
-      - name: write .env file
+          
+      - name: write each variable from .env using azd env set
         run: |
-          touch .azure/azure-search-csharp/.env
-          echo ${{ env.dotEnvString }} > .azure/azure-search-csharp/.env
+          $envs = $Env:dotEnvString -split "\n"
+          foreach ($env in $envs) {
+            $keyValue = $env -split "=";
+            azd env set $keyValue[0] $keyValue[1];
+          }
+
       - name: Provision Infrastructure
         run: azd provision --no-prompt --debug
 
