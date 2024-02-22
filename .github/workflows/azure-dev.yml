@@ -87,14 +87,18 @@ jobs:
       - name: create azure-search-csharp env
         run: |
           azd env new azure-search-csharp
-          
+
       - name: write each variable from .env using azd env set
         run: |
           $envs = $Env:dotEnvString -split "\n"
           foreach ($env in $envs) {
+            echo $env
             $keyValue = $env -split "=";
             azd env set $keyValue[0] $keyValue[1];
           }
+        shell: pwsh
+        env:
+          dotEnvString: ${{ secrets.DOTENVSTRING }}
 
       - name: Provision Infrastructure
         run: azd provision --no-prompt --debug
