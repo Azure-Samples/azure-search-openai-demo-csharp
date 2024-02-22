@@ -35,9 +35,11 @@ env:
   AZURE_REDIS_CACHE: ${{ vars.AZURE_REDIS_CACHE }}
   AZURE_REDIS_CACHE_RESOURCE_GROUP: ${{ vars.AZURE_REDIS_CACHE_RESOURCE_GROUP }}
   AZURE_PRINCIPAL_TYPE: 'ServicePrincipal'
+  dotEnvString: ${{ secrets.DOTENVSTRING }}
 
 jobs:
   build:
+    environment: azure-search
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/azure-dev-cli-apps:latest
@@ -78,18 +80,15 @@ jobs:
         shell: pwsh
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-
+      - name: create azure-search-csharp env
+        run: |
+          azd env new azure-search-csharp
+      - name: write .env file
+        run: |
+          touch .azure/azure-search-csharp/.env
+          echo ${{ env.dotEnvString }} > .azure/azure-search-csharp/.env
       - name: Provision Infrastructure
         run: azd provision --no-prompt --debug
-        env:
-          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
-          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
-          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-          AZURE_TAGS: ${{ secrets.AZURE_TAGS }}
 
       - name: Deploy Application
         run: azd deploy --no-prompt --debug
-        env:
-          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
-          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
-          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
