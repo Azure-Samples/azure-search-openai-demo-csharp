@@ -96,12 +96,15 @@ jobs:
             $keyValue = $env -split "=";
             azd env set $keyValue[0] $keyValue[1];
           }
+
+          # cat .env
+          azd env get-values
         shell: pwsh
         env:
           dotEnvString: ${{ secrets.DOTENVSTRING }}
 
       - name: Provision Infrastructure
-        run: azd provision --no-prompt --debug
+        run: azd provision --no-prompt
 
       - name: Deploy Application
         run: azd deploy --no-prompt --debug
