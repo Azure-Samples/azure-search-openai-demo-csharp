@@ -93,8 +93,12 @@ jobs:
           $envs = $Env:dotEnvString -split "\n"
           foreach ($env in $envs) {
             echo $env
-            $keyValue = $env -split "=";
-            azd env set $keyValue[0] $keyValue[1];
+            $keyValue = $env -split "="
+            $keyName = $keyValue[0]
+
+            # keyvalue will be the second element without quotes
+            $keyValue = $keyValue[1].Trim('"')
+            azd env set $keyName $keyValue
           }
 
           # cat .env
