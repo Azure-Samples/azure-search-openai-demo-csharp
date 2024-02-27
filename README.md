@@ -10,6 +10,7 @@ products:
 - azure-blob-storage
 - azure-container-apps
 - azure-cognitive-search
+- azure-redis-cache
 - azure-openai
 - aspnet-core
 - blazor
@@ -56,11 +57,11 @@ description: A csharp sample app that chats with your data using OpenAI and AI S
 [![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=624102171&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&location=WestUs2)
 [![Open in Remote - Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/azure-search-openai-demo-csharp)
 
-This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data using the Retrieval Augmented Generation pattern. It uses Azure OpenAI Service to access the ChatGPT model (`gpt-35-turbo`), and Azure Cognitive Search for data indexing and retrieval.
+This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data using the Retrieval Augmented Generation pattern. It uses Azure OpenAI Service to access the ChatGPT model (`gpt-35-turbo`), and Azure Cache for Redis for Vector Similariy Search.
 
 The repo includes sample data so it's ready to try end-to-end. In this sample application, we use a fictitious company called Contoso Electronics, and the experience allows its employees to ask questions about the benefits, internal policies, as well as job descriptions and roles.
 
-![RAG Architecture](docs/appcomponents-version-4.png)
+![RAG Architecture](docs/appcomponents-version-5.png)
 
 For more details on how this application was built, check out:
 
@@ -84,7 +85,7 @@ We want to hear from you! Are you interested in building or currently building i
 
 - **User interface** - The application’s chat interface is a [Blazor WebAssembly](https://learn.microsoft.com/aspnet/core/blazor/) application. This interface is what accepts user queries, routes request to the application backend, and displays generated responses.
 - **Backend** - The application backend is an [ASP.NET Core Minimal API](https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/overview). The backend hosts the Blazor static web application and what orchestrates the interactions among the different services. Services used in this application include:
-   - [**Azure Cognitive Search**](https://learn.microsoft.com/azure/search/search-what-is-azure-search) – indexes documents from the data stored in an Azure Storage Account. This makes the documents searchable using [vector search](https://learn.microsoft.com/azure/search/search-get-started-vector) capabilities. 
+   - [**Azure Cache for Redis**](https://learn.microsoft.com/azure/azure-cache-for-redis/) – indexes documents from the data stored in an Azure Storage Account. This makes the documents searchable using [vector search](https://redis.io/docs/interact/search-and-query/advanced-concepts/vectors/) capabilities. 
    - [**Azure OpenAI Service**](https://learn.microsoft.com/azure/ai-services/openai/overview) – provides the Large Language Models to generate responses. [Semantic Kernel](https://learn.microsoft.com/semantic-kernel/whatissk) is used in conjunction with the Azure OpenAI Service to orchestrate the more complex AI workflows.
 
 ## Getting Started
@@ -94,7 +95,7 @@ We want to hear from you! Are you interested in building or currently building i
 In order to deploy and run this example, you'll need
 
 - **Azure Account** - If you're new to Azure, get an [Azure account for free](https://aka.ms/free) and you'll get some free Azure credits to get started.
-- **Azure subscription with access enabled for the Azure OpenAI service** - [You can request access](https://aka.ms/oaiapply). You can also visit [the Cognitive Search docs](https://azure.microsoft.com/free/cognitive-search/) to get some free Azure credits to get you started.
+- **Azure subscription with access enabled for the Azure OpenAI service** - [You can request access](https://aka.ms/oaiapply).
 - **Azure account permissions** - Your Azure Account must have `Microsoft.Authorization/roleAssignments/write` permissions, such as [User Access Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#user-access-administrator) or [Owner](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#owner).
 
 
@@ -108,7 +109,7 @@ Pricing varies per region and usage, so it isn't possible to predict exact costs
 - [**Azure Container Apps**](https://azure.microsoft.com/pricing/details/container-apps/)
 - [**Azure OpenAI Service**](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/)
 - [**Azure Form Recognizer**](https://azure.microsoft.com/pricing/details/form-recognizer/)
-- [**Azure Cognitive Search**](https://azure.microsoft.com/pricing/details/search/)
+- [**Azure Cache for Redis**](https://azure.microsoft.com/pricing/details/cache/)
 - [**Azure Blob Storage**](https://azure.microsoft.com/pricing/details/storage/blobs/)
 - [**Azure Monitor**](https://azure.microsoft.com/pricing/details/monitor/)
 
@@ -353,7 +354,7 @@ to production. Here are some things to consider:
 ## Resources
 
 - [Revolutionize your Enterprise Data with ChatGPT: Next-gen Apps w/ Azure OpenAI and Cognitive Search](https://aka.ms/entgptsearchblog)
-- [Azure Cognitive Search](https://learn.microsoft.com/azure/search/search-what-is-azure-search)
+- [Azure Cache for Redis](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-overview)
 - [Azure OpenAI Service](https://learn.microsoft.com/azure/cognitive-services/openai/overview)
 - [`Azure.AI.OpenAI` NuGet package](https://www.nuget.org/packages/Azure.AI.OpenAI)
 - [Original Blazor App](https://github.com/IEvangelist/blazor-azure-openai)
