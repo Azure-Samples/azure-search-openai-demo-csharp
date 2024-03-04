@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace ClientApp.Options;
+﻿namespace ClientApp.Options;
 
 public class AppSettings
 {

@@ -1,6 +1,5 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿namespace Shared.Models;
 
-namespace Shared.Models;
 public record RequestOverrides
 {
     public bool SemanticRanker { get; set; } = false;

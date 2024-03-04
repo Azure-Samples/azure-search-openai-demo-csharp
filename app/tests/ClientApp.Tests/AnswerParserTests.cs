@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace ClientApp.Tests;
+﻿namespace ClientApp.Tests;
 
 #pragma warning disable CA1416 // Validate platform compatibility
 

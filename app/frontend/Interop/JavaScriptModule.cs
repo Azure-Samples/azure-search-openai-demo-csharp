@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace ClientApp.Interop;
+﻿namespace ClientApp.Interop;
 
 internal sealed partial class JavaScriptModule
 {

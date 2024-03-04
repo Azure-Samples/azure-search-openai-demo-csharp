@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-public interface IComputerVisionService
+﻿public interface IComputerVisionService
 {
     public int Dimension { get; }
 

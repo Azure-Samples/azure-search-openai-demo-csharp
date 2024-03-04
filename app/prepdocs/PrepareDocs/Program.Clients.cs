@@ -1,8 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using System.Threading.Tasks;
-
-internal static partial class Program
+﻿internal static partial class Program
 {
     #region Private Fields
 

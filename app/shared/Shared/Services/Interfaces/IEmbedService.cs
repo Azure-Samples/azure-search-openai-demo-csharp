@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-public interface IEmbedService
+﻿public interface IEmbedService
 {
     /// <summary>
     /// Embeds the given pdf blob into the embedding service.

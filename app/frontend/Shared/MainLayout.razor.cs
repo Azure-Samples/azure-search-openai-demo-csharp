@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace ClientApp.Shared;
+﻿namespace ClientApp.Shared;
 
 public sealed partial class MainLayout
 {

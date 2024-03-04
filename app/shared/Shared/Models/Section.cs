@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace Shared.Models;
+﻿namespace Shared.Models;
 
 public readonly record struct Section(
     string Id,

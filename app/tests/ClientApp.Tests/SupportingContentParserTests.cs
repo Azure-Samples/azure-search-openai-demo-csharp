@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using Shared.Models;
+﻿using Shared.Models;
 
 namespace ClientApp.Tests;
 

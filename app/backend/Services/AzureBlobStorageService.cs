@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace MinimalApi.Services;
+﻿namespace MinimalApi.Services;
 
 internal sealed class AzureBlobStorageService(BlobContainerClient container)
 {

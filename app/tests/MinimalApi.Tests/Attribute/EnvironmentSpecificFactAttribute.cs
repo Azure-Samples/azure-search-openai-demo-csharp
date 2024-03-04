@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using Xunit;
+﻿using Xunit;
 
 /// <summary>
 /// A base class for environment-specific fact attributes.
