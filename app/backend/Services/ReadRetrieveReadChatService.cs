@@ -185,6 +185,7 @@ standard plan AND dental AND employee benefit.
         {
             MaxTokens = 1024,
             Temperature = overrides?.Temperature ?? 0.7,
+            StopSequences = [],
         };
 
         // get answer
@@ -207,7 +208,7 @@ standard plan AND dental AND employee benefit.
                 {ans}
 
                 # Format of the response
-                Return the follow-up question as a json string list.
+                Return the follow-up question as a json string list. Don't put your answer between ```json and ```, return the json string directly.
                 e.g.
                 [
                     ""What is the deductible?"",
@@ -217,6 +218,7 @@ standard plan AND dental AND employee benefit.
 
             var followUpQuestions = await chat.GetChatMessageContentAsync(
                 followUpQuestionChat,
+                promptExecutingSetting,
                 cancellationToken: cancellationToken);
 
             var followUpQuestionsJson = followUpQuestions.Content ?? throw new InvalidOperationException("Failed to get search query");

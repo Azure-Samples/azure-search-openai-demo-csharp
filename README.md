@@ -15,6 +15,7 @@ products:
 - blazor
 - defender-for-cloud
 - azure-monitor
+- dotnet-maui
 urlFragment: azure-search-openai-demo-csharp
 name: ChatGPT + Enterprise data (csharp)
 description: A csharp sample app that chats with your data using OpenAI and AI Search.
@@ -44,6 +45,7 @@ description: A csharp sample app that chats with your data using OpenAI and AI S
 - [Enabling optional features](#enabling-optional-features)
   - [Enabling Application Insights](#enabling-optional-features)
   - [Enabling authentication](#enabling-authentication)
+  - [Enable GPT-4V support](#enable-gpt-4v-support)
 - [Productionizing](#productionizing)
 - [Resources](#resources)
 - [FAQ](#faq)
@@ -245,6 +247,18 @@ If you have existing resources in Azure that you wish to use, you can configure 
 
 Navigate to <http://localhost:7181>, and test out the app.
 
+#### Running locally with the .NET MAUI client
+
+This sample includes a .NET MAUI client, packaging the experience as an app that can run on a Windows/macOS desktop or on Android and iOS devices. The MAUI client here is implemented using Blazor hybrid, letting it share most code with the website frontend.
+
+1. Open _app/app-maui.sln_ to open the solution that includes the MAUI client
+
+1. Edit _app/maui-blazor/MauiProgram.cs_, updating `client.BaseAddress` with the URL for the backend.
+
+   If it's running in Azure, use the URL for the service backend from the steps above. If running locally, use <http://localhost:7181>.
+
+1. Set **MauiBlazor** as the startup project and run the app
+
 #### Sharing Environments
 
 Run the following if you want to give someone else access to the deployed and existing environment.
@@ -293,6 +307,35 @@ By default, the deployed Azure container app will have no authentication or acce
 
 To then limit access to a specific set of users or groups, you can follow the steps from [Restrict your Azure AD app to a set of users](https://learn.microsoft.com/azure/active-directory/develop/howto-restrict-your-app-to-a-set-of-users) by changing "Assignment Required?" option under the Enterprise Application, and then assigning users/groups access.  Users not granted explicit access will receive the error message -AADSTS50105: Your administrator has configured the application <app_name> to block users unless they are specifically granted ('assigned') access to the application.-
 
+### Enable GPT-4V support
+
+With GPT-4-vision-preview(GPT-4V), it's possible to support an enrichmented retrival augmented generation by providing both text and image as source content. To enable GPT-4V support, you need to enable `USE_VISION` and use `GPT-4V` model when provisioning.
+
+> [!NOTE]
+> You would need to re-indexing supporting material and re-deploy the application after enabling GPT-4V support if you have already deployed the application before. This is because enabling GPT-4V support requires new fields to be added to the search index.
+
+To enable GPT-4V support with Azure OpenAI Service, run the following commands:
+```bash
+azd env set USE_VISION true
+azd env set USE_AOAI true
+azd env set AZURE_OPENAI_CHATGPT_MODEL_NAME gpt-4
+azd env set AZURE_OPENAI_RESOURCE_LOCATION westus # gpt-4-vision-preview is only available in a few regions. Please check the model availability for more details.
+azd up
+```
+
+To enable GPT-4V support with OpenAI, run the following commands:
+```bash
+azd env set USE_VISION true
+azd env set USE_AOAI false
+azd env set OPENAI_CHATGPT_DEPLOYMENT gpt-4-vision-preview
+azd up
+```
+
+To clean up previously deployed resources, run the following command:
+```bash
+azd down --purge
+azd env set AZD_PREPDOCS_RAN false # This is to ensure that the documents are re-indexed with the new fields.
+```
 ## Productionizing
 
 This sample is designed to be a starting point for your own production application,

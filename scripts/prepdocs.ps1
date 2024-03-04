@@ -61,7 +61,7 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
     "--tenantid $($env:AZURE_TENANT_ID) " +
     "--verbose"
 
-    if ($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT -and $env:USE_GPT4V) {
+    if ($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT -and $env:USE_VISION) {
         Write-Host "Using GPT-4 Vision"
         $dotnetArguments += " --computervisionendpoint $($env:AZURE_COMPUTERVISION_SERVICE_ENDPOINT)"
     }
