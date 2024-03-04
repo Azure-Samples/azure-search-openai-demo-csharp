@@ -9,7 +9,7 @@ public sealed partial class Chat
     private string _lastReferenceQuestion = "";
     private bool _isReceivingResponse = false;
 
-    private readonly Dictionary<UserQuestion, ApproachResponse?> _questionAndAnswerMap = [];
+    private readonly Dictionary<UserQuestion, ChatAppResponseOrError?> _questionAndAnswerMap = [];
 
     [Inject] public required ISessionStorageService SessionStorage { get; set; }
 
@@ -42,13 +42,13 @@ public sealed partial class Chat
         try
         {
             var history = _questionAndAnswerMap
-                .Where(x => x.Value is not null)
-                .Select(x => new ChatTurn(x.Key.Question, x.Value!.Answer))
+                .Where(x => x.Value?.Choices is { Length: > 0})
+                .SelectMany(x => new ChatMessage[] { new ChatMessage("user", x.Key.Question), new ChatMessage("assistant", x.Value!.Choices[0].Message.Content) })
                 .ToList();
 
-            history.Add(new ChatTurn(_userQuestion));
+            history.Add(new ChatMessage("user", _userQuestion));
 
-            var request = new ChatRequest([.. history], Settings.Approach, Settings.Overrides);
+            var request = new ChatRequest([.. history], Settings.Overrides);
             var result = await ApiClient.ChatConversationAsync(request);
 
             _questionAndAnswerMap[_currentQuestion] = result.Response;

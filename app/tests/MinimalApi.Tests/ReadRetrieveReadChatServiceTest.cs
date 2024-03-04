@@ -48,9 +48,9 @@ public class ReadRetrieveReadChatServiceTest
 
         var chatService = new ReadRetrieveReadChatService(documentSearchService, openAIClient, configuration);
 
-        var history = new ChatTurn[]
+        var history = new ChatMessage[]
         {
-            new ChatTurn("What is included in my Northwind Health Plus plan that is not in standard?", "user"),
+            new ChatMessage("What is included in my Northwind Health Plus plan that is not in standard?", "user"),
         };
         var overrides = new RequestOverrides
         {
@@ -107,9 +107,9 @@ public class ReadRetrieveReadChatServiceTest
             azureComputerVisionService,
             azureCredential);
 
-        var history = new ChatTurn[]
+        var history = new ChatMessage[]
         {
-            new ChatTurn("What's 2023 financial report", "user"),
+            new ChatMessage("What's 2023 financial report", "user"),
         };
         var overrides = new RequestOverrides
         {
