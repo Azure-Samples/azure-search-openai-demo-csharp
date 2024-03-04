@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace ClientApp.Services;
+﻿namespace ClientApp.Services;
 
 public sealed class OpenAIPromptQueue(
     IServiceProvider provider,

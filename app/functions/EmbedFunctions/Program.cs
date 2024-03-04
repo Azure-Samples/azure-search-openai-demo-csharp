@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using Azure.AI.OpenAI;
+﻿using Azure.AI.OpenAI;
 
 var host = new HostBuilder()
     .ConfigureServices(services =>

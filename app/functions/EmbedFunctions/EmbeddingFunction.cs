@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using Microsoft.Azure.Functions.Worker;
+﻿using Microsoft.Azure.Functions.Worker;
 
 public sealed class EmbeddingFunction(
     EmbeddingAggregateService embeddingAggregateService,

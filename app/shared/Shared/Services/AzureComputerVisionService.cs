@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Azure.Core;
@@ -76,7 +74,7 @@ public class AzureComputerVisionService(HttpClient client, string endPoint, Toke
 
         // set authorization header
         request.Headers.Add("Authorization", $"Bearer {token.Token}");
-
+                
         // set body
         var body = new { text };
         request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");

@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace Shared;
+﻿namespace Shared;
 
 public enum EmbeddingType
 {

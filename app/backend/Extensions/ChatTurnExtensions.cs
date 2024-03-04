@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace MinimalApi.Extensions;
+﻿namespace MinimalApi.Extensions;
 
 internal static class ChatTurnExtensions
 {

@@ -1,12 +1,11 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-global using System.CommandLine;
+﻿global using System.CommandLine;
 global using System.CommandLine.Invocation;
 global using System.CommandLine.Parsing;
 global using System.Linq;
 global using System.Text.RegularExpressions;
 global using Azure;
 global using Azure.AI.FormRecognizer.DocumentAnalysis;
+global using Azure.AI.OpenAI;
 global using Azure.Identity;
 global using Azure.Search.Documents;
 global using Azure.Search.Documents.Indexes;
@@ -18,4 +17,3 @@ global using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 global using PdfSharpCore.Pdf;
 global using PdfSharpCore.Pdf.IO;
 global using PrepareDocs;
-global using Azure.AI.OpenAI;

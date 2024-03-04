@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-internal static partial class Program
+﻿internal static partial class Program
 {
     private static readonly Argument<string> s_files =
         new(name: "files", description: "Files to be processed");

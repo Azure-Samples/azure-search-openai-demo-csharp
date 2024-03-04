@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace ClientApp.Extensions;
+﻿namespace ClientApp.Extensions;
 
 internal static class StringExtensions
 {

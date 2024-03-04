@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace PrepareDocs;
+﻿namespace PrepareDocs;
 
 internal record class AppOptions(
     string Files,

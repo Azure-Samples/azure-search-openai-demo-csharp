@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace ClientApp.Components;
+﻿namespace ClientApp.Components;
 
 public sealed partial class SettingsPanel : IDisposable
 {

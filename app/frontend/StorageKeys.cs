@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-namespace ClientApp;
+﻿namespace ClientApp;
 
 internal static class StorageKeys
 {

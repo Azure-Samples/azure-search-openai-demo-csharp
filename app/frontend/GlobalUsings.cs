@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-global using System.Globalization;
+﻿global using System.Globalization;
 global using System.Net.Http.Json;
 global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices.JavaScript;
