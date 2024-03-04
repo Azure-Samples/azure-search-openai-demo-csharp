@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Azure.Core;
 
-public class AzureComputerVisionService(HttpClient client, string endPoint, string apiVersion, TokenCredential tokenCredential) : IComputerVisionService
+public class AzureComputerVisionService(HttpClient client, string endPoint, TokenCredential tokenCredential) : IComputerVisionService
 {
     public int Dimension => 1024;
 
@@ -64,8 +64,7 @@ public class AzureComputerVisionService(HttpClient client, string endPoint, stri
 
     public virtual async Task<ImageEmbeddingResponse> VectorizeTextAsync(string text, CancellationToken ct = default)
     {
-        //var api = $"{endPoint}/computervision/retrieval:vectorizeText?api-version=2023-02-01-preview&modelVersion=latest";
-        var api = $"{endPoint}/computervision/retrieval:vectorizeText?api-version={apiVersion}&modelVersion=latest";
+        var api = $"{endPoint}/computervision/retrieval:vectorizeText?api-version=2023-02-01-preview&modelVersion=latest";
 
         var token = await tokenCredential.GetTokenAsync(new TokenRequestContext(new[] { "https://cognitiveservices.azure.com/.default" }), ct);
         using var request = new HttpRequestMessage(HttpMethod.Post, api);
@@ -75,10 +74,7 @@ public class AzureComputerVisionService(HttpClient client, string endPoint, stri
 
         // set authorization header
         request.Headers.Add("Authorization", $"Bearer {token.Token}");
-
-        //// Request headers for key Authorization
-        //request.Headers.Add("Ocp-Apim-Subscription-Key", "{subscription key}");
-
+                
         // set body
         var body = new { text };
         request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
