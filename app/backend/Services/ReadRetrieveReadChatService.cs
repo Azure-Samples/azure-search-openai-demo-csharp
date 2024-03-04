@@ -229,7 +229,7 @@ e.g.
             followUpQuestionList = followUpQuestionsList.ToArray();
         }
 
-        var responseMessage = new ResponseMessage(ans, "assistant");
+        var responseMessage = new ResponseMessage("assistant", ans);
         var responseContext = new ResponseContext(
             DataPointsContent: documentContentList.Select(x => new SupportingContentRecord(x.Title, x.Content)).ToArray(),
             DataPointsImages: images?.Select(x => new SupportingImageRecord(x.Title, x.Url)).ToArray(),

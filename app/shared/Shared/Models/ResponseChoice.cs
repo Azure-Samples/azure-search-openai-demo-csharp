@@ -9,6 +9,17 @@ public record SupportingContentRecord(string Title, string Content);
 
 public record SupportingImageRecord(string Title, string Url);
 
+public record DataPoints
+{
+    public DataPoints(string[] text)
+    {
+        this.Text = text;
+    }
+
+    [JsonPropertyName("text")]
+    public string[] Text { get; set; }
+}
+
 public record Thoughts
 {
     public Thoughts(string Title, string Description, params (string, string)[] props)
@@ -51,7 +62,7 @@ public record ResponseContext
     public Thoughts[] Thoughts { get; set; }
 
     [JsonPropertyName("data_points")]
-    public string[] DataPoints { get => DataPointsContent?.Select(x => $"{x.Title}: {x.Content}").ToArray() ?? Array.Empty<string>(); }
+    public DataPoints DataPoints { get => new DataPoints(DataPointsContent?.Select(x => $"{x.Title}: {x.Content}").ToArray() ?? Array.Empty<string>()); }
 
     public string ThoughtsString { get => string.Join("\n", Thoughts.Select(x => $"{x.Title}: {x.Description}")); }
 }
@@ -75,7 +86,7 @@ public record ResponseMessage
 
 public record ResponseChoice
 {
-    public ResponseChoice(int Index, ResponseMessage message, ResponseContext context, string CitationBaseUrl, string? followupQuestion)
+    public ResponseChoice(int Index, ResponseMessage message, ResponseContext context, string CitationBaseUrl)
     {
         this.Index = Index;
         this.Message = message;
