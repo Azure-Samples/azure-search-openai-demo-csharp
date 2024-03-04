@@ -69,9 +69,9 @@ public class ReadRetrieveReadChatServiceTest
         // - has correct answer
         // - has has correct format for source reference.
 
-        response.DataPoints?.Count().Should().Be(2);
-        response.Answer.Should().NotBeNullOrEmpty();
-        response.CitationBaseUrl.Should().Be("https://northwindhealth.blob.core.windows.net/northwindhealth");
+        response.Choices.First().Context.DataPoints.Text?.Count().Should().Be(2);
+        response.Choices.First().Message.Content.Should().NotBeNullOrEmpty();
+        response.Choices.First().CitationBaseUrl.Should().Be("https://northwindhealth.blob.core.windows.net/northwindhealth");
     }
 
     [EnvironmentVariablesFact(
@@ -129,8 +129,8 @@ public class ReadRetrieveReadChatServiceTest
         // - has correct answer
         // - has has correct format for source reference.
 
-        response.DataPoints?.Count().Should().Be(0);
-        response.Images?.Count().Should().Be(2);
-        response.Answer.Should().NotBeNullOrEmpty();
+        response.Choices.First().Context.DataPoints.Text?.Count().Should().Be(0);
+        response.Choices.First().Context.DataPointsImages?.Count().Should().Be(2);
+        response.Choices.First().Message.Content.Should().NotBeNullOrEmpty();
     }
 }
