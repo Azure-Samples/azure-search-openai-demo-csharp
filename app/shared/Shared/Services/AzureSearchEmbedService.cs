@@ -404,6 +404,16 @@ public sealed partial class AzureSearchEmbedService(
         var allText = string.Concat(pageMap.Select(p => p.Text));
         var length = allText.Length;
         var start = 0;
+
+        if (length <= MaxSectionLength)
+        {
+            await foreach (var section in SplitSectionByTokenLengthAsync(
+                Id: MatchInSetRegex().Replace($"{blobName}-{start}", "_").TrimStart('_'),
+                Content: allText,
+                SourcePage: BlobNameFromFilePage(blobName, FindPage(pageMap, start)),
+                SourceFile: blobName)) { yield return section; }
+        }
+
         var end = length;
 
         logger?.LogInformation("Splitting '{BlobName}' into sections", blobName);
