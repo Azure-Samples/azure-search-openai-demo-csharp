@@ -332,7 +332,7 @@ public sealed partial class AzureSearchEmbedService(
                     Tokenizer? tokenizer = null)
     {
         tokenizer ??= await Tiktoken.CreateByModelNameAsync(embeddingModelName); 
-        if (tokenizer.CountTokens(Content) < DefaultMaxTokens)
+        if (tokenizer.CountTokens(Content) <= DefaultMaxTokens)
         {
             yield return new Section(
                 Id: Id,
