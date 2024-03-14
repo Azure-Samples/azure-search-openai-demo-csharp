@@ -16,7 +16,10 @@ using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using MudBlazor.Services;
 using NSubstitute;
+using Shared.Models;
+using Xunit;
 
 namespace MinimalApi.Tests;
 public class AzureSearchEmbedServiceTest
@@ -311,5 +314,90 @@ public class AzureSearchEmbedServiceTest
             await searchIndexClient.DeleteIndexAsync(indexName);
             await blobServiceClient.DeleteBlobContainerAsync(blobContainer);
         }
+    }
+
+    [Fact]
+    public async Task EnsureTextSplitsOnTinySectionAsync()
+    {
+        var indexName = nameof(EnsureSearchIndexWithoutImageEmbeddingsAsync).ToLower();
+        var openAIEndpoint = "https://fake.openai.azure.com";
+        var embeddingDeployment = "gpt-4";
+        var azureSearchEndpoint = "https://fake-search.search.azure.com";
+        var blobEndpoint = "https://fake-storage.azure.com/";
+        var blobContainer = "test";
+
+        var azureCredential = new DefaultAzureCredential();
+        var openAIClient = new OpenAIClient(new Uri(openAIEndpoint), azureCredential);
+        var searchClient = new SearchClient(new Uri(azureSearchEndpoint), indexName, azureCredential);
+        var searchIndexClient = new SearchIndexClient(new Uri(azureSearchEndpoint), azureCredential);
+        var documentAnalysisClient = new DocumentAnalysisClient(new Uri(azureSearchEndpoint), azureCredential);
+        var blobServiceClient = new BlobServiceClient(new Uri(blobEndpoint), azureCredential);
+
+        var service = new AzureSearchEmbedService(
+            openAIClient: openAIClient,
+            embeddingModelName: embeddingDeployment,
+            searchClient: searchClient,
+            searchIndexName: indexName,
+            searchIndexClient: searchIndexClient,
+            documentAnalysisClient: documentAnalysisClient,
+            corpusContainerClient: blobServiceClient.GetBlobContainerClient(blobContainer),
+            computerVisionService: null,
+            includeImageEmbeddingsField: false,
+            logger: null,
+            maxTokensPerSection: 500);
+        List<Section> sections = [];
+        IReadOnlyList<PageDetail> pageMap =
+        [
+            new(0, 0, "this is a test")
+        ];
+        await foreach (var section in service.CreateSectionsAsync(pageMap, "test-blob"))
+        {
+            sections.Add(section);
+        }
+        sections.Should().HaveCount(1);
+        sections[0].Content.Should().Be("this is a test");   
+    }
+
+    [Fact]
+    public async Task EnsureTextSplitsOnBigSectionAsync()
+    {
+        var indexName = nameof(EnsureSearchIndexWithoutImageEmbeddingsAsync).ToLower();
+        var openAIEndpoint = "https://fake.openai.azure.com";
+        var embeddingDeployment = "embeddings";
+        var azureSearchEndpoint = "https://fake-search.search.azure.com";
+        var blobEndpoint = "https://fake-storage.azure.com/";
+        var blobContainer = "test";
+
+        var azureCredential = new DefaultAzureCredential();
+        var openAIClient = new OpenAIClient(new Uri(openAIEndpoint), azureCredential);
+        var searchClient = new SearchClient(new Uri(azureSearchEndpoint), indexName, azureCredential);
+        var searchIndexClient = new SearchIndexClient(new Uri(azureSearchEndpoint), azureCredential);
+        var documentAnalysisClient = new DocumentAnalysisClient(new Uri(azureSearchEndpoint), azureCredential);
+        var blobServiceClient = new BlobServiceClient(new Uri(blobEndpoint), azureCredential);
+
+        var service = new AzureSearchEmbedService(
+            openAIClient: openAIClient,
+            embeddingModelName: embeddingDeployment,
+            searchClient: searchClient,
+            searchIndexName: indexName,
+            searchIndexClient: searchIndexClient,
+            documentAnalysisClient: documentAnalysisClient,
+            corpusContainerClient: blobServiceClient.GetBlobContainerClient(blobContainer),
+            computerVisionService: null,
+            includeImageEmbeddingsField: false,
+            logger: null,
+            maxTokensPerSection: 500);
+        List<Section> sections = [];
+        string testContent = "".PadRight(1000, ' ');
+        IReadOnlyList<PageDetail> pageMap =
+        [
+            new(0, 0, testContent)
+        ];
+        await foreach (var section in service.CreateSectionsAsync(pageMap, "test-blob"))
+        {
+            sections.Add(section);
+        }
+        sections.Should().HaveCount(1);
+        sections[0].Content.Should().Be(testContent);
     }
 }
