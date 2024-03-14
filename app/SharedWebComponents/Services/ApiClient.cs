@@ -112,21 +112,19 @@ public sealed class ApiClient(HttpClient httpClient)
 
         if (response.IsSuccessStatusCode)
         {
-            var answer = await response.Content.ReadFromJsonAsync<ApproachResponse>();
+            var answer = await response.Content.ReadFromJsonAsync<ChatAppResponseOrError>();
             return result with
             {
                 IsSuccessful = answer is not null,
-                Response = answer
+                Response = answer,
             };
         }
         else
         {
-            var answer = new ApproachResponse(
-                $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}",
-                null,
-                [],
-                null,
-                "Unable to retrieve valid response from the server.");
+            var errorTitle = $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}";
+            var answer = new ChatAppResponseOrError(
+                Array.Empty<ResponseChoice>(),
+                errorTitle);
 
             return result with
             {

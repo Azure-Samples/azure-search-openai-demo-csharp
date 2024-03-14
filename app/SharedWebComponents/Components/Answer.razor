@@ -46,20 +46,20 @@
             </MudTabPanel>
             <MudTabPanel Icon="@Icons.Material.Filled.Lightbulb" Text="Thought process" 
                          ToolTip="Show thought process."
-                         Disabled="@(Retort is { Thoughts: null })">
+                         Disabled="@(Retort is { Context.Thoughts: null } or { Context.Thoughts.Length: 0})">
                 <ChildContent>
                     <MudPaper Class="pa-6" Elevation="3">
                         <pre style="white-space: normal; font-size: 1.2em;">
-                            @(RemoveLeadingAndTrailingLineBreaks(Retort.Thoughts!))
+                                @(RemoveLeadingAndTrailingLineBreaks(Retort.Context.ThoughtsString))
                         </pre>
                     </MudPaper>
                 </ChildContent>
             </MudTabPanel>
             <MudTabPanel Icon="@Icons.Material.Filled.TextSnippet" Text="Supporting Content"
-                         ToolTip="Show the supporting content." Disabled="@(Retort is { DataPoints: null } or { DataPoints.Length: 0 })">
+                         ToolTip="Show the supporting content." Disabled="@(Retort is { Context.DataPoints.Text: null } or { Context.DataPoints.Text.Length: 0 })">
                 <ChildContent>
                     <MudPaper Class="pa-2" Elevation="3">
-                        <SupportingContent DataPoints="Retort.DataPoints" Images="Retort.Images ?? []" />
+                        <SupportingContent DataPoints="Retort.Context.DataPointsContent" Images="Retort.Context.DataPointsImages ?? []" />
                     </MudPaper>
                 </ChildContent>
             </MudTabPanel>
