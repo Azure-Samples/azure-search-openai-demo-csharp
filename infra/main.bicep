@@ -11,7 +11,7 @@ param location string
 param tags string = ''
 
 @description('Location for the OpenAI resource group')
-@allowed([ 'canadaeast', 'westus', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus', 'australiaeast' ])
+@allowed([ 'canadaeast', 'westus', 'eastus', 'eastus2', 'francecentral', 'swedencentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus', 'australiaeast' ])
 @metadata({
   azd: {
     type: 'location'
