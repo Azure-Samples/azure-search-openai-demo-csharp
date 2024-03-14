@@ -158,7 +158,7 @@ param webImageName string = ''
 param useAOAI bool
 
 @description('OpenAI API Key')
-param openAIApiKey string
+param openAIApiKey string = ''
 
 @description('OpenAI Model')
 param openAiChatGptDeployment string

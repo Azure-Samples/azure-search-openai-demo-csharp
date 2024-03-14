@@ -1,3 +1,4 @@
+name: Deploy to Azure
 on:
   workflow_dispatch:
     inputs:
@@ -35,9 +36,11 @@ env:
   AZURE_REDIS_CACHE: ${{ vars.AZURE_REDIS_CACHE }}
   AZURE_REDIS_CACHE_RESOURCE_GROUP: ${{ vars.AZURE_REDIS_CACHE_RESOURCE_GROUP }}
   AZURE_PRINCIPAL_TYPE: 'ServicePrincipal'
+  dotEnvString: ${{ secrets.DOTENVSTRING }}
 
 jobs:
   build:
+    environment: azure-search
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/azure-dev-cli-apps:latest
@@ -64,6 +67,9 @@ jobs:
             --federated-credential-provider "github" `
             --tenant-id "$Env:AZURE_TENANT_ID" --debug
         shell: pwsh
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Log in with Azure (Client Credentials)
         if: ${{ env.AZURE_CREDENTIALS != '' }}
@@ -78,18 +84,31 @@ jobs:
         shell: pwsh
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: create azure-search-csharp env
+        run: |
+          azd env new azure-search-csharp
+
+      - name: write each variable from .env using azd env set
+        run: |
+          $envs = $Env:dotEnvString -split "\n"
+          foreach ($env in $envs) {
+            echo $env
+            $keyValue = $env -split "="
+            $keyName = $keyValue[0]
+
+            # keyvalue will be the second element without quotes
+            $keyValue = $keyValue[1].Trim('"')
+            azd env set $keyName $keyValue
+          }
+
+          # cat .env
+          azd env get-values
+        shell: pwsh
+        env:
+          dotEnvString: ${{ secrets.DOTENVSTRING }}
 
       - name: Provision Infrastructure
-        run: azd provision --no-prompt --debug
-        env:
-          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
-          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
-          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-          AZURE_TAGS: ${{ secrets.AZURE_TAGS }}
+        run: azd provision --no-prompt
 
       - name: Deploy Application
         run: azd deploy --no-prompt --debug
-        env:
-          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
-          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
-          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
