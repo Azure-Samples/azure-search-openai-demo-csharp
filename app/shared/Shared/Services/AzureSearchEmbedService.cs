@@ -377,8 +377,10 @@ public sealed partial class AzureSearchEmbedService(
             {
                 // Split page in half and call function again
                 // Overlap first and second halves by DEFAULT_OVERLAP_PERCENT%
-                firstHalf = Content[..(int)(Content.Length / (2.0 + (DefaultOverlapPercent / 100.0)))];
-                secondHalf = Content[(int)(Content.Length / (1.0 - (DefaultOverlapPercent / 100.0)))..];
+                int middle = Content.Length / 2;
+                int overlapChars = (int)(Content.Length * (DefaultOverlapPercent / 100.0));
+                firstHalf = Content[..(middle + overlapChars)];
+                secondHalf = Content[(middle - overlapChars)..];
             }
 
             await foreach(var section in SplitSectionByTokenLengthAsync(Id, firstHalf, SourcePage, SourceFile, Category, tokenizer))
