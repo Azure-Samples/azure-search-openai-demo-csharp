@@ -26,14 +26,15 @@ public sealed partial class AzureSearchEmbedService(
     BlobContainerClient corpusContainerClient,
     IComputerVisionService? computerVisionService = null,
     bool includeImageEmbeddingsField = false,
-    ILogger<AzureSearchEmbedService>? logger = null) : IEmbedService
+    ILogger<AzureSearchEmbedService>? logger = null,
+    string modelEncodingName = "gpt-4",
+    int maxTokensPerSection = 500) : IEmbedService
 {
     [GeneratedRegex("[^0-9a-zA-Z_-]")]
     private static partial Regex MatchInSetRegex();
 
     private static readonly char[] s_sentenceEndings = ['.', '。', '．', '!', '?', '‼', '⁇', '⁈', '⁉'];
     private const int DefaultOverlapPercent = 10;
-    private const int DefaultMaxTokens = 500;
 
     public async Task<bool> EmbedPDFBlobAsync(Stream pdfBlobStream, string blobName)
     {
@@ -331,8 +332,8 @@ public sealed partial class AzureSearchEmbedService(
                     string? Category = null,
                     Tokenizer? tokenizer = null)
     {
-        tokenizer ??= await Tiktoken.CreateByModelNameAsync(embeddingModelName); 
-        if (tokenizer.CountTokens(Content) <= DefaultMaxTokens)
+        tokenizer ??= await Tiktoken.CreateByModelNameAsync(modelEncodingName); 
+        if (tokenizer.CountTokens(Content) <= maxTokensPerSection)
         {
             yield return new Section(
                 Id: Id,
