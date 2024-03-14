@@ -13,6 +13,7 @@ using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.ML.Tokenizers;
 using Shared.Models;
 
 public sealed partial class AzureSearchEmbedService(
@@ -29,6 +30,10 @@ public sealed partial class AzureSearchEmbedService(
 {
     [GeneratedRegex("[^0-9a-zA-Z_-]")]
     private static partial Regex MatchInSetRegex();
+
+    private static readonly char[] s_sentenceEndings = ['.', '。', '．', '!', '?', '‼', '⁇', '⁈', '⁉'];
+    private const int DefaultOverlapPercent = 10;
+    private const int DefaultMaxTokens = 500;
 
     public async Task<bool> EmbedPDFBlobAsync(Stream pdfBlobStream, string blobName)
     {
@@ -48,7 +53,11 @@ public sealed partial class AzureSearchEmbedService(
                 await UploadCorpusAsync(corpusName, page.Text);
             }
 
-            var sections = CreateSections(pageMap, blobName);
+            List<Section> sections = [];
+            await foreach(var section in CreateSectionsAsync(pageMap, blobName))
+            {
+                sections.Add(section);
+            }
 
             var infoLoggingEnabled = logger?.IsEnabled(LogLevel.Information);
             if (infoLoggingEnabled is true)
@@ -109,7 +118,7 @@ public sealed partial class AzureSearchEmbedService(
         return true;
     }
 
-    public async Task CreateSearchIndexAsync(string searchIndexName, CancellationToken ct = default)    
+    public async Task CreateSearchIndexAsync(string searchIndexName, CancellationToken ct = default)
     {
         string vectorSearchConfigName = "my-vector-config";
         string vectorSearchProfile = "my-vector-profile";
@@ -315,14 +324,81 @@ public sealed partial class AzureSearchEmbedService(
         });
     }
 
-    public IEnumerable<Section> CreateSections(
+    public async IAsyncEnumerable<Section> SplitSectionByTokenLengthAsync(string Id,
+                    string Content,
+                    string SourcePage,
+                    string SourceFile,
+                    string? Category = null,
+                    Tokenizer? tokenizer = null)
+    {
+        tokenizer ??= await Tiktoken.CreateByModelNameAsync(embeddingModelName); 
+        if (tokenizer.CountTokens(Content) < DefaultMaxTokens)
+        {
+            yield return new Section(
+                Id: Id,
+                Content: Content,
+                SourcePage: SourcePage,
+                SourceFile: SourceFile,
+                Category: Category);
+        } else
+        {
+            int start = Content.Length / 2;
+            int pos = 0;
+            int boundary = Content.Length / 3;
+            int splitPosition = -1;
+
+            while (start - pos > boundary)
+            {
+                if (s_sentenceEndings.Contains(Content[start - pos]))
+                {
+                    splitPosition = start - pos;
+                    break;
+                }
+                else if (s_sentenceEndings.Contains(Content[start + pos]))
+                {
+                    splitPosition = start + pos;
+                    break;
+                }
+                else
+                {
+                    pos += 1;
+                }
+            }
+
+            string firstHalf, secondHalf;
+
+            if (splitPosition > 0)
+            {
+                firstHalf = Content[..(splitPosition + 1)];
+                secondHalf = Content[(splitPosition + 1)..];
+            }
+            else
+            {
+                // Split page in half and call function again
+                // Overlap first and second halves by DEFAULT_OVERLAP_PERCENT%
+                firstHalf = Content[..(int)(Content.Length / (2.0 + (DefaultOverlapPercent / 100.0)))];
+                secondHalf = Content[(int)(Content.Length / (1.0 - (DefaultOverlapPercent / 100.0)))..];
+            }
+
+            await foreach(var section in SplitSectionByTokenLengthAsync(Id, firstHalf, SourcePage, SourceFile, Category, tokenizer))
+            {
+                yield return section;
+            }
+            await foreach (var section in SplitSectionByTokenLengthAsync(Id, secondHalf, SourcePage, SourceFile, Category, tokenizer))
+            {
+                yield return section;
+            }
+        }
+        
+    }
+
+    public async IAsyncEnumerable<Section> CreateSectionsAsync(
         IReadOnlyList<PageDetail> pageMap, string blobName)
     {
         const int MaxSectionLength = 1_000;
         const int SentenceSearchLimit = 100;
         const int SectionOverlap = 100;
 
-        var sentenceEndings = new[] { '.', '。', '．', '!', '?', '‼', '⁇', '⁈', '⁉' };
         var wordBreaks = new[] { ',', '、', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n' };
         var allText = string.Concat(pageMap.Select(p => p.Text));
         var length = allText.Length;
@@ -343,7 +419,7 @@ public sealed partial class AzureSearchEmbedService(
             else
             {
                 // Try to find the end of the sentence
-                while (end < length && (end - start - MaxSectionLength) < SentenceSearchLimit && !sentenceEndings.Contains(allText[end]))
+                while (end < length && (end - start - MaxSectionLength) < SentenceSearchLimit && !s_sentenceEndings.Contains(allText[end]))
                 {
                     if (wordBreaks.Contains(allText[end]))
                     {
@@ -352,7 +428,7 @@ public sealed partial class AzureSearchEmbedService(
                     end++;
                 }
 
-                if (end < length && !sentenceEndings.Contains(allText[end]) && lastWord > 0)
+                if (end < length && !s_sentenceEndings.Contains(allText[end]) && lastWord > 0)
                 {
                     end = lastWord; // Fall back to at least keeping a whole word
                 }
@@ -366,7 +442,7 @@ public sealed partial class AzureSearchEmbedService(
             // Try to find the start of the sentence or at least a whole word boundary
             lastWord = -1;
             while (start > 0 && start > end - MaxSectionLength -
-                (2 * SentenceSearchLimit) && !sentenceEndings.Contains(allText[start]))
+                (2 * SentenceSearchLimit) && !s_sentenceEndings.Contains(allText[start]))
             {
                 if (wordBreaks.Contains(allText[start]))
                 {
@@ -375,7 +451,7 @@ public sealed partial class AzureSearchEmbedService(
                 start--;
             }
 
-            if (!sentenceEndings.Contains(allText[start]) && lastWord > 0)
+            if (!s_sentenceEndings.Contains(allText[start]) && lastWord > 0)
             {
                 start = lastWord;
             }
@@ -386,11 +462,11 @@ public sealed partial class AzureSearchEmbedService(
 
             var sectionText = allText[start..end];
 
-            yield return new Section(
+            await foreach (var section in SplitSectionByTokenLengthAsync(
                 Id: MatchInSetRegex().Replace($"{blobName}-{start}", "_").TrimStart('_'),
                 Content: sectionText,
                 SourcePage: BlobNameFromFilePage(blobName, FindPage(pageMap, start)),
-                SourceFile: blobName);
+                SourceFile: blobName)) { yield return section; }
 
             var lastTableStart = sectionText.LastIndexOf("<table", StringComparison.Ordinal);
             if (lastTableStart > 2 * SentenceSearchLimit && lastTableStart > sectionText.LastIndexOf("</table", StringComparison.Ordinal))
@@ -419,11 +495,11 @@ public sealed partial class AzureSearchEmbedService(
 
         if (start + SectionOverlap < end)
         {
-            yield return new Section(
+            await foreach (var section in SplitSectionByTokenLengthAsync(
                 Id: MatchInSetRegex().Replace($"{blobName}-{start}", "_").TrimStart('_'),
                 Content: allText[start..end],
                 SourcePage: BlobNameFromFilePage(blobName, FindPage(pageMap, start)),
-                SourceFile: blobName);
+                SourceFile: blobName)) { yield return section; }
         }
     }
 
