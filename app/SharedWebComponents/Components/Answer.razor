@@ -5,9 +5,9 @@
     var html = answer.AnswerHtml;
 
     <MudItem xs="12">
-        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
+        @* <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
             <MudTabPanel Icon="@Icons.Material.Filled.Quickreply" Text="Answer" ToolTip="Answer text">
-                <ChildContent>
+                <ChildContent> *@
                     <MudPaper Class="pa-6" Elevation="3">
                         <MudText Typo="Typo.body1">
                             @((MarkupString)html)
@@ -42,11 +42,11 @@
                             </div>
                         }
                     </MudPaper>
-                </ChildContent>
-            </MudTabPanel>
-            <MudTabPanel Icon="@Icons.Material.Filled.Lightbulb" Text="Thought process" 
+                @* </ChildContent>
+            </MudTabPanel> *@
+            @* <MudTabPanel Icon="@Icons.Material.Filled.Lightbulb" Text="Thought process" 
                          ToolTip="Show thought process."
-                         Disabled="@(Retort is { Thoughts: null })">
+                         Disabled="true">
                 <ChildContent>
                     <MudPaper Class="pa-6" Elevation="3">
                         <pre style="white-space: normal; font-size: 1.2em;">
@@ -56,14 +56,14 @@
                 </ChildContent>
             </MudTabPanel>
             <MudTabPanel Icon="@Icons.Material.Filled.TextSnippet" Text="Supporting Content"
-                         ToolTip="Show the supporting content." Disabled="@(Retort is { DataPoints: null } or { DataPoints.Length: 0 })">
+                         ToolTip="Show the supporting content." Disabled="true">
                 <ChildContent>
                     <MudPaper Class="pa-2" Elevation="3">
                         <SupportingContent DataPoints="Retort.DataPoints" Images="Retort.Images ?? []" />
                     </MudPaper>
                 </ChildContent>
-            </MudTabPanel>
-        </MudTabs>
+            </MudTabPanel> *@
+        @* </MudTabs> *@
     </MudItem>
 }
 </MudGrid>

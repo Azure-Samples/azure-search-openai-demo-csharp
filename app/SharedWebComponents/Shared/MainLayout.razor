@@ -13,7 +13,7 @@
 </HeadContent>
 <MudRTLProvider RightToLeft="_isRightToLeft">
     <MudLayout class="@(_isRightToLeft ? "rtl-lang" : "")">
-        <MudAppBar Elevation="20">
+        <MudAppBar Elevation="20" style="background-color:black !important" >
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" id="nav-toggle"
                         Title="Toggle navigation sidebar"
                         Size="Size.Large" Edge="Edge.Start" OnClick="@OnMenuClicked" />
@@ -28,7 +28,7 @@
                 </MudTooltip>
             }
             <MudSpacer />
-            @if (SettingsDisabled is false)
+           @if (SettingsDisabled is false)
             {
                 <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Tertiary" Size="Size.Large"
                            Title="Open the developer settings side panel"
@@ -38,24 +38,22 @@
                                 ToggledSize="Size.Large"
                                  Title="Switch to Dark theme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Inherit"
                                 ToggledTitle="Switch to Light theme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Warning />
-            <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Size="Size.Large"
-                        Title="Visit the Azure Samples: GitHub repository for this app."
-                        Href="https://github.com/Azure-Samples/azure-search-openai-demo-csharp" Target="_blank" />
+            
             <LogoutDisplay />
         </MudAppBar>
         <MudDrawer @bind-Open="_drawerOpen" Elevation="5" id="drawer">
             <MudDrawerHeader>
-                <MudImage Src="favicon.png" Class="rounded filter-shadow" Alt="Blazor Logo" Width="30" Height="30" Elevation="0" />
+                <MudImage Src="favicon.png" Class="rounded filter-shadow" Alt="Altudo Logo" Width="30" Height="30" Elevation="0" />
                 <MudSpacer />
                 <MudText Typo="Typo.h5" Color=Color.Surface>
-                    Blazor OpenAI
+                   Altudo Engage
                 </MudText>
             </MudDrawerHeader>
             <MudDivider Style="flex-grow: 0;" />
             <NavMenu />
         </MudDrawer>
         <MudMainContent>
-            <MudContainer MaxWidth="MaxWidth.Large" Fixed="false" Class="my-6 pt-6">
+            <MudContainer MaxWidth="MaxWidth.Large" Fixed="false" Class="my-6 pt-6" >
                 <CascadingValue Value="_settingsPanel?.Settings" Name="Settings">
                     <CascadingValue Value="_isReversed" Name="IsReversed">
                         @Body
