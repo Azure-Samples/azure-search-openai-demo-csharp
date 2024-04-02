@@ -59,6 +59,12 @@
     "searchServiceResourceGroupName": {
       "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP}"
     },
+    "azureCacheName": {
+      "value": "${AZURE_CACHE_SERVICE}"
+    },
+    "azureCacheResourceGroupName": {
+      "value": "${AZURE_CACHE_SERVICE_RESOURCE_GROUP}"
+    },
     "searchServiceSkuName": {
       "value": "standard"
     },
@@ -88,6 +94,9 @@
     },
     "useVision": {
       "value": "${USE_VISION=false}"
+    },
+    "useRedis": {
+      "value": "${USE_REDIS=false}"
     },
     "openAiChatGptDeployment": {
       "value": "${OPENAI_CHATGPT_DEPLOYMENT=gpt-3.5-turbo}"
