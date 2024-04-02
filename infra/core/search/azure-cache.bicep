@@ -11,6 +11,9 @@ resource redisEnterprise_resource 'Microsoft.Cache/redisEnterprise@2024-02-01' =
   sku: {
     name: skuName
   }
+  properties: {
+    minimumTlsVersion: '1.2'
+  }
 }
 
 resource redisEnterprise_default 'Microsoft.Cache/redisEnterprise/databases@2024-02-01' = {
