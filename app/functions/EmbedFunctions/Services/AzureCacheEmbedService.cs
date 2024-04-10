@@ -33,7 +33,8 @@ public class AzureCacheEmbedService(
 
     public async Task CreateSearchIndexAsync(string searchIndexName, CancellationToken ct = default)
     {
-        await CreateVectorIndexAsync(searchIndexName, "doc", "id TEXT content TEXT category TEXT sourcepage TEXT sourcefile TEXT", "FLAT", "embedding", s_embeddingDimension, "FLOAT32", "COSINE");
+        int vectorDimension = computerVisionService is not null ? Math.Max(s_embeddingDimension, computerVisionService.Dimension) : s_embeddingDimension;
+        await CreateVectorIndexAsync(searchIndexName, "doc", "id TEXT content TEXT category TEXT sourcepage TEXT sourcefile TEXT", "FLAT", "embedding", vectorDimension, "FLOAT32", "COSINE");
     }
 
     private async Task<RedisResult> CreateVectorIndexAsync(string indexName, string prefix, string schema, string indexType, string vectorName, int vectorDimension, string type, string distanceMetric)
