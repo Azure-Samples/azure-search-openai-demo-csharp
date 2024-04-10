@@ -16,6 +16,7 @@
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
     <PackageReference Include="PdfSharpCore" />
+    <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 
 </Project>

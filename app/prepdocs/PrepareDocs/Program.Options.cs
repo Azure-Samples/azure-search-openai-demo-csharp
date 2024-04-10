@@ -44,6 +44,12 @@ internal static partial class Program
     private static readonly Option<string> s_computerVisionServiceEndpoint =
         new(name: "--computervisionendpoint", description: "Optional. The Azure Computer Vision service endpoint which will be used to vectorize image and query");
 
+    private static readonly Option<string> s_azureCacheServiceEndpoint =
+    new(name: "--azurecacheendpoint", description: "Optional. The Azure Cache service endpoint which will be used to store and query embeddings");
+
+    private static readonly Option<string> s_azureCacheServiceIndex =
+    new(name: "--azurecacheindex", description: "Optional. The Azure Cache service index name");  
+
     private static readonly Option<bool> s_verbose =
        new(aliases: new[] { "--verbose", "-v" }, description: "Verbose output");
 
@@ -67,6 +73,8 @@ internal static partial class Program
             s_removeAll,
             s_formRecognizerServiceEndpoint,
             s_computerVisionServiceEndpoint,
+            s_azureCacheServiceEndpoint,
+            s_azureCacheServiceIndex,
             s_verbose,
         };
 
@@ -85,6 +93,8 @@ internal static partial class Program
             RemoveAll: context.ParseResult.GetValueForOption(s_removeAll),
             FormRecognizerServiceEndpoint: context.ParseResult.GetValueForOption(s_formRecognizerServiceEndpoint),
             ComputerVisionServiceEndpoint: context.ParseResult.GetValueForOption(s_computerVisionServiceEndpoint),
+            AzureCacheServiceEndpoint: context.ParseResult.GetValueForOption(s_azureCacheServiceEndpoint),
+            AzureCacheServiceIndex: context.ParseResult.GetValueForOption(s_azureCacheServiceIndex),
             Verbose: context.ParseResult.GetValueForOption(s_verbose),
             Console: context.Console);
 }

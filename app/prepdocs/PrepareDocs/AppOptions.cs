@@ -17,6 +17,8 @@ internal record class AppOptions(
     bool RemoveAll,
     string? FormRecognizerServiceEndpoint,
     string? ComputerVisionServiceEndpoint,
+    string? AzureCacheServiceEndpoint,
+    string? AzureCacheServiceIndex,
     bool Verbose,
     IConsole Console) : AppConsole(Console);
 

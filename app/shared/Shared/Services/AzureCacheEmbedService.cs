@@ -1,6 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.AI.FormRecognizer.DocumentAnalysis;
 using Azure.AI.OpenAI;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Indexes;
+using Azure.Storage.Blobs;
+using EmbedFunctions.Services;
+using Microsoft.Extensions.Logging;
+using Shared.Models;
 using StackExchange.Redis;
 
 public class AzureCacheEmbedService(

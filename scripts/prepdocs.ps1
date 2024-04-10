@@ -75,6 +75,12 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
         Write-Host "Using OpenAI"
         $dotnetArguments += " --embeddingmodel $($env:OPENAI_EMBEDDING_DEPLOYMENT) "
     }
+
+    if ($env:USE_REDIS -eq "true") {
+        Write-Host "Using Redis"
+        $dotnetArguments += " --azurecacheindex $($env:AZURE_CACHE_INDEX)"
+        $dotnetArguments += " --azurecacheendpoint $($env:AZURE_CACHE_SERVICE_ENDPOINT)"
+    }
     
     Write-Host "dotnet $dotnetArguments"
     $output = Invoke-ExternalCommand -Command "dotnet" -Arguments $dotnetArguments
