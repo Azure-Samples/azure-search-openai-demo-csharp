@@ -51,8 +51,7 @@ public class AzureCacheEmbedService(
         }
 
         var embeddings = await computerVisionService.VectorizeImageAsync(imageUrl, ct);
-        var vector = FloatArrayToByteArray(embeddings.vector);
-        await IndexDocAsync(imageUrl, imageName, "image", "0", imageUrl, vector);
+        await IndexDocAsync(imageUrl, imageName, "image", "0", imageUrl, embeddings.vector);
         return true;
     }
 
