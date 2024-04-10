@@ -298,7 +298,7 @@ public sealed partial class AzureSearchEmbedService(
         return tableHtml.ToString();
     }
 
-    private async Task UploadCorpusAsync(string corpusBlobName, string text)
+    public async Task UploadCorpusAsync(string corpusBlobName, string text)
     {
         var blobClient = corpusContainerClient.GetBlobClient(corpusBlobName);
         if (await blobClient.ExistsAsync())

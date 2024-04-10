@@ -32,5 +32,5 @@ public enum EmbeddingType
     /// Embed using the Redis Vector Database.
     /// See <a href='https://redis.com'>https://redis.com</a>
     /// </summary>
-    Redis = 4
+    AzureCache = 4
 };
