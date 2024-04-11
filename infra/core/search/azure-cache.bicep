@@ -14,6 +14,9 @@ resource redisEnterprise_resource 'Microsoft.Cache/redisEnterprise@2024-02-01' =
   properties: {
     minimumTlsVersion: '1.2'
   }
+  identity: {
+    type: 'SystemAssigned'
+  }
 }
 
 resource redisEnterprise_default 'Microsoft.Cache/redisEnterprise/databases@2024-02-01' = {
@@ -32,6 +35,6 @@ resource redisEnterprise_default 'Microsoft.Cache/redisEnterprise/databases@2024
 }
 
 output id string = redisEnterprise_resource.id
-output endpoint string = '${redisEnterprise_resource.properties.hostName}:10000,password=${redisEnterprise_resource.listKeys().defaultPrimaryKey}'
+output endpoint string = '${redisEnterprise_resource.properties.hostName}:10000'
 output name string = redisEnterprise_resource.name
 output databaseName string = redisEnterprise_default.name
