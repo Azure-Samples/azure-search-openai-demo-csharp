@@ -58,7 +58,7 @@ var host = new HostBuilder()
         services.AddSingleton<EmbeddingAggregateService>();
 
         bool useRedis = Environment.GetEnvironmentVariable("USE_REDIS")?.ToLower() == "true";
-        string redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? "localhost";
+        string redisConnectionString = Environment.GetEnvironmentVariable("AZURE_CACHE_SERVICE_ENDPOINT") ?? "localhost";
 
         services.AddSingleton<IEmbedService>(provider =>
         {
@@ -128,7 +128,6 @@ var host = new HostBuilder()
                 includeImageEmbeddingsField: includeImageEmbeddingsField,
                 logger: logger);
             }
-
         });
     })
     .ConfigureFunctionsWorkerDefaults()
