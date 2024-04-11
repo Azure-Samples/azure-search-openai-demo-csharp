@@ -32,6 +32,6 @@ resource redisEnterprise_default 'Microsoft.Cache/redisEnterprise/databases@2024
 }
 
 output id string = redisEnterprise_resource.id
-output endpoint string = '${redisEnterprise_resource.properties.hostName}:10000'
+output endpoint string = '${redisEnterprise_resource.properties.hostName}:10000,password=${redisEnterprise_resource.listKeys().defaultPrimaryKey}'
 output name string = redisEnterprise_resource.name
 output databaseName string = redisEnterprise_default.name
