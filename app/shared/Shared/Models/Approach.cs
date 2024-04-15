@@ -6,5 +6,5 @@ public enum Approach
 {
     RetrieveThenRead,
     ReadRetrieveRead,
-    ReadDecomposeAsk
+    ReadDecomposeAsk,
 };

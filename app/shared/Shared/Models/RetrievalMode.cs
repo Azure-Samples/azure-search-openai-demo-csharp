@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.Text.Json.Serialization;
+
 namespace Shared.Models;
 
 /// <summary>
 /// retrieval mode for azure search service
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum RetrievalMode
 {
     /// <summary>
