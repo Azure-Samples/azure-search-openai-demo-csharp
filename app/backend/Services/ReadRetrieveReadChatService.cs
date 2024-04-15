@@ -234,12 +234,12 @@ e.g.
             DataPointsContent: documentContentList.Select(x => new SupportingContentRecord(x.Title, x.Content)).ToArray(),
             DataPointsImages: images?.Select(x => new SupportingImageRecord(x.Title, x.Url)).ToArray(),
             FollowupQuestions: followUpQuestionList ?? Array.Empty<string>(),
-            thoughts: new[] { new Thoughts("Thoughts", thoughts) });
+            Thoughts: new[] { new Thoughts("Thoughts", thoughts) });
 
         var choice = new ResponseChoice(
             Index: 0,
-            message: responseMessage,
-            context: responseContext,
+            Message: responseMessage,
+            Context: responseContext,
             CitationBaseUrl: _configuration.ToCitationBaseUrl());
 
         return new ChatAppResponse(new[] { choice });

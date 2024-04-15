@@ -16,7 +16,7 @@ public record DataPoints(
 public record Thoughts(
     [property: JsonPropertyName("title")] string Title,
     [property: JsonPropertyName("description")] string Description,
-    [property: JsonPropertyName("props")] (string, string)[] Props)
+    [property: JsonPropertyName("props")] (string, string)[]? Props = null)
 { }
 
 public record ResponseContext(
