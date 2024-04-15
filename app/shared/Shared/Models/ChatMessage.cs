@@ -4,18 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace Shared.Models;
 
-public record ChatMessage
+public record ChatMessage(
+    [property:JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("content")] string Content)
 {
-    public ChatMessage(string role, string content)
-    {
-        Role = role;
-        Content = content;
-    }
-    [JsonPropertyName("role")]
-    public string Role { get; init; }
-
-    [JsonPropertyName("content")]
-    public string Content { get; init; }
-
     public bool IsUser => Role == "user";
 }

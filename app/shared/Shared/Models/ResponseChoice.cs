@@ -9,58 +9,22 @@ public record SupportingContentRecord(string Title, string Content);
 
 public record SupportingImageRecord(string Title, string Url);
 
-public record DataPoints
+public record DataPoints(
+    [property: JsonPropertyName("text")] string[] Text)
+{}
+
+public record Thoughts(
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("props")] (string, string)[] Props)
+{ }
+
+public record ResponseContext(
+    [property: JsonPropertyName("dataPointsContent")] SupportingContentRecord[]? DataPointsContent,
+    [property: JsonPropertyName("dataPointsImages")] SupportingImageRecord[]? DataPointsImages,
+    [property: JsonPropertyName("followup_questions")] string[] FollowupQuestions,
+    [property: JsonPropertyName("thoughts")] Thoughts[] Thoughts)
 {
-    public DataPoints(string[] text)
-    {
-        this.Text = text;
-    }
-
-    [JsonPropertyName("text")]
-    public string[] Text { get; set; }
-}
-
-public record Thoughts
-{
-    public Thoughts(string Title, string Description, params (string, string)[] props)
-    {
-        this.Title = Title;
-        this.Description = Description;
-        this.Props = props;
-    }
-
-    [JsonPropertyName("title")]
-    public string Title { get; set; }
-
-    [JsonPropertyName("description")]
-    public string Description { get; set; }
-
-    [JsonPropertyName("props")]
-    public (string, string)[] Props { get; set; }
-}
-
-public record ResponseContext
-{
-    public ResponseContext(SupportingContentRecord[]? DataPointsContent, SupportingImageRecord[]? DataPointsImages, string[] FollowupQuestions, Thoughts[] thoughts)
-    {
-        this.DataPointsContent = DataPointsContent;
-        this.DataPointsImages = DataPointsImages;
-        this.FollowupQuestions = FollowupQuestions;
-        this.Thoughts = thoughts;
-    }
-
-    [JsonPropertyName("dataPointsContent")]
-    public SupportingContentRecord[]? DataPointsContent { get; set; }
-
-    [JsonPropertyName("dataPointsImages")]
-    public SupportingImageRecord[]? DataPointsImages { get; set; }
-
-    [JsonPropertyName("followup_questions")]
-    public string[] FollowupQuestions { get; set; }
-
-    [JsonPropertyName("thoughts")]
-    public Thoughts[] Thoughts { get; set; }
-
     [JsonPropertyName("data_points")]
     public DataPoints DataPoints { get => new DataPoints(DataPointsContent?.Select(x => $"{x.Title}: {x.Content}").ToArray() ?? Array.Empty<string>()); }
 
@@ -68,44 +32,18 @@ public record ResponseContext
 }
 
 
-public record ResponseMessage
+public record ResponseMessage(
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("content")] string Content)
 {
-    public ResponseMessage(string role, string content)
-    {
-        this.Content = content;
-        this.Role = role;
-    }
-
-    [JsonPropertyName("content")]
-    public string Content { get; set; }
-
-    [JsonPropertyName("role")]
-    public string Role { get; set; }
-
 }
 
-public record ResponseChoice
+public record ResponseChoice(
+    [property: JsonPropertyName("index")] int Index,
+    [property: JsonPropertyName("message")] ResponseMessage Message,
+    [property: JsonPropertyName("context")] ResponseContext Context,
+    [property: JsonPropertyName("citationBaseUrl")] string CitationBaseUrl)
 {
-    public ResponseChoice(int Index, ResponseMessage message, ResponseContext context, string CitationBaseUrl)
-    {
-        this.Index = Index;
-        this.Message = message;
-        this.Context = context;
-        this.CitationBaseUrl = CitationBaseUrl;
-    }
-
-    [JsonPropertyName("index")]
-    public int Index { get; set; }
-
-    [JsonPropertyName("message")]
-    public ResponseMessage Message { get; set; }
-
-    [JsonPropertyName("context")]
-    public ResponseContext Context { get; set; }
-
-    [JsonPropertyName("citationBaseUrl")]
-    public string CitationBaseUrl { get; set; }
-
     [JsonPropertyName("content_filter_results")]
     public ContentFilterResult? ContentFilterResult { get; set; }
 
