@@ -137,7 +137,8 @@ param azureCacheIndexName string = 'gptkbindex'
 param azureCacheName string = ''
 
 @description('Location of the resource group for the Azure Cache for Redis service')
-param azureCacheResourceGroupLocation string = location
+// hardcode the region because some regions do not support non-zonal deployments
+param azureCacheResourceGroupLocation string = 'eastus' // location
 
 @description('Name of the resource group for the Azure Cache for Redis service')
 param azureCacheResourceGroupName string = ''
