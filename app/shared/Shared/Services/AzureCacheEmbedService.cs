@@ -40,8 +40,12 @@ public class AzureCacheEmbedService(
 
     public async Task CreateSearchIndexAsync(string searchIndexName, CancellationToken ct = default)
     {
-        int vectorDimension = computerVisionService is not null ? Math.Max(s_embeddingDimension, computerVisionService.Dimension) : s_embeddingDimension;
-        await CreateVectorIndexAsync(searchIndexName, "doc", "id TEXT content TEXT category TEXT sourcepage TEXT sourcefile TEXT", "FLAT", "embedding", vectorDimension, "FLOAT32", "COSINE");
+        var indexExists = await _connection.BasicRetryAsync(async db => await db.ExecuteAsync("FT.INFO", searchIndexName));
+        if (indexExists.Type == ResultType.SimpleString && indexExists.ToString().Contains("Unknown Index name"))
+        {
+            int vectorDimension = computerVisionService is not null ? Math.Max(s_embeddingDimension, computerVisionService.Dimension) : s_embeddingDimension;
+            await CreateVectorIndexAsync(searchIndexName, "doc", "id TEXT content TEXT category TEXT sourcepage TEXT sourcefile TEXT", "FLAT", "embedding", vectorDimension, "FLOAT32", "COSINE");
+        }
     }
 
     private async Task<RedisResult> CreateVectorIndexAsync(string indexName, string prefix, string schema, string indexType, string vectorName, int vectorDimension, string type, string distanceMetric)
@@ -117,7 +121,8 @@ public class AzureCacheEmbedService(
         {
             var embeddings = await openAIClient.GetEmbeddingsAsync(new Azure.AI.OpenAI.EmbeddingsOptions(embeddingModelName, [section.Content.Replace('\r', ' ')]));
             var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
-            await IndexDocAsync(section.Id, section.Content, section.Category, section.SourcePage, section.SourceFile, embedding);
+            var sectionCategory = section.Category ?? "unknown";
+            await IndexDocAsync(section.Id, section.Content, sectionCategory, section.SourcePage, section.SourceFile, embedding);
         }
     }
 
