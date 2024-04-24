@@ -40,8 +40,11 @@ public class AzureCacheEmbedService(
 
     public async Task CreateSearchIndexAsync(string searchIndexName, CancellationToken ct = default)
     {
-        var indexExists = await _connection.BasicRetryAsync(async db => await db.ExecuteAsync("FT.INFO", searchIndexName));
-        if (indexExists.Type == ResultType.SimpleString && indexExists.ToString().Contains("Unknown Index name"))
+        try
+        {
+            await _connection.BasicRetryAsync(async db => await db.ExecuteAsync("FT.INFO", searchIndexName));
+        }
+        catch
         {
             int vectorDimension = computerVisionService is not null ? Math.Max(s_embeddingDimension, computerVisionService.Dimension) : s_embeddingDimension;
             await CreateVectorIndexAsync(searchIndexName, "doc", "id TEXT content TEXT category TEXT sourcepage TEXT sourcefile TEXT", "FLAT", "embedding", vectorDimension, "FLOAT32", "COSINE");
@@ -141,7 +144,7 @@ public class AzureCacheEmbedService(
                        );
     }
 
-    private static byte[] FloatArrayToByteArray(float[] originalArray)
+    public static byte[] FloatArrayToByteArray(float[] originalArray)
     {
         float[] floatArray = EnsureCorrectLength(originalArray, s_embeddingDimension);
         byte[] byteArray = new byte[floatArray.Length * 4];
