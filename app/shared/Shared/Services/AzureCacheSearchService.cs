@@ -49,7 +49,7 @@ public class AzureCacheSearchService(string redisConnectionString, string indexN
         }
 
         byte[] queryVector = AzureCacheEmbedService.FloatArrayToByteArray(embedding);
-        List<Dictionary<string, object>> searchResults = await SearchVectorIndexAsync(indexName, queryVector, top, "doc");
+        List<Dictionary<string, object>> searchResults = await SearchVectorIndexAsync(indexName, queryVector, top, "pdf");
 
         var sb = new List<SupportingContentRecord>();
         foreach (var doc in searchResults)

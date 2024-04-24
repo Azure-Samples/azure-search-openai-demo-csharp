@@ -341,6 +341,8 @@ azd env set AZD_PREPDOCS_RAN false # This is to ensure that the documents are re
 To use Azure Cache for Redis with Vector Search, you need to enable the `USE_REDIS` environment variable by running the following commands:
 ```bash
 azd env set USE_REDIS true
+azd env set EMBEDDING_TYPE 4
+azd env set AZURE_USE_APPLICATION_INSIGHTS true
 azd up
 ```
 

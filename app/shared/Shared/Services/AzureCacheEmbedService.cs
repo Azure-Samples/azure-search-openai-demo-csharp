@@ -66,7 +66,12 @@ public class AzureCacheEmbedService(
         }
 
         var embeddings = await computerVisionService.VectorizeImageAsync(imageUrl, ct);
-        await IndexDocAsync(imageUrl, imageName, "image", "0", imageUrl, embeddings.vector);
+        var vec = embeddings.vector;
+        if (vec.Length == 0)
+        {
+            throw new InvalidOperationException($"Failed to get image embeddings for {imageUrl}");
+        }
+        await IndexDocAsync(imageName, imageName, "image", "0", imageUrl, vec);
         return true;
     }
 
@@ -124,7 +129,7 @@ public class AzureCacheEmbedService(
         {
             var embeddings = await openAIClient.GetEmbeddingsAsync(new Azure.AI.OpenAI.EmbeddingsOptions(embeddingModelName, [section.Content.Replace('\r', ' ')]));
             var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
-            var sectionCategory = section.Category ?? "unknown";
+            var sectionCategory = section.Category ?? "pdf";
             await IndexDocAsync(section.Id, section.Content, sectionCategory, section.SourcePage, section.SourceFile, embedding);
         }
     }
