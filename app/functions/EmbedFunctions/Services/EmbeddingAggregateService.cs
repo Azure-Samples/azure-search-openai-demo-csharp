@@ -58,7 +58,7 @@ public sealed class EmbeddingAggregateService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to embed: {Name}, error: {Message}", blobName, ex.Message);
+            logger.LogError(ex, "Failed to embed: {Name}, error: {Message} stackTrace: {StackTrace}", blobName, ex.Message, ex.StackTrace);
             throw;
         }
     }

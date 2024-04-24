@@ -31,7 +31,7 @@ public class AzureCacheSearchService(string redisConnectionString, string indexN
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to get embeddings: openAiEndpoint={openAiEndpoint} openAiEmbeddingDeployment={openAiEmbeddingDeployment} {e.Message}");
+                throw new InvalidOperationException($"Failed to get embeddings: openAiEndpoint={openAiEndpoint} openAiEmbeddingDeployment={openAiEmbeddingDeployment} {e.Message}");
             }
         }
 
@@ -54,8 +54,8 @@ public class AzureCacheSearchService(string redisConnectionString, string indexN
         var sb = new List<SupportingContentRecord>();
         foreach (var doc in searchResults)
         {
-            string sourcePage = doc.GetValueOrDefault("sourcepage").ToString();
-            string content = doc.GetValueOrDefault("content").ToString();
+            string sourcePage = doc.GetValueOrDefault("sourcepage")?.ToString() ?? string.Empty;
+            string content = doc.GetValueOrDefault("content")?.ToString() ?? string.Empty;
             content = content.Replace('\r', ' ').Replace('\n', ' ');
             sb.Add(new SupportingContentRecord(sourcePage, content));
         }
@@ -70,8 +70,7 @@ public class AzureCacheSearchService(string redisConnectionString, string indexN
         var searchCommand = new List<object>
         {
             indexName,
-            //@category:{category}
-            $"*=>[KNN {topK} @embedding $query_vector]",
+            $"@category:{category}=>[KNN {topK} @embedding $query_vector]",
             "PARAMS", "2",
             "query_vector", queryVector,
             "RETURN", "6", "__embedding_score", "id", "content", "category", "sourcepage", "sourcefile",
@@ -140,8 +139,8 @@ public class AzureCacheSearchService(string redisConnectionString, string indexN
             var sb = new List<SupportingImageRecord>();
             foreach (var doc in searchResults)
             {
-                string name = doc.GetValueOrDefault("content").ToString();
-                string url = doc.GetValueOrDefault("id").ToString();
+                string name = doc.GetValueOrDefault("content")?.ToString() ?? string.Empty;
+                string url = doc.GetValueOrDefault("id")?.ToString() ?? string.Empty;
                 sb.Add(new SupportingImageRecord(name, url));
             }
 
