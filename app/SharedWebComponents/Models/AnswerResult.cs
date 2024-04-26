@@ -4,6 +4,6 @@ namespace SharedWebComponents.Models;
 
 public readonly record struct AnswerResult<TRequest>(
     bool IsSuccessful,
-    ApproachResponse? Response,
+    ChatAppResponseOrError? Response,
     Approach Approach,
     TRequest Request) where TRequest : ApproachRequest;

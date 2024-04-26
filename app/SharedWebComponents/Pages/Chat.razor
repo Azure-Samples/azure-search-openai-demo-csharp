@@ -19,7 +19,7 @@
                 {
                     <MudStack Justify="Justify.Center" AlignItems="AlignItems.Start" Spacing="4">
                         <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
-                          Icon="@Icons.Material.Filled.QuestionMark" Class="d-flex align-self-end">
+                                  Icon="@Icons.Material.Filled.QuestionMark" Class="d-flex align-self-end">
                             <MudPaper Class="pa-6 d-flex flex-column" Elevation="3">
                                 <MudText Typo="Typo.body1" Align="Align.End">
                                     @question
@@ -44,7 +44,7 @@
                                 <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Error"
                                           Icon="@Icons.Material.Filled.Error">
                                     <AnswerError Error="@answer" Question="@question"
-                                        OnRetryClicked="@OnAskQuestionAsync" />
+                                                 OnRetryClicked="@OnAskQuestionAsync" />
                                 </MudBadge>
                             }
                             else
@@ -52,7 +52,7 @@
                                 <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
                                           Icon="@Icons.Material.Filled.AutoAwesome"
                                           Style="display:inherit">
-                                    <Answer Retort="@answer" FollowupQuestionClicked="@OnAskQuestionAsync" />
+                                    <Answer Retort="@answer.Choices[0]" FollowupQuestionClicked="@OnAskQuestionAsync" />
                                 </MudBadge>
                             }
                         </div>
@@ -92,7 +92,7 @@
             </MudItem>
         </MudGrid>
     </MudItem>
-    <MudScrollToTop Selector="#answers" 
+    <MudScrollToTop Selector="#answers"
                     VisibleCssClass="visible absolute"
                     HiddenCssClass="invisible">
         <MudFab Color="Color.Primary" IconSize="Size.Large" StartIcon="@Icons.Material.Filled.ArrowUpward" />
