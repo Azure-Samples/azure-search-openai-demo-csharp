@@ -342,7 +342,6 @@ To use Azure Cache for Redis with Vector Search, you need to enable the `USE_RED
 ```bash
 azd env set USE_REDIS true
 azd env set EMBEDDING_TYPE 4
-azd env set AZURE_USE_APPLICATION_INSIGHTS true
 azd up
 ```
 

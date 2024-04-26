@@ -26,6 +26,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="PdfSharpCore" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Redis.OM" />
+    <PackageReference Include="Redis.OM.Vectorizers"/>
   </ItemGroup>
 
   <ItemGroup>

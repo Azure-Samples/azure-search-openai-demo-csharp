@@ -37,6 +37,7 @@ if [ -z "$AZD_PREPDOCS_RAN" ] || [ "$AZD_PREPDOCS_RAN" = "false" ]; then
         echo "use azure openai"
         args="$args --openaiendpoint $AZURE_OPENAI_ENDPOINT"
         args="$args --embeddingmodel $AZURE_OPENAI_EMBEDDING_DEPLOYMENT"
+        args="$args --openaiendpointkey $AZURE_OPENAI_EMBEDDING_API_KEY"
     else
         echo "use openai"
         args="$args --embeddingmodel $OPENAI_EMBEDDING_DEPLOYMENT"

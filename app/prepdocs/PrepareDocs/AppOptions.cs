@@ -11,6 +11,7 @@ internal record class AppOptions(
     string? TenantId,
     string? SearchServiceEndpoint,
     string? AzureOpenAIServiceEndpoint,
+    string? AzureOpenAiServiceKey,
     string? SearchIndexName,
     string? EmbeddingModelName,
     bool Remove,

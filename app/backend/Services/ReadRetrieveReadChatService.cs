@@ -4,6 +4,8 @@ using Azure.Core;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
+using Redis.OM;
+using Redis.OM.Vectorizers;
 
 namespace MinimalApi.Services;
 #pragma warning disable SKEXP0011 // Mark members as static
@@ -15,6 +17,7 @@ public class ReadRetrieveReadChatService
     private readonly IConfiguration _configuration;
     private readonly IComputerVisionService? _visionService;
     private readonly TokenCredential? _tokenCredential;
+    private readonly Redis.OM.Contracts.ISemanticCache? _semanticCache;
 
     public ReadRetrieveReadChatService(
         ISearchService searchClient,
@@ -54,6 +57,42 @@ public class ReadRetrieveReadChatService
         _configuration = configuration;
         _visionService = visionService;
         _tokenCredential = tokenCredential;
+        if (configuration["UseRedis"] == "true")
+        {
+            var SEredisConnectionString = configuration["AzureCacheServiceEndpoint"] ?? throw new ArgumentNullException("AzureCacheServiceEndpoint");
+            var redisConnectionString = ConvertStackExchangeRedisConnectionStringToRedisCloudConnectionURL(SEredisConnectionString);
+            var provider = new RedisConnectionProvider(redisConnectionString);
+
+            var deploymentId = configuration["AzureOpenAiEmbeddingDeployment"] ?? throw new ArgumentNullException("AzureOpenAiEmbeddingDeployment");
+            var url = configuration["AzureOpenAiServiceEndpoint"] ?? throw new ArgumentNullException("AzureOpenAiServiceEndpoint");
+            var apiKey = configuration["AzureOpenAiServiceKey"] ?? throw new ArgumentNullException("AzureOpenAiServiceKey");
+            int startIndex = url.IndexOf("https://") + "https://".Length;
+            int endIndex = url.IndexOf(".openai.azure.com/");
+
+            var resourceName = string.Empty;
+            if (startIndex >= 0 && endIndex >= 0)
+            {
+                // Extract the desired string
+                resourceName = url.Substring(startIndex, endIndex - startIndex);
+
+            }
+            else
+            {
+                throw new ArgumentNullException("AzureOpenAiServiceEndpoint is not in the correct format");
+            }
+
+            var dim = 1536;
+            _semanticCache = provider.AzureOpenAISemanticCache(apiKey, resourceName, deploymentId, dim);
+        }
+    }
+
+    private string ConvertStackExchangeRedisConnectionStringToRedisCloudConnectionURL(string stackExchangeRedisConnectionString)
+    {
+        var split = stackExchangeRedisConnectionString.Split(',');
+        var host = split[0].Split(':')[0];
+        var port = split[0].Split(':')[1];
+        var password = split[1].Split('=')[1];
+        return $"redis://:{password}=@{host}:{port}";
     }
 
     public async Task<ChatAppResponse> ReplyAsync(
@@ -110,7 +149,7 @@ standard plan AND dental AND employee benefit.
         }
         else
         {
-            documentContents = string.Join("\r", documentContentList.Select(x =>$"{x.Title}:{x.Content}"));
+            documentContents = string.Join("\r", documentContentList.Select(x => $"{x.Title}:{x.Content}"));
         }
 
         // step 2.5
@@ -140,7 +179,7 @@ standard plan AND dental AND employee benefit.
             }
         }
 
-        
+
         if (images != null)
         {
             var prompt = @$"## Source ##
@@ -185,12 +224,31 @@ You answer needs to be a json object with the following format.
             StopSequences = [],
         };
 
-        // get answer
-        var answer = await chat.GetChatMessageContentAsync(
-                       answerChat,
-                       promptExecutingSetting,
-                       cancellationToken: cancellationToken);
-        var answerJson = answer.Content ?? throw new InvalidOperationException("Failed to get search query");
+        string answerJson = string.Empty;
+        if (_semanticCache is not null)
+        {
+            var res = _semanticCache.GetSimilar(question);
+            if (res.Length > 0)
+            {
+                answerJson = res[0].Response;
+            }
+        }
+
+        if (string.IsNullOrEmpty(answerJson))
+        {
+            // get answer
+            var answer = await chat.GetChatMessageContentAsync(
+                           answerChat,
+                           promptExecutingSetting,
+                           cancellationToken: cancellationToken);
+            answerJson = answer.Content ?? throw new InvalidOperationException("Failed to get search query");
+
+            if (_semanticCache is not null)
+            {
+                _semanticCache.Store(question, answerJson);
+            }
+        }
+
         var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
         var ans = answerObject.GetProperty("answer").GetString() ?? throw new InvalidOperationException("Failed to get answer");
         var thoughts = answerObject.GetProperty("thoughts").GetString() ?? throw new InvalidOperationException("Failed to get thoughts");

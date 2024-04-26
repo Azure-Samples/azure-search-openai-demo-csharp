@@ -29,6 +29,10 @@ internal static partial class Program
     private static readonly Option<string> s_azureOpenAIService =
         new(name: "--openaiendpoint", description: "Optional. The Azure OpenAI service endpoint which will be used to extract text, tables and layout from the documents (must exist already)");
 
+    private static readonly Option<string> s_azureOpenAIServiceKey =
+        new(name: "--openaiendpointkey", description: "Optional. The Azure OpenAI service endpoint key");
+
+
     private static readonly Option<string> s_embeddingModelName =
         new(name: "--embeddingmodel", description: "Optional. Name of the Azure Cognitive Search embedding model to use for embedding content in the search index (will be created if it doesn't exist)");
 
@@ -68,6 +72,7 @@ internal static partial class Program
             s_searchService,
             s_searchIndexName,
             s_azureOpenAIService,
+            s_azureOpenAIServiceKey,
             s_embeddingModelName,
             s_remove,
             s_removeAll,
@@ -88,6 +93,7 @@ internal static partial class Program
             SearchServiceEndpoint: context.ParseResult.GetValueForOption(s_searchService),
             SearchIndexName: context.ParseResult.GetValueForOption(s_searchIndexName),
             AzureOpenAIServiceEndpoint: context.ParseResult.GetValueForOption(s_azureOpenAIService),
+            AzureOpenAiServiceKey: context.ParseResult.GetValueForOption(s_azureOpenAIServiceKey),
             EmbeddingModelName: context.ParseResult.GetValueForOption(s_embeddingModelName),
             Remove: context.ParseResult.GetValueForOption(s_remove),
             RemoveAll: context.ParseResult.GetValueForOption(s_removeAll),

@@ -288,6 +288,10 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
         name: 'AzureOpenAiEmbeddingDeployment'
         value: azureEmbeddingDeploymentName
       }
+      {
+        name: 'AzureOpenAiServiceKey'
+        value: azureOpenAi.outputs.apiKey
+      }
     ] : [
       {
         name: 'OpenAIAPIKey'
@@ -797,6 +801,7 @@ output AZURE_LOCATION string = location
 output AZURE_OPENAI_RESOURCE_LOCATION string = openAiResourceGroupLocation
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = azureChatGptDeploymentName
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = azureEmbeddingDeploymentName
+output AZURE_OPENAI_EMBEDDING_API_KEY string = useAOAI? azureOpenAi.outputs.apiKey : ''
 output AZURE_OPENAI_ENDPOINT string = useAOAI? azureOpenAi.outputs.endpoint : ''
 output AZURE_OPENAI_RESOURCE_GROUP string = useAOAI ? azureOpenAiResourceGroup.name : ''
 output AZURE_OPENAI_SERVICE string = useAOAI ? azureOpenAi.outputs.name : ''
@@ -805,10 +810,10 @@ output AZURE_SEARCH_INDEX string = searchIndexName
 output AZURE_SEARCH_SERVICE string = searchService.outputs.name
 output AZURE_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.endpoint
 output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
-output AZURE_CACHE_INDEX string = azureCacheIndexName
-output AZURE_CACHE_SERVICE string = azureCache.outputs.name
-output AZURE_CACHE_SERVICE_ENDPOINT string = azureCache.outputs.endpoint
-output AZURE_CACHE_SERVICE_RESOURCE_GROUP string = azureCacheResourceGroup.name
+output AZURE_CACHE_INDEX string = useRedis ? azureCacheIndexName : ''
+output AZURE_CACHE_SERVICE string = useRedis ? azureCache.outputs.name : ''
+output AZURE_CACHE_SERVICE_ENDPOINT string = useRedis ? azureCache.outputs.endpoint : ''
+output AZURE_CACHE_SERVICE_RESOURCE_GROUP string = useRedis ? azureCacheResourceGroup.name : ''
 output USE_REDIS bool = useRedis
 output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_BLOB_ENDPOINT string = storage.outputs.primaryEndpoints.blob
