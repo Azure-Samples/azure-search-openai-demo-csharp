@@ -337,6 +337,15 @@ To clean up previously deployed resources, run the following command:
 azd down --purge
 azd env set AZD_PREPDOCS_RAN false # This is to ensure that the documents are re-indexed with the new fields.
 ```
+
+### Enable Azure Cache for Redis Vector Search
+To use Azure Cache for Redis with Vector Search, you need to enable the `USE_REDIS` environment variable by running the following commands:
+```bash
+azd env set USE_REDIS true
+azd env set EMBEDDING_TYPE 4
+azd up
+```
+
 ## Productionizing
 
 This sample is designed to be a starting point for your own production application,

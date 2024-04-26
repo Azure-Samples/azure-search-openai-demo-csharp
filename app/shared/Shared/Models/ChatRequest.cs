@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.Text.Json.Serialization;
+
 namespace Shared.Models;
 
 public record class ChatRequest(
-    ChatTurn[] History,
-    Approach Approach,
-    RequestOverrides? Overrides = null) : ApproachRequest(Approach)
+    [property: JsonPropertyName("messages")] ChatMessage[] History,
+    [property: JsonPropertyName("overrides")] RequestOverrides? Overrides
+    ) : ApproachRequest(Approach.RetrieveThenRead)
 {
-    public string? LastUserQuestion => History?.LastOrDefault()?.User;
+    public string? LastUserQuestion => History?.Last(m => m.Role == "user")?.Content;
 }

@@ -69,11 +69,18 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
     if ($env:USE_AOAI -eq "true") {
         Write-Host "Using Azure OpenAI"
         $dotnetArguments += " --openaiendpoint $($env:AZURE_OPENAI_ENDPOINT) "
+        $dotnetArguments += " --openaiendpointkey $($env:AZURE_OPENAI_EMBEDDING_API_KEY) "
         $dotnetArguments += " --embeddingmodel $($env:AZURE_OPENAI_EMBEDDING_DEPLOYMENT) "
     }
     else{
         Write-Host "Using OpenAI"
         $dotnetArguments += " --embeddingmodel $($env:OPENAI_EMBEDDING_DEPLOYMENT) "
+    }
+
+    if ($env:USE_REDIS -eq "true") {
+        Write-Host "Using Redis"
+        $dotnetArguments += " --azurecacheindex $($env:AZURE_CACHE_INDEX)"
+        $dotnetArguments += " --azurecacheendpoint $($env:AZURE_CACHE_SERVICE_ENDPOINT)"
     }
     
     Write-Host "dotnet $dotnetArguments"

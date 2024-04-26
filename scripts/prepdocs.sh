@@ -37,9 +37,15 @@ if [ -z "$AZD_PREPDOCS_RAN" ] || [ "$AZD_PREPDOCS_RAN" = "false" ]; then
         echo "use azure openai"
         args="$args --openaiendpoint $AZURE_OPENAI_ENDPOINT"
         args="$args --embeddingmodel $AZURE_OPENAI_EMBEDDING_DEPLOYMENT"
+        args="$args --openaiendpointkey $AZURE_OPENAI_EMBEDDING_API_KEY"
     else
         echo "use openai"
         args="$args --embeddingmodel $OPENAI_EMBEDDING_DEPLOYMENT"
+    fi
+
+    if [ "$USE_REDIS" = "true" ]; then
+        args="$args --azurecacheindex $AZURE_CACHE_INDEX"
+        args="$args --azurecacheendpoint $AZURE_CACHE_SERVICE_ENDPOINT"
     fi
 
     args="$args --verbose"

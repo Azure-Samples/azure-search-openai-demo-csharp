@@ -57,7 +57,10 @@ var host = new HostBuilder()
         services.AddSingleton<EmbedServiceFactory>();
         services.AddSingleton<EmbeddingAggregateService>();
 
-        services.AddSingleton<IEmbedService, AzureSearchEmbedService>(provider =>
+        bool useRedis = Environment.GetEnvironmentVariable("USE_REDIS")?.ToLower() == "true";
+        string redisConnectionString = Environment.GetEnvironmentVariable("AZURE_CACHE_SERVICE_ENDPOINT") ?? "localhost";
+
+        services.AddSingleton<IEmbedService>(provider =>
         {
             var searchIndexName = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new ArgumentNullException("AZURE_SEARCH_INDEX is null");
             var useAOAI = Environment.GetEnvironmentVariable("USE_AOAI")?.ToLower() == "true";
@@ -85,23 +88,31 @@ var host = new HostBuilder()
             var documentClient = provider.GetRequiredService<DocumentAnalysisClient>();
             var logger = provider.GetRequiredService<ILogger<AzureSearchEmbedService>>();
 
+            AzureComputerVisionService? visionClient = null;
+            bool includeImageEmbeddingsField = false;
+
             if (useVision)
             {
                 var visionEndpoint = Environment.GetEnvironmentVariable("AZURE_COMPUTER_VISION_ENDPOINT") ?? throw new ArgumentNullException("AZURE_COMPUTER_VISION_ENDPOINT is null");
                 var httpClient = new HttpClient();
-                var visionClient = new AzureComputerVisionService(httpClient, visionEndpoint, new DefaultAzureCredential());
+                visionClient = new AzureComputerVisionService(httpClient, visionEndpoint, new DefaultAzureCredential());
+                includeImageEmbeddingsField = true;
+            }
 
-                return new AzureSearchEmbedService(
-                    openAIClient: openAIClient,
-                    embeddingModelName: embeddingModelName,
-                    searchClient: searchClient,
-                    searchIndexName: searchIndexName,
-                    searchIndexClient: searchIndexClient,
-                    documentAnalysisClient: documentClient,
-                    corpusContainerClient: corpusContainer,
-                    computerVisionService: visionClient,
-                    includeImageEmbeddingsField: true,
-                    logger: logger);
+            if (useRedis)
+            {
+                return new AzureCacheEmbedService(
+                redisConnectionString: redisConnectionString,
+                openAIClient: openAIClient,
+                embeddingModelName: embeddingModelName,
+                searchClient: searchClient,
+                searchIndexName: searchIndexName,
+                searchIndexClient: searchIndexClient,
+                documentAnalysisClient: documentClient,
+                corpusContainerClient: corpusContainer,
+                computerVisionService: visionClient,
+                includeImageEmbeddingsField: includeImageEmbeddingsField,
+                logger: logger);
             }
             else
             {
@@ -113,8 +124,8 @@ var host = new HostBuilder()
                 searchIndexClient: searchIndexClient,
                 documentAnalysisClient: documentClient,
                 corpusContainerClient: corpusContainer,
-                computerVisionService: null,
-                includeImageEmbeddingsField: false,
+                computerVisionService: visionClient,
+                includeImageEmbeddingsField: includeImageEmbeddingsField,
                 logger: logger);
             }
         });

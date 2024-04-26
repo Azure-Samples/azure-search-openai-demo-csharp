@@ -26,5 +26,11 @@ public enum EmbeddingType
     /// Embed using the Milvus Vector Database.
     /// See <a href='https://milvus.io'>https://milvus.io</a>
     /// </summary>
-    Milvus = 3
+    Milvus = 3,
+
+    /// <summary>
+    /// Embed using the Redis Vector Database.
+    /// See <a href='https://redis.com'>https://redis.com</a>
+    /// </summary>
+    AzureCache = 4
 };

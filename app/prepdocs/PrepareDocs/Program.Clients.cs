@@ -17,8 +17,8 @@ internal static partial class Program
     private static readonly SemaphoreSlim s_openAILock = new(1);
     private static readonly SemaphoreSlim s_embeddingLock = new(1);
 
-    private static Task<AzureSearchEmbedService> GetAzureSearchEmbedService(AppOptions options) =>
-        GetLazyClientAsync<AzureSearchEmbedService>(options, s_embeddingLock, async o =>
+    private static Task<IEmbedService> GetAzureSearchEmbedService(AppOptions options) =>
+        GetLazyClientAsync<IEmbedService>(options, s_embeddingLock, async o =>
         {
             var searchIndexClient = await GetSearchIndexClientAsync(o);
             var searchClient = await GetSearchClientAsync(o);
@@ -29,7 +29,12 @@ internal static partial class Program
             var searchIndexName = o.SearchIndexName ?? throw new ArgumentNullException(nameof(o.SearchIndexName));
             var computerVisionService = await GetComputerVisionServiceAsync(o);
 
-            return new AzureSearchEmbedService(
+            if (Environment.GetEnvironmentVariable("USE_REDIS") == "true")
+            {
+                var azureCacheServiceEndpoint = o.AzureCacheServiceEndpoint ?? throw new ArgumentNullException(nameof(o.AzureCacheServiceEndpoint));
+
+                return new AzureCacheEmbedService(
+                redisConnectionString: azureCacheServiceEndpoint,
                 openAIClient: openAIClient,
                 embeddingModelName: embeddingModelName,
                 searchClient: searchClient,
@@ -40,6 +45,21 @@ internal static partial class Program
                 computerVisionService: computerVisionService,
                 includeImageEmbeddingsField: computerVisionService != null,
                 logger: null);
+            }
+            else
+            {
+                return new AzureSearchEmbedService(
+                openAIClient: openAIClient,
+                embeddingModelName: embeddingModelName,
+                searchClient: searchClient,
+                searchIndexName: searchIndexName,
+                searchIndexClient: searchIndexClient,
+                documentAnalysisClient: documentClient,
+                corpusContainerClient: blobContainerClient,
+                computerVisionService: computerVisionService,
+                includeImageEmbeddingsField: computerVisionService != null,
+                logger: null);
+            }
         });
 
     private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options) =>

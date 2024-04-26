@@ -29,6 +29,10 @@ internal static partial class Program
     private static readonly Option<string> s_azureOpenAIService =
         new(name: "--openaiendpoint", description: "Optional. The Azure OpenAI service endpoint which will be used to extract text, tables and layout from the documents (must exist already)");
 
+    private static readonly Option<string> s_azureOpenAIServiceKey =
+        new(name: "--openaiendpointkey", description: "Optional. The Azure OpenAI service endpoint key");
+
+
     private static readonly Option<string> s_embeddingModelName =
         new(name: "--embeddingmodel", description: "Optional. Name of the Azure Cognitive Search embedding model to use for embedding content in the search index (will be created if it doesn't exist)");
 
@@ -43,6 +47,12 @@ internal static partial class Program
 
     private static readonly Option<string> s_computerVisionServiceEndpoint =
         new(name: "--computervisionendpoint", description: "Optional. The Azure Computer Vision service endpoint which will be used to vectorize image and query");
+
+    private static readonly Option<string> s_azureCacheServiceEndpoint =
+    new(name: "--azurecacheendpoint", description: "Optional. The Azure Cache service endpoint which will be used to store and query embeddings");
+
+    private static readonly Option<string> s_azureCacheServiceIndex =
+    new(name: "--azurecacheindex", description: "Optional. The Azure Cache service index name");  
 
     private static readonly Option<bool> s_verbose =
        new(aliases: new[] { "--verbose", "-v" }, description: "Verbose output");
@@ -62,11 +72,14 @@ internal static partial class Program
             s_searchService,
             s_searchIndexName,
             s_azureOpenAIService,
+            s_azureOpenAIServiceKey,
             s_embeddingModelName,
             s_remove,
             s_removeAll,
             s_formRecognizerServiceEndpoint,
             s_computerVisionServiceEndpoint,
+            s_azureCacheServiceEndpoint,
+            s_azureCacheServiceIndex,
             s_verbose,
         };
 
@@ -80,11 +93,14 @@ internal static partial class Program
             SearchServiceEndpoint: context.ParseResult.GetValueForOption(s_searchService),
             SearchIndexName: context.ParseResult.GetValueForOption(s_searchIndexName),
             AzureOpenAIServiceEndpoint: context.ParseResult.GetValueForOption(s_azureOpenAIService),
+            AzureOpenAiServiceKey: context.ParseResult.GetValueForOption(s_azureOpenAIServiceKey),
             EmbeddingModelName: context.ParseResult.GetValueForOption(s_embeddingModelName),
             Remove: context.ParseResult.GetValueForOption(s_remove),
             RemoveAll: context.ParseResult.GetValueForOption(s_removeAll),
             FormRecognizerServiceEndpoint: context.ParseResult.GetValueForOption(s_formRecognizerServiceEndpoint),
             ComputerVisionServiceEndpoint: context.ParseResult.GetValueForOption(s_computerVisionServiceEndpoint),
+            AzureCacheServiceEndpoint: context.ParseResult.GetValueForOption(s_azureCacheServiceEndpoint),
+            AzureCacheServiceIndex: context.ParseResult.GetValueForOption(s_azureCacheServiceIndex),
             Verbose: context.ParseResult.GetValueForOption(s_verbose),
             Console: context.Console);
 }

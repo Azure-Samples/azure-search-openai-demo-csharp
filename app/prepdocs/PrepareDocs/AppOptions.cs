@@ -11,12 +11,15 @@ internal record class AppOptions(
     string? TenantId,
     string? SearchServiceEndpoint,
     string? AzureOpenAIServiceEndpoint,
+    string? AzureOpenAiServiceKey,
     string? SearchIndexName,
     string? EmbeddingModelName,
     bool Remove,
     bool RemoveAll,
     string? FormRecognizerServiceEndpoint,
     string? ComputerVisionServiceEndpoint,
+    string? AzureCacheServiceEndpoint,
+    string? AzureCacheServiceIndex,
     bool Verbose,
     IConsole Console) : AppConsole(Console);
 

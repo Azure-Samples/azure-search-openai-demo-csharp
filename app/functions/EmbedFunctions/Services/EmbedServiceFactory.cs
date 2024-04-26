@@ -18,6 +18,9 @@ public sealed class EmbedServiceFactory(IEnumerable<IEmbedService> embedServices
         EmbeddingType.Milvus =>
             embedServices.OfType<MilvusEmbedService>().Single(),
 
+        EmbeddingType.AzureCache =>
+            embedServices.OfType<AzureCacheEmbedService>().Single(),
+
         _ => throw new ArgumentException(
             $"Unsupported embedding type: {embeddingType}", nameof(embeddingType))
     };

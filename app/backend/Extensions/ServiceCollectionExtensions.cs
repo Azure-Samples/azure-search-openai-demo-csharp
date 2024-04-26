@@ -27,19 +27,32 @@ internal static class ServiceCollectionExtensions
             return sp.GetRequiredService<BlobServiceClient>().GetBlobContainerClient(azureStorageContainer);
         });
 
-        services.AddSingleton<ISearchService, AzureSearchService>(sp =>
+        services.AddSingleton<ISearchService>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var azureSearchServiceEndpoint = config["AzureSearchServiceEndpoint"];
-            ArgumentNullException.ThrowIfNullOrEmpty(azureSearchServiceEndpoint);
+            if (config["UseRedis"] == "true")
+            {
+                string redisConnection = config["AzureCacheServiceEndpoint"] ?? throw new ArgumentNullException();
+                string redisConnectionString = redisConnection ?? throw new ArgumentNullException();
+                string indexName = config["AzureCacheIndex"] ?? throw new ArgumentNullException();
+                string openAiEndpoint = config["AzureOpenAiServiceEndpoint"] ?? throw new ArgumentNullException();
+                string openAiEmbeddingDeployment = config["AzureOpenAiEmbeddingDeployment"] ?? throw new ArgumentNullException();
+                string searchIndexName = indexName ?? throw new ArgumentNullException();
+                return new AzureCacheSearchService(redisConnectionString, searchIndexName, openAiEndpoint, openAiEmbeddingDeployment);
+            }
+            else
+            {
+                var azureSearchServiceEndpoint = config["AzureSearchServiceEndpoint"];
+                ArgumentNullException.ThrowIfNullOrEmpty(azureSearchServiceEndpoint);
 
-            var azureSearchIndex = config["AzureSearchIndex"];
-            ArgumentNullException.ThrowIfNullOrEmpty(azureSearchIndex);
+                var azureSearchIndex = config["AzureSearchIndex"];
+                ArgumentNullException.ThrowIfNullOrEmpty(azureSearchIndex);
 
-            var searchClient = new SearchClient(
-                               new Uri(azureSearchServiceEndpoint), azureSearchIndex, s_azureCredential);
+                var searchClient = new SearchClient(
+                                   new Uri(azureSearchServiceEndpoint), azureSearchIndex, s_azureCredential);
 
-            return new AzureSearchService(searchClient);
+                return new AzureSearchService(searchClient);
+            }
         });
 
         services.AddSingleton<DocumentAnalysisClient>(sp =>

@@ -130,6 +130,19 @@ param searchServiceResourceGroupName string = ''
 @description('SKU name for the Azure Cognitive Search service. Default: standard')
 param searchServiceSkuName string = 'standard'
 
+@description('Name of the Azure Cache for Redis search index. Default: gptkbindex')
+param azureCacheIndexName string = 'gptkbindex'
+
+@description('Name of the Azure Cache for Redis service')
+param azureCacheName string = ''
+
+@description('Location of the resource group for the Azure Cache for Redis service')
+// hardcode the region because some regions do not support non-zonal deployments
+param azureCacheResourceGroupLocation string = 'eastus' // location
+
+@description('Name of the resource group for the Azure Cache for Redis service')
+param azureCacheResourceGroupName string = ''
+
 @description('Name of the storage account')
 param storageAccountName string = ''
 
@@ -169,6 +182,9 @@ param openAiEmbeddingDeployment string
 @description('Use Vision retrival. default: false')
 param useVision bool = false
 
+@description('Use Azure Cache. default: false')
+param useRedis bool = false
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
@@ -197,6 +213,10 @@ resource computerVisionResourceGroup 'Microsoft.Resources/resourceGroups@2021-04
 
 resource searchServiceResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(searchServiceResourceGroupName)) {
   name: !empty(searchServiceResourceGroupName) ? searchServiceResourceGroupName : resourceGroup.name
+}
+
+resource azureCacheResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(azureCacheResourceGroupName)) {
+  name: !empty(azureCacheResourceGroupName) ? azureCacheResourceGroupName : resourceGroup.name
 }
 
 resource storageResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(storageResourceGroupName)) {
@@ -250,6 +270,10 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
         name: 'UseVision'
         value: useVision ? 'true' : 'false'
       }
+      {
+        name: 'UseRedis'
+        value: useRedis ? 'true' : 'false'
+      }
     ],
     useAOAI ? [
       {
@@ -263,6 +287,10 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
       {
         name: 'AzureOpenAiEmbeddingDeployment'
         value: azureEmbeddingDeploymentName
+      }
+      {
+        name: 'AzureOpenAiServiceKey'
+        value: azureOpenAi.outputs.apiKey
       }
     ] : [
       {
@@ -282,6 +310,16 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
       {
         name: 'AzureComputerVisionServiceEndpoint'
         value: computerVision.outputs.endpoint
+      }
+    ] : [],
+    useRedis ? [
+      {
+        name: 'AzureCacheServiceEndpoint'
+        value: azureCache.outputs.endpoint
+      }
+      {
+        name: 'AzureCacheIndex'
+        value: azureCacheIndexName
       }
     ] : [])
   }
@@ -370,6 +408,9 @@ module function './app/function.bicep' = {
       AZURE_OPENAI_ENDPOINT: useAOAI ? azureOpenAi.outputs.endpoint : ''
       USE_VISION: string(useVision)
       USE_AOAI: string(useAOAI)
+      USE_REDIS: string(useRedis)
+      AZURE_CACHE_SERVICE_ENDPOINT: useRedis ? azureCache.outputs.endpoint : ''
+      AZURE_CACHE_INDEX: azureCacheIndexName
       AZURE_COMPUTER_VISION_ENDPOINT: useVision ? computerVision.outputs.endpoint : ''
       OPENAI_API_KEY: useAOAI ? '' : openAIApiKey
     }
@@ -490,6 +531,17 @@ module searchService 'core/search/search-services.bicep' = {
       name: searchServiceSkuName
     }
     semanticSearch: 'free'
+  }
+}
+
+module azureCache 'core/search/azure-cache.bicep' = if (useRedis) {
+  name: 'azure-cache'
+  scope: azureCacheResourceGroup
+  params: {
+    name: !empty(azureCacheName) ? azureCacheName : 'azurecachekb-${resourceToken}'
+    location: azureCacheResourceGroupLocation
+    tags: updatedTags
+    skuName: 'Enterprise_E5'
   }
 }
 
@@ -749,6 +801,7 @@ output AZURE_LOCATION string = location
 output AZURE_OPENAI_RESOURCE_LOCATION string = openAiResourceGroupLocation
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = azureChatGptDeploymentName
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = azureEmbeddingDeploymentName
+output AZURE_OPENAI_EMBEDDING_API_KEY string = useAOAI? azureOpenAi.outputs.apiKey : ''
 output AZURE_OPENAI_ENDPOINT string = useAOAI? azureOpenAi.outputs.endpoint : ''
 output AZURE_OPENAI_RESOURCE_GROUP string = useAOAI ? azureOpenAiResourceGroup.name : ''
 output AZURE_OPENAI_SERVICE string = useAOAI ? azureOpenAi.outputs.name : ''
@@ -757,6 +810,11 @@ output AZURE_SEARCH_INDEX string = searchIndexName
 output AZURE_SEARCH_SERVICE string = searchService.outputs.name
 output AZURE_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.endpoint
 output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
+output AZURE_CACHE_INDEX string = useRedis ? azureCacheIndexName : ''
+output AZURE_CACHE_SERVICE string = useRedis ? azureCache.outputs.name : ''
+output AZURE_CACHE_SERVICE_ENDPOINT string = useRedis ? azureCache.outputs.endpoint : ''
+output AZURE_CACHE_SERVICE_RESOURCE_GROUP string = useRedis ? azureCacheResourceGroup.name : ''
+output USE_REDIS bool = useRedis
 output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_BLOB_ENDPOINT string = storage.outputs.primaryEndpoints.blob
 output AZURE_STORAGE_CONTAINER string = storageContainerName

@@ -48,9 +48,9 @@ public class ReadRetrieveReadChatServiceTest
 
         var chatService = new ReadRetrieveReadChatService(documentSearchService, openAIClient, configuration);
 
-        var history = new ChatTurn[]
+        var history = new ChatMessage[]
         {
-            new ChatTurn("What is included in my Northwind Health Plus plan that is not in standard?", "user"),
+            new ChatMessage("What is included in my Northwind Health Plus plan that is not in standard?", "user"),
         };
         var overrides = new RequestOverrides
         {
@@ -69,9 +69,9 @@ public class ReadRetrieveReadChatServiceTest
         // - has correct answer
         // - has has correct format for source reference.
 
-        response.DataPoints?.Count().Should().Be(2);
-        response.Answer.Should().NotBeNullOrEmpty();
-        response.CitationBaseUrl.Should().Be("https://northwindhealth.blob.core.windows.net/northwindhealth");
+        response.Choices.First().Context.DataPoints.Text?.Count().Should().Be(2);
+        response.Choices.First().Message.Content.Should().NotBeNullOrEmpty();
+        response.Choices.First().CitationBaseUrl.Should().Be("https://northwindhealth.blob.core.windows.net/northwindhealth");
     }
 
     [EnvironmentVariablesFact(
@@ -107,9 +107,9 @@ public class ReadRetrieveReadChatServiceTest
             azureComputerVisionService,
             azureCredential);
 
-        var history = new ChatTurn[]
+        var history = new ChatMessage[]
         {
-            new ChatTurn("What's 2023 financial report", "user"),
+            new ChatMessage("What's 2023 financial report", "user"),
         };
         var overrides = new RequestOverrides
         {
@@ -129,8 +129,8 @@ public class ReadRetrieveReadChatServiceTest
         // - has correct answer
         // - has has correct format for source reference.
 
-        response.DataPoints?.Count().Should().Be(0);
-        response.Images?.Count().Should().Be(2);
-        response.Answer.Should().NotBeNullOrEmpty();
+        response.Choices.First().Context.DataPoints.Text?.Count().Should().Be(0);
+        response.Choices.First().Context.DataPointsImages?.Count().Should().Be(2);
+        response.Choices.First().Message.Content.Should().NotBeNullOrEmpty();
     }
 }
