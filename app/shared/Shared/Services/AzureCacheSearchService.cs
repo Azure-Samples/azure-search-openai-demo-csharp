@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Immutable;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using EmbedFunctions.Services;
+using NRedisStack.RedisStackCommands;
 using Shared.Models;
-using StackExchange.Redis;
 
 public class AzureCacheSearchService(string redisConnectionString, string indexName, string openAiEndpoint = "", string openAiEmbeddingDeployment = "") : ISearchService
 {
@@ -66,55 +65,16 @@ public class AzureCacheSearchService(string redisConnectionString, string indexN
 
     private async Task<List<Dictionary<string, object>>> SearchVectorIndexAsync(string indexName, byte[] queryVector, int topK, string category)
     {
-        // Construct the search command
-        var searchCommand = new List<object>
-        {
-            indexName,
-            $"@category:{category}=>[KNN {topK} @embedding $query_vector]",
-            "PARAMS", "2",
-            "query_vector", queryVector,
-            "RETURN", "6", "__embedding_score", "id", "content", "category", "sourcepage", "sourcefile",
-            "SORTBY", "__embedding_score",
-            "DIALECT", "2"
-        };
+        // Construct the query
+        var query = new NRedisStack.Search.Query($"@category:{category}=>[KNN {topK} @embedding $query_vector]")
+            .AddParam("query_vector", queryVector)
+            .SetSortBy("__embedding_score")
+            .Dialect(2);
 
-        // Execute the search command
-        var searchResults = await _connection.BasicRetryAsync(async db => await db.ExecuteAsync("FT.SEARCH", searchCommand.ToArray()));
+        // Execute the query
+        var searchResults = await _connection.BasicRetryAsync(async db => await db.FT().SearchAsync(indexName, query));
 
-        // for debugging
-        //StringBuilder sb = new StringBuilder();
-
-        //for (int i = 0; i < searchResults.Length; i++)
-        //{
-        //    var a = searchResults[i];
-        //    sb.AppendLine($"index {i}, {a.ToString()}, {a.Length}");
-        //    for (int j = 0; j < searchResults[i].Length; j++)
-        //    {
-        //        var b = searchResults[i][j];
-        //        sb.AppendLine($"   index {i}, {j}, {b.ToString()}, {b.Length}");
-        //    }
-        //}
-
-        //string foo = sb.ToString();
-
-        int numResults = (int)searchResults[0];
-
-        List<Dictionary<string, object>> results = new List<Dictionary<string, object>>();
-
-        for (int i = 1; i < searchResults.Length; i += 2)
-        {
-            string name = searchResults[i].ToString();
-            var d = new Dictionary<string, object>();
-            for (int j = 0; j < searchResults[i + 1].Length; j += 2)
-            {
-                var key = searchResults[i + 1][j];
-                var value = searchResults[i + 1][j + 1];
-                d.Add(key.ToString(), value);
-            }
-            results.Add(d);
-        }
-
-        return results;
+        return searchResults.Documents.Select(doc => (Dictionary<string, object>)doc.GetProperties()).ToList();
     }
 
     public async Task<SupportingImageRecord[]> QueryImagesAsync(
