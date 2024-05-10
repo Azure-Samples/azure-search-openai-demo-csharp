@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Azure.AI.OpenAI;
+﻿using Azure.AI.OpenAI;
 using Azure.Identity;
 using EmbedFunctions.Services;
 using NRedisStack.RedisStackCommands;
@@ -107,14 +106,30 @@ public class AzureCacheSearchService(string redisConnectionString, string indexN
         else
         {
             byte[] queryVector = AzureCacheEmbedService.FloatArrayToByteArray(embedding);
-            List<Dictionary<string, object>> searchResults = await SearchVectorIndexAsync(indexName, queryVector, top, "image");
+            SearchResult searchResult = await SearchVectorIndexAsync(indexName, queryVector, top, "image");
 
             var sb = new List<SupportingImageRecord>();
-            foreach (var doc in searchResults)
+            foreach (var doc in searchResult.Documents)
             {
-                string name = doc.GetValueOrDefault("content")?.ToString() ?? string.Empty;
-                string url = doc.GetValueOrDefault("id")?.ToString() ?? string.Empty;
-                sb.Add(new SupportingImageRecord(name, url));
+                string url = string.Empty;
+                string name = string.Empty;
+
+                foreach (var item in doc.GetProperties())
+                {
+                    if (item.Key == "content")
+                    {
+                        name = item.Value.ToString();
+                    }
+                    if (item.Key == "id")
+                    {
+                        url = item.Value.ToString();
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(url))
+                {
+                    sb.Add(new SupportingImageRecord(name, url));
+                }
             }
 
             return [.. sb];
