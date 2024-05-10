@@ -3,6 +3,7 @@ using Azure.AI.OpenAI;
 using Azure.Identity;
 using EmbedFunctions.Services;
 using NRedisStack.RedisStackCommands;
+using NRedisStack.Search;
 using Shared.Models;
 
 public class AzureCacheSearchService(string redisConnectionString, string indexName, string openAiEndpoint = "", string openAiEmbeddingDeployment = "") : ISearchService
@@ -48,22 +49,36 @@ public class AzureCacheSearchService(string redisConnectionString, string indexN
         }
 
         byte[] queryVector = AzureCacheEmbedService.FloatArrayToByteArray(embedding);
-        List<Dictionary<string, object>> searchResults = await SearchVectorIndexAsync(indexName, queryVector, top, "pdf");
+        SearchResult searchResult = await SearchVectorIndexAsync(indexName, queryVector, top, "pdf");
 
         var sb = new List<SupportingContentRecord>();
-        foreach (var doc in searchResults)
+        foreach (var doc in searchResult.Documents)
         {
-            string sourcePage = doc.GetValueOrDefault("sourcepage")?.ToString() ?? string.Empty;
-            string content = doc.GetValueOrDefault("content")?.ToString() ?? string.Empty;
-            content = content.Replace('\r', ' ').Replace('\n', ' ');
-            sb.Add(new SupportingContentRecord(sourcePage, content));
+            string sourcePage = string.Empty;
+            string content = string.Empty;
+
+            foreach (var item in doc.GetProperties())
+            {
+                if (item.Key == "content")
+                {
+                    content = item.Value.ToString().Replace('\r', ' ').Replace('\n', ' '); ;
+                }
+                if (item.Key == "sourcepage")
+                {
+                    sourcePage = item.Value.ToString();
+                }
+            }
+
+            if(!string.IsNullOrEmpty(content) && !string.IsNullOrEmpty(sourcePage))
+            {
+                sb.Add(new SupportingContentRecord(sourcePage, content));
+            }
         }
-
         return [.. sb];
-
     }
 
-    private async Task<List<Dictionary<string, object>>> SearchVectorIndexAsync(string indexName, byte[] queryVector, int topK, string category)
+
+    private async Task<SearchResult> SearchVectorIndexAsync(string indexName, byte[] queryVector, int topK, string category)
     {
         // Construct the query
         var query = new NRedisStack.Search.Query($"@category:{category}=>[KNN {topK} @embedding $query_vector]")
@@ -72,9 +87,7 @@ public class AzureCacheSearchService(string redisConnectionString, string indexN
             .Dialect(2);
 
         // Execute the query
-        var searchResults = await _connection.BasicRetryAsync(async db => await db.FT().SearchAsync(indexName, query));
-
-        return searchResults.Documents.Select(doc => (Dictionary<string, object>)doc.GetProperties()).ToList();
+        return await _connection.BasicRetryAsync(async db => await db.FT().SearchAsync(indexName, query));
     }
 
     public async Task<SupportingImageRecord[]> QueryImagesAsync(
