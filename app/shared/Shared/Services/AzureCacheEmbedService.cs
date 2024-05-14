@@ -7,6 +7,9 @@ using Azure.Search.Documents.Indexes;
 using Azure.Storage.Blobs;
 using EmbedFunctions.Services;
 using Microsoft.Extensions.Logging;
+using NRedisStack.RedisStackCommands;
+using NRedisStack.Search;
+using NRedisStack.Search.Literals.Enums;
 using Shared.Models;
 using StackExchange.Redis;
 
@@ -42,19 +45,30 @@ public class AzureCacheEmbedService(
     {
         try
         {
-            await _connection.BasicRetryAsync(async db => await db.ExecuteAsync("FT.INFO", searchIndexName));
+            await _connection.BasicRetryAsync(async db => await db.FT().InfoAsync(searchIndexName));
         }
         catch
         {
             int vectorDimension = computerVisionService is not null ? Math.Max(s_embeddingDimension, computerVisionService.Dimension) : s_embeddingDimension;
-            await CreateVectorIndexAsync(searchIndexName, "doc", "id TEXT content TEXT category TEXT sourcepage TEXT sourcefile TEXT", "FLAT", "embedding", vectorDimension, "FLOAT32", "COSINE");
+            var schema = new Schema()
+                    .AddTextField("id")
+                    .AddTextField("content")
+                    .AddTextField("category")
+                    .AddTextField("sourcepage")
+                    .AddTextField("sourcefile")
+                    .AddVectorField("embedding", Schema.VectorField.VectorAlgo.FLAT, new Dictionary<string, object>()
+                    {
+                        ["TYPE"] = "FLOAT32",
+                        ["DIM"] = vectorDimension,
+                        ["DISTANCE_METRIC"] = "COSINE"
+                    });
+            await CreateVectorIndexAsync(searchIndexName, "doc:", IndexDataType.HASH, schema);
         }
     }
 
-    private async Task<RedisResult> CreateVectorIndexAsync(string indexName, string prefix, string schema, string indexType, string vectorName, int vectorDimension, string type, string distanceMetric)
+    private async Task<bool> CreateVectorIndexAsync(string indexName, string prefix, IndexDataType indexDataType, Schema schema)
     {
-        string indexCommand = $"{indexName} ON HASH PREFIX 1 {prefix}: SCHEMA {schema} {vectorName} VECTOR {indexType} 6 TYPE {type} DIM {vectorDimension} DISTANCE_METRIC {distanceMetric}";
-        return await _connection.BasicRetryAsync(async db => await db.ExecuteAsync("FT.CREATE", indexCommand.Split(' ')));
+        return await _connection.BasicRetryAsync(async db => await db.FT().CreateAsync(indexName, new FTCreateParams().On(indexDataType).Prefix(prefix), schema));
     }
 
     public async Task<bool> EmbedImageBlobAsync(Stream imageStream, string imageUrl, string imageName, CancellationToken ct = default)
