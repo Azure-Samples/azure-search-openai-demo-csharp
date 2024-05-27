@@ -1,3 +1,4 @@
+metadata description = 'Creates an Azure Container Apps environment.'
 param name string
 param location string = resourceGroup().location
 param tags object = {}
@@ -11,7 +12,7 @@ param daprEnabled bool = false
 @description('Name of the Log Analytics workspace')
 param logAnalyticsWorkspaceName string
 
-resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-04-01-preview' = {
+resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
   name: name
   location: location
   tags: tags
