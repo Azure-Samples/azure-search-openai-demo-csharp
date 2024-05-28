@@ -118,16 +118,16 @@ param resourceGroupName string = ''
 @description('Name of the search index. Default: gptkbindex')
 param searchIndexName string = 'gptkbindex'
 
-@description('Name of the Azure Cognitive Search service')
+@description('Name of the Azure AI Search service')
 param searchServiceName string = ''
 
-@description('Location of the resource group for the Azure Cognitive Search service')
+@description('Location of the resource group for the Azure AI Search service')
 param searchServiceResourceGroupLocation string = location
 
-@description('Name of the resource group for the Azure Cognitive Search service')
+@description('Name of the resource group for the Azure AI Search service')
 param searchServiceResourceGroupName string = ''
 
-@description('SKU name for the Azure Cognitive Search service. Default: standard')
+@description('SKU name for the Azure AI Search service. Default: standard')
 param searchServiceSkuName string = 'standard'
 
 @description('Name of the storage account')
