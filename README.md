@@ -56,11 +56,11 @@ description: A csharp sample app that chats with your data using OpenAI and AI S
 [![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=624102171&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&location=WestUs2)
 [![Open in Remote - Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/azure-search-openai-demo-csharp)
 
-This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data using the Retrieval Augmented Generation pattern. It uses Azure OpenAI Service to access the ChatGPT model (`gpt-35-turbo`), and Azure Cognitive Search for data indexing and retrieval.
+This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data using the Retrieval Augmented Generation pattern. It uses Azure OpenAI Service to access the ChatGPT model (`gpt-35-turbo`), and Azure AI Search for data indexing and retrieval.
 
 The repo includes sample data so it's ready to try end-to-end. In this sample application, we use a fictitious company called Contoso Electronics, and the experience allows its employees to ask questions about the benefits, internal policies, as well as job descriptions and roles.
 
-![RAG Architecture](docs/appcomponents-version-4.png)
+![RAG Architecture](docs/appcomponents.png)
 
 For more details on how this application was built, check out:
 
@@ -84,7 +84,7 @@ We want to hear from you! Are you interested in building or currently building i
 
 - **User interface** - The application’s chat interface is a [Blazor WebAssembly](https://learn.microsoft.com/aspnet/core/blazor/) application. This interface is what accepts user queries, routes request to the application backend, and displays generated responses.
 - **Backend** - The application backend is an [ASP.NET Core Minimal API](https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/overview). The backend hosts the Blazor static web application and what orchestrates the interactions among the different services. Services used in this application include:
-   - [**Azure Cognitive Search**](https://learn.microsoft.com/azure/search/search-what-is-azure-search) – indexes documents from the data stored in an Azure Storage Account. This makes the documents searchable using [vector search](https://learn.microsoft.com/azure/search/search-get-started-vector) capabilities. 
+   - [**Azure AI Search**](https://learn.microsoft.com/azure/search/search-what-is-azure-search) – indexes documents from the data stored in an Azure Storage Account. This makes the documents searchable using [vector search](https://learn.microsoft.com/azure/search/search-get-started-vector) capabilities. 
    - [**Azure OpenAI Service**](https://learn.microsoft.com/azure/ai-services/openai/overview) – provides the Large Language Models to generate responses. [Semantic Kernel](https://learn.microsoft.com/semantic-kernel/whatissk) is used in conjunction with the Azure OpenAI Service to orchestrate the more complex AI workflows.
 
 ## Getting Started
@@ -99,7 +99,7 @@ In order to deploy and run this example, you'll need
 
 
 > [!WARNING]<br>
-> By default this sample will create an Azure Container App, and Azure Cognitive Search resource that have a monthly cost, as well as Form Recognizer resource that has cost per document page. You can switch them to free versions of each of them if you want to avoid this cost by changing the parameters file under the infra folder (though there are some limits to consider; for example, you can have up to 1 free Cognitive Search resource per subscription, and the free Form Recognizer resource only analyzes the first 2 pages of each document.)
+> By default this sample will create an Azure Container App, and Azure AI Search resource that have a monthly cost, as well as Form Recognizer resource that has cost per document page. You can switch them to free versions of each of them if you want to avoid this cost by changing the parameters file under the infra folder (though there are some limits to consider; for example, you can have up to 1 free Cognitive Search resource per subscription, and the free Form Recognizer resource only analyzes the first 2 pages of each document.)
 
 ### Cost estimation
 
@@ -108,7 +108,7 @@ Pricing varies per region and usage, so it isn't possible to predict exact costs
 - [**Azure Container Apps**](https://azure.microsoft.com/pricing/details/container-apps/)
 - [**Azure OpenAI Service**](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/)
 - [**Azure Form Recognizer**](https://azure.microsoft.com/pricing/details/form-recognizer/)
-- [**Azure Cognitive Search**](https://azure.microsoft.com/pricing/details/search/)
+- [**Azure AI Search**](https://azure.microsoft.com/pricing/details/search/)
 - [**Azure Blob Storage**](https://azure.microsoft.com/pricing/details/storage/blobs/)
 - [**Azure Monitor**](https://azure.microsoft.com/pricing/details/monitor/)
 
@@ -344,7 +344,7 @@ to production. Here are some things to consider:
 
 * **OpenAI Capacity**: The default TPM (tokens per minute) is set to 30K. That is equivalent to approximately 30 conversations per minute (assuming 1K per user message/response). You can increase the capacity by changing the `chatGptDeploymentCapacity` and `embeddingDeploymentCapacity` parameters in `infra/main.bicep` to your account's maximum capacity. You can also view the Quotas tab in [Azure OpenAI studio](https://oai.azure.com/) to understand how much capacity you have.
 * **Azure Storage**: The default storage account uses the `Standard_LRS` SKU. To improve your resiliency, we recommend using `Standard_ZRS` for production deployments, which you can specify using the `sku` property under the `storage` module in `infra/main.bicep`.
-* **Azure Cognitive Search**: If you see errors about search service capacity being exceeded, you may find it helpful to increase the number of replicas by changing `replicaCount` in `infra/core/search/search-services.bicep` or manually scaling it from the Azure Portal.
+* **Azure AI Search**: If you see errors about search service capacity being exceeded, you may find it helpful to increase the number of replicas by changing `replicaCount` in `infra/core/search/search-services.bicep` or manually scaling it from the Azure Portal.
 * **Azure Container Apps**: By default, this application deploys containers with 0.5 CPU Cores and 1GB of memory. The minimum replicas is 1 and maximum 10. For this app, you can set values such as `containerCpuCoreCount`, `containerMaxReplicas `, `containerMemory`, `containerMinReplicas` in the `infra/core/host/container-app.bicep` file to fit your needs. You can use auto-scaling rules or scheduled scaling rules, and scale up the [maximum/minimum](https://learn.microsoft.com/azure/container-apps/scale-app) based on load.
 * **Authentication**: By default, the deployed app is publicly accessible. We recommend restricting access to authenticated users. See [Enabling authentication](#enabling-authentication) above for how to enable authentication.
 * **Networking**: We recommend deploying inside a Virtual Network. If the app is only for internal enterprise use, use a private DNS zone. Also consider using Azure API Management (APIM) for firewalls and other forms of protection. For more details, read [Azure OpenAI Landing Zone reference architecture](https://techcommunity.microsoft.com/t5/azure-architecture-blog/azure-openai-landing-zone-reference-architecture/ba-p/3882102).
@@ -353,7 +353,7 @@ to production. Here are some things to consider:
 ## Resources
 
 - [Revolutionize your Enterprise Data with ChatGPT: Next-gen Apps w/ Azure OpenAI and Cognitive Search](https://aka.ms/entgptsearchblog)
-- [Azure Cognitive Search](https://learn.microsoft.com/azure/search/search-what-is-azure-search)
+- [Azure AI Search](https://learn.microsoft.com/azure/search/search-what-is-azure-search)
 - [Azure OpenAI Service](https://learn.microsoft.com/azure/cognitive-services/openai/overview)
 - [`Azure.AI.OpenAI` NuGet package](https://www.nuget.org/packages/Azure.AI.OpenAI)
 - [Original Blazor App](https://github.com/IEvangelist/blazor-azure-openai)
@@ -363,6 +363,6 @@ to production. Here are some things to consider:
 
 ### FAQ
 
-**_Question_**: Why do we need to break up the PDFs into chunks when Azure Cognitive Search supports searching large documents?
+**_Question_**: Why do we need to break up the PDFs into chunks when Azure AI Search supports searching large documents?
 
 **_Answer_**: Chunking allows us to limit the amount of information we send to OpenAI due to token limits. By breaking up the content, it allows us to easily find potential chunks of text that we can inject into OpenAI. The method of chunking we use leverages a sliding window of text such that sentences that end one chunk will start the next. This allows us to reduce the chance of losing the context of the text.
