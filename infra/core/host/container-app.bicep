@@ -1,3 +1,4 @@
+metadata description = 'Creates a container app in an Azure Container App environment.'
 param name string
 param location string = resourceGroup().location
 param tags object = {}
@@ -27,6 +28,9 @@ param containerName string = 'main'
 @description('The name of the container registry')
 param containerRegistryName string = ''
 
+@description('Hostname suffix for container registry. Set when deploying to sovereign clouds')
+param containerRegistryHostSuffix string = 'azurecr.io'
+
 @description('The protocol used by Dapr to connect to the app, e.g., http or grpc')
 @allowed([ 'http', 'grpc' ])
 param daprAppProtocol string = 'http'
@@ -40,7 +44,7 @@ param daprEnabled bool = false
 @description('The environment variables for the container')
 param env array = []
 
-@description('Specifies if the resource is external')
+@description('Specifies if the resource ingress is exposed externally')
 param external bool = true
 
 @description('The name of the user-assigned identity')
@@ -59,7 +63,8 @@ param ingressEnabled bool = true
 param revisionMode string = 'Single'
 
 @description('The secrets required for the container')
-param secrets array = []
+@secure()
+param secrets object = {}
 
 @description('The service binds associated with the container')
 param serviceBinds array = []
@@ -88,7 +93,7 @@ module containerRegistryAccess '../security/registry-access.bicep' = if (usePriv
   }
 }
 
-resource app 'Microsoft.App/containerApps@2023-04-01-preview' = {
+resource app 'Microsoft.App/containerApps@2023-05-02-preview' = {
   name: name
   location: location
   tags: tags
@@ -119,11 +124,14 @@ resource app 'Microsoft.App/containerApps@2023-04-01-preview' = {
         appProtocol: daprAppProtocol
         appPort: ingressEnabled ? targetPort : 0
       } : { enabled: false }
-      secrets: secrets
+      secrets: [for secret in items(secrets): {
+        name: secret.key
+        value: secret.value
+      }]
       service: !empty(serviceType) ? { type: serviceType } : null
       registries: usePrivateRegistry ? [
         {
-          server: '${containerRegistryName}.azurecr.io'
+          server: '${containerRegistryName}.${containerRegistryHostSuffix}'
           identity: userIdentity.id
         }
       ] : []
@@ -149,7 +157,7 @@ resource app 'Microsoft.App/containerApps@2023-04-01-preview' = {
   }
 }
 
-resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-04-01-preview' existing = {
+resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppsEnvironmentName
 }
 

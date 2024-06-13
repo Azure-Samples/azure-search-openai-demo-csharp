@@ -383,7 +383,6 @@ module monitoring 'core/monitor/monitoring.bicep' = {
   params: {
     location: location
     tags: updatedTags
-    includeDashboard: false
     includeApplicationInsights: true
     logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
     applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'

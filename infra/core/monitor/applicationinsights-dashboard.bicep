@@ -1,3 +1,4 @@
+metadata description = 'Creates a dashboard for an Application Insights instance.'
 param name string
 param applicationInsightsName string
 param location string = resourceGroup().location
@@ -33,10 +34,12 @@ resource applicationInsightsDashboard 'Microsoft.Portal/dashboards@2020-09-01-pr
               ]
               #disable-next-line BCP036
               type: 'Extension/AppInsightsExtension/PartType/AspNetOverviewPinnedPart'
+              #disable-next-line BCP037
               asset: {
                 idInputName: 'id'
                 type: 'ApplicationInsights'
               }
+              #disable-next-line BCP037
               defaultMenuItemId: 'overview'
             }
           }
@@ -64,10 +67,12 @@ resource applicationInsightsDashboard 'Microsoft.Portal/dashboards@2020-09-01-pr
               ]
               #disable-next-line BCP036
               type: 'Extension/AppInsightsExtension/PartType/ProactiveDetectionAsyncPart'
+              #disable-next-line BCP037
               asset: {
                 idInputName: 'ComponentId'
                 type: 'ApplicationInsights'
               }
+              #disable-next-line BCP037
               defaultMenuItemId: 'ProactiveDetection'
             }
           }
@@ -95,6 +100,7 @@ resource applicationInsightsDashboard 'Microsoft.Portal/dashboards@2020-09-01-pr
               ]
               #disable-next-line BCP036
               type: 'Extension/AppInsightsExtension/PartType/QuickPulseButtonSmallPart'
+              #disable-next-line BCP037
               asset: {
                 idInputName: 'ComponentId'
                 type: 'ApplicationInsights'
@@ -136,6 +142,7 @@ resource applicationInsightsDashboard 'Microsoft.Portal/dashboards@2020-09-01-pr
               ]
               #disable-next-line BCP036
               type: 'Extension/AppInsightsExtension/PartType/AvailabilityNavButtonPart'
+              #disable-next-line BCP037
               asset: {
                 idInputName: 'ComponentId'
                 type: 'ApplicationInsights'
@@ -177,6 +184,7 @@ resource applicationInsightsDashboard 'Microsoft.Portal/dashboards@2020-09-01-pr
               ]
               #disable-next-line BCP036
               type: 'Extension/AppInsightsExtension/PartType/AppMapButtonPart'
+              #disable-next-line BCP037
               asset: {
                 idInputName: 'ComponentId'
                 type: 'ApplicationInsights'
@@ -235,6 +243,7 @@ resource applicationInsightsDashboard 'Microsoft.Portal/dashboards@2020-09-01-pr
               ]
               #disable-next-line BCP036
               type: 'Extension/AppInsightsExtension/PartType/UsageUsersOverviewPart'
+              #disable-next-line BCP037
               asset: {
                 idInputName: 'ComponentId'
                 type: 'ApplicationInsights'
@@ -297,11 +306,14 @@ resource applicationInsightsDashboard 'Microsoft.Portal/dashboards@2020-09-01-pr
               ]
               #disable-next-line BCP036
               type: 'Extension/AppInsightsExtension/PartType/CuratedBladeFailuresPinnedPart'
+              #disable-next-line BCP037
               isAdapter: true
+              #disable-next-line BCP037
               asset: {
                 idInputName: 'ResourceId'
                 type: 'ApplicationInsights'
               }
+              #disable-next-line BCP037
               defaultMenuItemId: 'failures'
             }
           }
@@ -361,11 +373,14 @@ resource applicationInsightsDashboard 'Microsoft.Portal/dashboards@2020-09-01-pr
               ]
               #disable-next-line BCP036
               type: 'Extension/AppInsightsExtension/PartType/CuratedBladePerformancePinnedPart'
+              #disable-next-line BCP037
               isAdapter: true
+              #disable-next-line BCP037
               asset: {
                 idInputName: 'ResourceId'
                 type: 'ApplicationInsights'
               }
+              #disable-next-line BCP037
               defaultMenuItemId: 'performance'
             }
           }
@@ -452,10 +467,12 @@ resource applicationInsightsDashboard 'Microsoft.Portal/dashboards@2020-09-01-pr
               ]
               #disable-next-line BCP036
               type: 'Extension/AppInsightsExtension/PartType/MetricsExplorerBladePinnedPart'
+              #disable-next-line BCP037
               asset: {
                 idInputName: 'ComponentId'
                 type: 'ApplicationInsights'
               }
+              #disable-next-line BCP037
               defaultMenuItemId: 'browser'
             }
           }
