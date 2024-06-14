@@ -88,13 +88,13 @@ app.UseAntiforgery();
 app.MapRazorPages();
 app.MapControllers();
 
-app.Use(next => context =>
-{
-    var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
-    var tokens = antiforgery.GetAndStoreTokens(context);
-    context.Response.Cookies.Append("XSRF-TOKEN", tokens?.RequestToken ?? string.Empty, new CookieOptions() { HttpOnly = false });
-    return next(context);
-});
+//app.Use(next => context =>
+//{
+//    var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
+//    var tokens = antiforgery.GetAndStoreTokens(context);
+//    context.Response.Cookies.Append("XSRF-TOKEN", tokens?.RequestToken ?? string.Empty, new CookieOptions() { HttpOnly = false });
+//    return next(context);
+//});
 app.MapFallbackToFile("index.html");
 
 app.MapApi();

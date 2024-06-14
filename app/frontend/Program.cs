@@ -2,7 +2,7 @@
 
 using ClientApp.Services;
 
-Console.WriteLine("Hello, World!");
+Console.Write("Hello from C#!");
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
