@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Azure.AI.FormRecognizer" />
+    <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Search.Documents" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Azure.AI.OpenAI" />
@@ -20,6 +21,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker" />
     <PackageReference Include="Microsoft.Extensions.Azure" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
+    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Pinecone.NET" />
   </ItemGroup>
   <ItemGroup>

@@ -90,7 +90,12 @@ public sealed class ApiClient(HttpClient httpClient)
         }
     }
 
-    public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request) => PostRequestAsync(request, "api/chat");
+    public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request)
+        {
+
+        Console.WriteLine("Entered Here...");
+        return PostRequestAsync(request, "api/chat");
+    }
 
     private async Task<AnswerResult<TRequest>> PostRequestAsync<TRequest>(
         TRequest request, string apiRoute) where TRequest : ApproachRequest
