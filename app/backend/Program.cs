@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Microsoft.AspNetCore.Antiforgery;
+using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("AZURE_KEY_VAULT_TOKEN"));
+//builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new VisualStudioCredential());
 
 builder.Configuration.ConfigureAzureKeyVault();
 

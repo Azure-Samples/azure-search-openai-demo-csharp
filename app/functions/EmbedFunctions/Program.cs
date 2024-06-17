@@ -18,6 +18,8 @@ var host = new HostBuilder()
         {
             builder.AddDocumentAnalysisClient(
                 GetUriFromEnvironment("AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT"));
+            //builder.AddDocumentAnalysisClient(
+            //    new Uri("https://cog-fr-2aogn7isw2jry.cognitiveservices.azure.com/"));
         });
 
         services.AddSingleton<SearchClient>(_ =>
@@ -26,6 +28,9 @@ var host = new HostBuilder()
                 GetUriFromEnvironment("AZURE_SEARCH_SERVICE_ENDPOINT"),
                 Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX"),
                 credential);
+                //new Uri("https://gptkb-2aogn7isw2jry.search.windows.net"),
+                //"gptkbindex",
+                //credential);
         });
 
         services.AddSingleton<SearchIndexClient>(_ =>
@@ -33,6 +38,8 @@ var host = new HostBuilder()
             return new SearchIndexClient(
                 GetUriFromEnvironment("AZURE_SEARCH_SERVICE_ENDPOINT"),
                 credential);
+                //new Uri("https://gptkb-2aogn7isw2jry.search.windows.net"),
+                //credential);
         });
 
         services.AddSingleton<BlobContainerClient>(_ =>
@@ -60,8 +67,10 @@ var host = new HostBuilder()
         services.AddSingleton<IEmbedService, AzureSearchEmbedService>(provider =>
         {
             var searchIndexName = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new ArgumentNullException("AZURE_SEARCH_INDEX is null");
-            var useAOAI = Environment.GetEnvironmentVariable("USE_AOAI")?.ToLower() == "true";
-            var useVision = Environment.GetEnvironmentVariable("USE_VISION")?.ToLower() == "true";
+            //var useAOAI = Environment.GetEnvironmentVariable("USE_AOAI")?.ToLower() == "true";
+            var useAOAI = true;
+            //var useVision = Environment.GetEnvironmentVariable("USE_VISION")?.ToLower() == "true";
+            var useVision = false;
 
             OpenAIClient? openAIClient = null;
             string? embeddingModelName = null;

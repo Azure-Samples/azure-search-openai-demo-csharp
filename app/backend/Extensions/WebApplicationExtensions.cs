@@ -51,35 +51,36 @@ internal static class WebApplicationExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         //var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
-        //var response = await client.GetChatCompletionsStreamingAsync(
-        //    new ChatCompletionsOptions
-        //    {
-        //        DeploymentName = deploymentId,
-        //        Messages =
-        //        {
-        //            new ChatRequestSystemMessage("""
-        //                You're an AI assistant for developers, helping them write code more efficiently.
-        //                You're name is **Blazor 📎 Clippy** and you're an expert Blazor developer.
-        //                You're also an expert in ASP.NET Core, C#, TypeScript, and even JavaScript.
-        //                You will always reply with a Markdown formatted response.
-        //                """),
-        //            new ChatRequestUserMessage("What's your name?"),
-        //            new ChatRequestAssistantMessage("Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
-        //            new ChatRequestUserMessage(prompt.Prompt)
-        //        }
-        //    }, cancellationToken);
-        //
-        //await foreach (var choice in response.WithCancellation(cancellationToken))
-        //{
-        //    if (choice.ContentUpdate is { Length: > 0 })
-        //    {
-        //        yield return new ChatChunkResponse(choice.ContentUpdate.Length, choice.ContentUpdate);
-        //    }
-        //}
+        var deploymentId = "chat";
+        var response = await client.GetChatCompletionsStreamingAsync(
+            new ChatCompletionsOptions
+            {
+                DeploymentName = deploymentId,
+                Messages =
+                {
+                    new ChatRequestSystemMessage("""
+                        You're an AI assistant for developers, helping them write code more efficiently.
+                        You're name is **Blazor 📎 Clippy** and you're an expert Blazor developer.
+                        You're also an expert in ASP.NET Core, C#, TypeScript, and even JavaScript.
+                        You will always reply with a Markdown formatted response.
+                        """),
+                    new ChatRequestUserMessage("What's your name?"),
+                    new ChatRequestAssistantMessage("Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
+                    new ChatRequestUserMessage(prompt.Prompt)
+                }
+            }, cancellationToken);
+        
+        await foreach (var choice in response.WithCancellation(cancellationToken))
+        {
+            if (choice.ContentUpdate is { Length: > 0 })
+            {
+                yield return new ChatChunkResponse(choice.ContentUpdate.Length, choice.ContentUpdate);
+            }
+        }
         Console.WriteLine("Prompt: "+ prompt.Prompt);
         await Task.Delay(1);
 
-        var httpClient = new HttpClient();
+        /*var httpClient = new HttpClient();
 
         var endpoint = new Uri("https://app-backend-2aogn7isw2jry.azurewebsites.net/chat"); // endpoint uri must be set this way
 
@@ -106,7 +107,7 @@ internal static class WebApplicationExtensions
 
         var responseString = response.Content.ReadAsStringAsync().Result;
 
-        yield return new ChatChunkResponse(chatString.Length, chatString);
+        yield return new ChatChunkResponse(chatString.Length, chatString);*/
 
 
 
