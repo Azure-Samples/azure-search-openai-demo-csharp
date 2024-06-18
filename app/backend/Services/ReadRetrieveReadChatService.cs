@@ -26,7 +26,10 @@ public class ReadRetrieveReadChatService
         _searchClient = searchClient;
         var kernelBuilder = Kernel.CreateBuilder();
 
-        if (configuration["UseAOAI"] == "false")
+        bool useAzureOpenAI = (configuration["UseAOAI"] == "true");
+        useAzureOpenAI = true;
+
+        if (!useAzureOpenAI)
         {
             var deployment = configuration["OpenAiChatGptDeployment"];
             ArgumentNullException.ThrowIfNullOrWhiteSpace(deployment);
@@ -38,9 +41,11 @@ public class ReadRetrieveReadChatService
         }
         else
         {
-            var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
+            //var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
+            var deployedModelName = "chat";
             ArgumentNullException.ThrowIfNullOrWhiteSpace(deployedModelName);
-            var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
+            //var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
+            var embeddingModelName = "embedding";
             if (!string.IsNullOrEmpty(embeddingModelName))
             {
                 var endpoint = configuration["AzureOpenAiServiceEndpoint"];

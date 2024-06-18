@@ -166,7 +166,7 @@ internal static partial class Program
        {
            if (s_openAIClient is null)
            {
-               var useAOAI = Environment.GetEnvironmentVariable("USE_AOAI") == "true";
+               var useAOAI = true;
                if (!useAOAI)
                {
                      var openAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
