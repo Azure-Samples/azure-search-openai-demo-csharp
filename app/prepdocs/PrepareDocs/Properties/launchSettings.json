@@ -2,7 +2,9 @@
   "profiles": {
     "PrepareDocs": {
       "commandName": "Project",
-      "commandLineArgs": "../../../../../../data/*.pdf\r\n--storageendpoint %AZURE_STORAGE_BLOB_ENDPOINT%\r\n--container %AZURE_STORAGE_CONTAINER%\r\n--searchendpoint %AZURE_SEARCH_SERVICE_ENDPOINT%\r\n--searchindex %AZURE_SEARCH_INDEX%\r\n--formrecognizerendpoint %AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT%\r\n--tenantid %AZURE_TENANT_ID%\r\n--openaiendpoint %AZURE_OPENAI_ENDPOINT%\r\n--embeddingmodel %AZURE_OPENAI_EMBEDDING_DEPLOYMENT%\r\n-v"
+      "commandLineArgs": "../../../../../../data/*.pdf\r\n--storageendpoint https://str6lomx22dqabk.blob.core.windows.net/\r\n--container content\r\n--searchendpoint https://gptkb-r6lomx22dqabk.search.windows.net\r\n--searchindex gptkbindex\r\n--formrecognizerendpoint https://cog-fr-r6lomx22dqabk.cognitiveservices.azure.com/\r\n--tenantid b5f156e7-34ba-4141-953b-3503426e4a64\r\n--openaiendpoint https://cog-r6lomx22dqabk.openai.azure.com/\r\n--removeall true\r\n--embeddingmodel text-embedding-ada-002\r\n-v"
     }
   }
 }
+
+//dotnet run --project .\app\prepdocs\PrepareDocs\PrepareDocs.csproj ./data/**/* --storageendpoint https://str6lomx22dqabk.blob.core.windows.net/ --container content --searchendpoint https://gptkb-r6lomx22dqabk.search.windows.net --searchindex gptkbindex --formrecognizerendpoint https://cog-fr-r6lomx22dqabk.cognitiveservices.azure.com/ --tenantid b5f156e7-34ba-4141-953b-3503426e4a64 --openaiendpoint https://cog-r6lomx22dqabk.openai.azure.com/ --useAOI true
