@@ -196,9 +196,14 @@ You answer needs to be a json object with the following format.
                        promptExecutingSetting,
                        cancellationToken: cancellationToken);
         var answerJson = answer.Content ?? throw new InvalidOperationException("Failed to get search query");
-        var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
-        var ans = answerObject.GetProperty("answer").GetString() ?? throw new InvalidOperationException("Failed to get answer");
-        var thoughts = answerObject.GetProperty("thoughts").GetString() ?? throw new InvalidOperationException("Failed to get thoughts");
+        var ans = answerJson;
+        var thoughts = string.Empty;
+        if (answerJson[0] == '{')
+        {
+            var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
+            ans = answerObject.GetProperty("answer").GetString() ?? throw new InvalidOperationException("Failed to get answer");
+            thoughts = answerObject.GetProperty("thoughts").GetString() ?? throw new InvalidOperationException("Failed to get thoughts");
+        }
 
         // step 4
         // add follow up questions if requested

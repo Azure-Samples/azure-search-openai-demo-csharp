@@ -449,19 +449,39 @@ public sealed partial class AzureSearchEmbedService(
         var batch = new IndexDocumentsBatch<SearchDocument>();
         foreach (var section in sections)
         {
-            var embeddings = await openAIClient.GetEmbeddingsAsync(new Azure.AI.OpenAI.EmbeddingsOptions(embeddingModelName, [section.Content.Replace('\r', ' ')]));
-            var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
-            batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
-                IndexActionType.MergeOrUpload,
-                new SearchDocument
+            bool success = false;
+            while (!success)
+            {
+                try
                 {
-                    ["id"] = section.Id,
-                    ["content"] = section.Content,
-                    ["category"] = section.Category,
-                    ["sourcepage"] = section.SourcePage,
-                    ["sourcefile"] = section.SourceFile,
-                    ["embedding"] = embedding,
-                }));
+                    var embeddings = await openAIClient.GetEmbeddingsAsync(new Azure.AI.OpenAI.EmbeddingsOptions(embeddingModelName, new[] { section.Content.Replace('\r', ' ') }));
+                    var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
+                    batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
+                        IndexActionType.MergeOrUpload,
+                        new SearchDocument
+                        {
+                            ["id"] = section.Id,
+                            ["content"] = section.Content,
+                            ["category"] = section.Category,
+                            ["sourcepage"] = section.SourcePage,
+                            ["sourcefile"] = section.SourceFile,
+                            ["embedding"] = embedding,
+                        }));
+                    success = true;
+                }
+                catch (Azure.RequestFailedException ex)
+                {
+                    if (ex.Status == (int)HttpStatusCode.TooManyRequests)
+                    {
+                        Console.WriteLine("Too many requests, waiting 30 seconds");
+                        await Task.Delay(TimeSpan.FromSeconds(30));
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
 
             iteration++;
             if (iteration % 1_000 is 0)
