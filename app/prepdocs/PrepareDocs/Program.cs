@@ -17,28 +17,41 @@ s_rootCommand.SetHandler(
             var embedService = await GetAzureSearchEmbedService(options);
             await embedService.EnsureSearchIndexAsync(options.SearchIndexName);
 
-            Matcher matcher = new();
-            // From bash, the single quotes surrounding the path (to avoid expansion of the wildcard), are included in the argument value.
-            matcher.AddInclude(options.Files.Replace("'", string.Empty));
+            options.Files.Replace("'", string.Empty);
 
-            var results = matcher.Execute(
-                new DirectoryInfoWrapper(
-                    new DirectoryInfo(Directory.GetCurrentDirectory())));
+            var dataPath = (options.Files).Split('*').First();
+            Console.WriteLine("dataPath: " + dataPath);
+            var subdirs = Directory.GetDirectories(dataPath);
+            foreach (var subdir in subdirs)
+            {
 
-            var files = results.HasMatches
-                ? results.Files.Select(f => f.Path).ToArray()
-                : Array.Empty<string>();
+                Matcher matcher = new();
+                var matcherStr = subdir + "/*.pdf";
+                Console.WriteLine("matcherStr: " + matcherStr);
+                // From bash, the single quotes surrounding the path (to avoid expansion of the wildcard), are included in the argument value.
+                matcher.AddInclude(matcherStr);
 
-            context.Console.WriteLine($"Processing {files.Length} files...");
+                var results = matcher.Execute(
+                    new DirectoryInfoWrapper(
+                        new DirectoryInfo(Directory.GetCurrentDirectory())));
 
-            var tasks = Enumerable.Range(0, files.Length)
-                .Select(i =>
-                {
-                    var fileName = files[i];
-                    return ProcessSingleFileAsync(options, fileName, embedService);
-                });
+                var files = results.HasMatches
+                    ? results.Files.Select(f => f.Path).ToArray()
+                    : Array.Empty<string>();
 
-            await Task.WhenAll(tasks);
+                context.Console.WriteLine($"Processing {files.Length} files...");
+
+                var tasks = Enumerable.Range(0, files.Length)
+                    .Select(i =>
+                    {
+                        var fileName = files[i];
+                        return ProcessSingleFileAsync(options, fileName, embedService);
+                    });
+
+                await Task.WhenAll(tasks);
+            }
+
+            
 
             static async Task ProcessSingleFileAsync(AppOptions options, string fileName, IEmbedService embedService)
             {
@@ -59,7 +72,9 @@ s_rootCommand.SetHandler(
                     return;
                 }
 
-                await UploadBlobsAndCreateIndexAsync(options, fileName, embedService);
+                var category = Path.GetDirectoryName(fileName).Split('\\').Last();
+                Console.WriteLine("category/path(fileName): " + category);
+                await UploadBlobsAndCreateIndexAsync(options, fileName, embedService, category);
             }
         }
     });
@@ -156,7 +171,7 @@ static async ValueTask RemoveFromIndexAsync(
 }
 
 static async ValueTask UploadBlobsAndCreateIndexAsync(
-    AppOptions options, string fileName, IEmbedService embeddingService)
+    AppOptions options, string fileName, IEmbedService embeddingService, string category)
 {
     var container = await GetBlobContainerClientAsync(options);
 
@@ -182,6 +197,16 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
                 document.Save(tempFileName);
 
                 await using var stream = File.OpenRead(tempFileName);
+                /*var uploadOptions = new BlobUploadOptions();
+                uploadOptions.Tags = new Dictionary<string, string>
+                {
+                    { "category", options.Category ?? "knipper" }
+                };
+                uploadOptions.HttpHeaders = new BlobHttpHeaders
+                {
+                    ContentType = "application/pdf"
+                };
+                await blobClient.UploadAsync(stream, uploadOptions);*/
                 await blobClient.UploadAsync(stream, new BlobHttpHeaders
                 {
                     ContentType = "application/pdf"
@@ -189,8 +214,7 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
 
                 // revert stream position
                 stream.Position = 0;
-
-                await embeddingService.EmbedPDFBlobAsync(stream, documentName);
+                await embeddingService.EmbedPDFBlobAsync(stream, documentName, category);
             }
             finally
             {
@@ -213,7 +237,7 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
     {
         var blobName = BlobNameFromFilePage(fileName);
         await UploadBlobAsync(fileName, blobName, container);
-        await embeddingService.EmbedPDFBlobAsync(File.OpenRead(fileName), blobName);
+        await embeddingService.EmbedPDFBlobAsync(File.OpenRead(fileName), blobName, "image");
     }
 }
 

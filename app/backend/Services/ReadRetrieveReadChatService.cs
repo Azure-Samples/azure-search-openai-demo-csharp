@@ -92,7 +92,7 @@ public class ReadRetrieveReadChatService
             var getQueryChat = new ChatHistory(@"You are a helpful AI assistant, generate search query for followup question.
 Make your respond simple and precise. Return the query only, do not return any other text.
 e.g.
-Northwind Health Plus AND standard plan.
+Knipper Health Plus AND standard plan.
 standard plan AND dental AND employee benefit.
 ");
 
@@ -130,7 +130,10 @@ standard plan AND dental AND employee benefit.
         // step 3
         // put together related docs and conversation history to generate answer
         var answerChat = new ChatHistory(
-            "You are a system assistant who helps the company employees with their questions. Be brief in your answers");
+            "You are a system assistant who helps the company employees with their questions. Be brief in your answer. " +
+            "Answer ONLY with the facts listed in the provided sources. If there isn't enough information, politely express that you don't know the answer. " +
+            "Do not generate answers that don't use the sources. If asking a clarifying question to the user would help, ask the question. " +
+            "For tabular information return it as an html table. Do not return markdown format. If the question is not in English, answer in the language used in the question.");
 
         // add chat history
         foreach (var message in history)

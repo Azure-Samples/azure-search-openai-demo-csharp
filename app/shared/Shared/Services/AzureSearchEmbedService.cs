@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -30,7 +31,7 @@ public sealed partial class AzureSearchEmbedService(
     [GeneratedRegex("[^0-9a-zA-Z_-]")]
     private static partial Regex MatchInSetRegex();
 
-    public async Task<bool> EmbedPDFBlobAsync(Stream pdfBlobStream, string blobName)
+    public async Task<bool> EmbedPDFBlobAsync(Stream pdfBlobStream, string blobName, string category)
     {
         try
         {
@@ -48,7 +49,7 @@ public sealed partial class AzureSearchEmbedService(
                 await UploadCorpusAsync(corpusName, page.Text);
             }
 
-            var sections = CreateSections(pageMap, blobName);
+            var sections = CreateSections(pageMap, blobName, category);
 
             var infoLoggingEnabled = logger?.IsEnabled(LogLevel.Information);
             if (infoLoggingEnabled is true)
@@ -130,7 +131,7 @@ public sealed partial class AzureSearchEmbedService(
             {
                 new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
                 new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
-                new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
+                new SearchField("category", SearchFieldDataType.String) { IsFacetable = true, IsFilterable = true },
                 new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
                 new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
                 new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
@@ -316,7 +317,7 @@ public sealed partial class AzureSearchEmbedService(
     }
 
     public IEnumerable<Section> CreateSections(
-        IReadOnlyList<PageDetail> pageMap, string blobName)
+        IReadOnlyList<PageDetail> pageMap, string blobName, string category)
     {
         const int MaxSectionLength = 1_000;
         const int SentenceSearchLimit = 100;
@@ -390,7 +391,8 @@ public sealed partial class AzureSearchEmbedService(
                 Id: MatchInSetRegex().Replace($"{blobName}-{start}", "_").TrimStart('_'),
                 Content: sectionText,
                 SourcePage: BlobNameFromFilePage(blobName, FindPage(pageMap, start)),
-                SourceFile: blobName);
+                SourceFile: blobName,
+                Category: category );
 
             var lastTableStart = sectionText.LastIndexOf("<table", StringComparison.Ordinal);
             if (lastTableStart > 2 * SentenceSearchLimit && lastTableStart > sectionText.LastIndexOf("</table", StringComparison.Ordinal))
@@ -473,8 +475,8 @@ public sealed partial class AzureSearchEmbedService(
                 {
                     if (ex.Status == (int)HttpStatusCode.TooManyRequests)
                     {
-                        Console.WriteLine("Too many requests, waiting 30 seconds");
-                        await Task.Delay(TimeSpan.FromSeconds(30));
+                        Console.WriteLine("Too many requests, waiting 5 seconds");
+                        await Task.Delay(TimeSpan.FromSeconds(5));
                     }
                     else
                     {

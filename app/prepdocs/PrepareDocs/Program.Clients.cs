@@ -176,11 +176,13 @@ internal static partial class Program
                }
                else
                {
+                   Console.WriteLine("useAOAI value is: " + useAOAI.ToString());
                    var endpoint = o.AzureOpenAIServiceEndpoint;
                    ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+                   Console.WriteLine("endpoint value is: " + endpoint);
                    s_openAIClient = new OpenAIClient(
                        new Uri(endpoint),
-                       DefaultCredential);
+                       new DefaultAzureCredential());
                }
            }
            await Task.CompletedTask;

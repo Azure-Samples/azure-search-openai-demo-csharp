@@ -2,7 +2,7 @@
   "profiles": {
     "PrepareDocs": {
       "commandName": "Project",
-      "commandLineArgs": "../../../../../../data/*.pdf\r\n--storageendpoint https://str6lomx22dqabk.blob.core.windows.net/\r\n--container content\r\n--searchendpoint https://gptkb-r6lomx22dqabk.search.windows.net\r\n--searchindex gptkbindex\r\n--formrecognizerendpoint https://cog-fr-r6lomx22dqabk.cognitiveservices.azure.com/\r\n--tenantid b5f156e7-34ba-4141-953b-3503426e4a64\r\n--openaiendpoint https://cog-r6lomx22dqabk.openai.azure.com/\r\n--removeall true\r\n--embeddingmodel text-embedding-ada-002\r\n-v"
+      "commandLineArgs": "../../../../../../data/*.pdf\r\n--storageendpoint https://str6lomx22dqabk.blob.core.windows.net/\r\n--container content\r\n--searchendpoint https://gptkb-r6lomx22dqabk.search.windows.net\r\n--searchindex gptkbindex\r\n--formrecognizerendpoint https://cog-fr-r6lomx22dqabk.cognitiveservices.azure.com/\r\n--tenantid b5f156e7-34ba-4141-953b-3503426e4a64\r\n--openaiendpoint https://cog-r6lomx22dqabk.openai.azure.com/\r\n--removeall false\r\n--embeddingmodel embedding\r\n-v"
     }
   }
 }
