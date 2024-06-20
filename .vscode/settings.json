@@ -1,0 +1,24 @@
+{
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[css]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "search.exclude": {
+      "static": true
+    },
+    "dotnet.defaultSolution": "app/app.sln",
+    "azureFunctions.deploySubpath": "app/functions/EmbedFunctions/bin/Release/net8.0/publish",
+    "azureFunctions.projectLanguage": "C#",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.projectSubpath": "app/functions/EmbedFunctions",
+    "azureFunctions.preDeployTask": "publish (functions)"
+  }

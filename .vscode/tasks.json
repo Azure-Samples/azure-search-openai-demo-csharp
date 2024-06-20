@@ -1,0 +1,49 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build backend",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/app/backend"
+            ]
+        },
+        {
+            "label": "build frontend",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/app/frontend"
+            ]
+        },
+        {
+            "label": "map env vars",
+            "type": "shell",
+            "command": "${workspaceFolder}/app/map-env.sh",
+            "windows": {
+                "command": "pwsh ${workspaceFolder}/app/map-env.ps1"
+            },
+            "presentation": {
+                "reveal": "silent"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/app"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build",
+            "dependsOn": ["map env vars", "build backend", "build frontend"]
+        },
+    ],
+    "inputs": [
+        {
+            "id": "dotEnvFilePath",
+            "type": "command",
+            "command": "azure-dev.commands.getDotEnvFilePath"
+        }
+    ]
+}

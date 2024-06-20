@@ -1,0 +1,191 @@
+﻿@page "/documents"
+
+<PageTitle>Documents</PageTitle>
+
+<MudGrid Justify="Justify.Center">
+    <MudItem id="uploads" xs="12" Class="overflow-x-auto">
+        <MudCard>
+            <MudForm @ref="@_form">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">Upload Documents</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.CloudUpload"
+                                       Size="Size.Large" Color="Color.Default" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Class="pb-4">
+                        Select up to ten documents to upload, or explore the existing documents that have already been processed.
+                        The document can be either a PDF file or an image file.
+                        Each file cannot exceed a file size of @(MaxIndividualFileSize.ToHumanReadableSize())
+                    </MudText>
+                    <MudFileUpload @ref="_fileUpload" T="IReadOnlyList<IBrowserFile>"
+                                   Accept=".pdf, .png, .jpg, .jpeg" MaximumFileCount="10" FilesChanged=@(files => StateHasChanged())
+                                   Required="true" RequiredError="You must select at least one file to upload.">
+                        <ButtonTemplate>
+                            <MudButton HtmlTag="label"
+                                       Variant="Variant.Filled"
+                                       StartIcon="@Icons.Material.Filled.FileOpen"
+                                       Size="Size.Large"
+                                       for="@context">
+                                Select Documents
+                            </MudButton>
+                        </ButtonTemplate>
+                        <SelectedTemplate>
+                            <MudExpansionPanels Class="pt-4" Elevation=2>
+                                @{
+                                    var enabled = context is { Count: > 0 };
+                                    var size = enabled ? context.Sum(f => f.Size) : 0;
+                                }
+                                <MudExpansionPanel Disabled="@(enabled is false)">
+                                    <TitleContent>
+                                        <div class="d-flex">
+                                            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-3" Size="Size.Medium"></MudIcon>
+                                            @if (enabled)
+                                            {
+                                                <MudText>
+                                                    Selected @(context.Count) file(s): <MudChip Size="Size.Small">@(size.ToHumanReadableSize())</MudChip>
+                                                </MudText>
+                                            }
+                                            else
+                                            {
+                                                <MudText>No files selected.</MudText>
+                                            }
+                                        </div>
+                                    </TitleContent>
+                                    <ChildContent>
+                                        <MudList>
+                                            @foreach (var file in context ?? new List<IBrowserFile>())
+                                            {
+                                                <MudListItem IconColor="Color.Error" @key="@file"
+                                                             Icon="@Icons.Material.Filled.PictureAsPdf">
+                                                    @file.Name <MudChip Size="Size.Small">@file.Size.ToHumanReadableSize()</MudChip>
+                                                </MudListItem>
+                                            }
+                                        </MudList>
+                                    </ChildContent>
+                                </MudExpansionPanel>
+                            </MudExpansionPanels>
+                        </SelectedTemplate>
+                    </MudFileUpload>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton StartIcon="@Icons.Material.Filled.Clear"
+                               Variant="Variant.Filled"
+                               Color="Color.Error"
+                               Disabled=@(!FilesSelected)
+                               Size="Size.Large" Class="ml-2 mb-2"
+                               OnClick="@(async () => await _fileUpload.ResetAsync())">
+                        Clear Selected Documents
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Upload"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Disabled=@(!FilesSelected)
+                               Size="Size.Large" Class="ml-auto mr-2 mb-2"
+                               OnClick="@(async _ => await SubmitFilesForUploadAsync())">
+                        Upload File(s)
+                    </MudButton>
+                </MudCardActions>
+            </MudForm>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12">
+        <MudTable Items="@_documents" Dense="true" Hover="true" Bordered="true"
+                  FixedHeader="true" Filter="OnFilter" Elevation="4">
+            <ToolBarContent>
+                @if (_isLoadingDocuments)
+                {
+                    <MudText Typo="Typo.h5">
+                        Loading Documents
+                    </MudText>
+                    <MudProgressCircular Indeterminate="true"
+                                         Size="Size.Small" Class="ml-2" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.h5">
+                        Existing Documents
+                    </MudText>
+                }
+                <MudSpacer />
+                <MudTextField @bind-Value="@_filter" Placeholder="Filter" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+                              DebounceInterval="500" Class="mt-0">
+                </MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh Style="text-align:center">
+                    Preview
+                </MudTh>
+                <MudTh Style="text-align:center">
+                    <MudTableSortLabel SortBy="new Func<DocumentResponse, object>(d => d.Status)">
+                        Status
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<DocumentResponse, object>(d => d.Name)">
+                        Name
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh>Content Type</MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<DocumentResponse, object>(d => d.Size)">
+                        Size
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<DocumentResponse, object>(d => d.LastModified.GetValueOrDefault())">
+                        Last Modified
+                    </MudTableSortLabel>
+                </MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Preview" Style="text-align:center">
+                    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Pageview"
+                            Size="Size.Small" OnClick="@(() => OnShowDocumentAsync(context))" />
+                </MudTd>
+                <MudTd DataLabel="Status" Style="text-align:center">
+                @{
+                    switch (context.Status)
+                    {
+                        case DocumentProcessingStatus.Failed:
+                            <MudIcon Color="Color.Error" Icon="@Icons.Material.Filled.Close" />
+                            break;
+                        case DocumentProcessingStatus.Succeeded:
+                            <MudIcon Color="Color.Success" Icon="@Icons.Material.Filled.Check" />
+                            break;
+                        default:
+                            <MudIcon Color="Color.Warning" Icon="@Icons.Material.Filled.QuestionMark" />
+                            break;
+                    }
+                }
+                </MudTd>
+                <MudTd DataLabel="Name">
+                    <strong>@context.Name</strong>
+                </MudTd>
+                <MudTd DataLabel="Content Type">
+                    <code>@context.ContentType</code>
+                </MudTd>
+                <MudTd DataLabel="Size">
+                    <MudChip Size="Size.Small">
+                        @context.Size.ToHumanReadableSize()
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Last Modified">
+                    @($"{context.LastModified.GetValueOrDefault():G}")
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </MudItem>
+    <MudScrollToTop Selector="#uploads"
+                    VisibleCssClass="visible absolute"
+                    HiddenCssClass="invisible">
+        <MudFab Color="Color.Primary" IconSize="Size.Large" StartIcon="@Icons.Material.Filled.ArrowUpward" />
+    </MudScrollToTop>
+</MudGrid>

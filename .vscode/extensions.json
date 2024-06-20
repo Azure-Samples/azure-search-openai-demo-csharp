@@ -1,0 +1,20 @@
+{
+  "recommendations": [
+    "GitHub.vscode-github-actions",
+    "esbenp.prettier-vscode",
+    "ipedrazas.kubernetes-snippets",
+    "ms-azuretools.azure-dev",
+    "ms-azuretools.vscode-azurecontainerapps",
+    "ms-azuretools.vscode-azurefunctions",
+    "ms-azuretools.vscode-azurestorage",
+    "ms-azuretools.vscode-docker",
+    "ms-dotnettools.blazorwasm-companion",
+    "ms-dotnettools.csdevkit",
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.vscode-dotnet-runtime",
+    "ms-kubernetes-tools.aks-devx-tools",
+    "ms-kubernetes-tools.vscode-aks-tools",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    "redhat.vscode-yaml"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PrepareDocs": {
+      "commandName": "Project",
+      "commandLineArgs": "../../../../../../data/*.pdf\r\n--storageendpoint %AZURE_STORAGE_BLOB_ENDPOINT%\r\n--container %AZURE_STORAGE_CONTAINER%\r\n--searchendpoint %AZURE_SEARCH_SERVICE_ENDPOINT%\r\n--searchindex %AZURE_SEARCH_INDEX%\r\n--formrecognizerendpoint %AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT%\r\n--tenantid %AZURE_TENANT_ID%\r\n--openaiendpoint %AZURE_OPENAI_ENDPOINT%\r\n--embeddingmodel %AZURE_OPENAI_EMBEDDING_DEPLOYMENT%\r\n-v"
+    }
+  }
+}

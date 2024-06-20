@@ -1,0 +1,23 @@
+﻿<MudDialog DisableSidePadding="true">
+    <DialogContent>
+        <MudContainer Class="align-center justify-center mud-width-full">
+            <MudImage Src="@Src" Alt="@FileName" Height="600" />
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Close"
+                   OnClick="@OnCloseClick">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public required string FileName { get; set; }
+    [Parameter] public required string Src { get; set; }
+    [CascadingParameter] public required MudDialogInstance Dialog { get; set; }
+
+    private void OnCloseClick()
+    {
+        Dialog.Cancel();
+    }
+}

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
+    "tags": {
+      "value": "${AZURE_TAGS}"
+    },
+    "formRecognizerResourceGroupName": {
+      "value": "${AZURE_FORMRECOGNIZER_RESOURCE_GROUP}"
+    },
+    "formRecognizerServiceName": {
+      "value": "${AZURE_FORMRECOGNIZER_SERVICE}"
+    },
+    "formRecognizerSkuName": {
+      "value": "S0"
+    },
+    "keyVaultName": {
+      "value": "${AZURE_KEY_VAULT_NAME}"
+    },
+    "keyVaultResourceGroupName": {
+      "value": "${AZURE_KEY_VAULT_RESOURCE_GROUP}"
+    },
+    "openAiResourceGroupName": {
+      "value": "${AZURE_OPENAI_RESOURCE_GROUP}"
+    },
+    "openAiResourceGroupLocation": {
+      "value": "${AZURE_OPENAI_RESOURCE_LOCATION=${AZURE_LOCATION}}"
+    },
+    "chatGptDeploymentName": {
+      "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT=chat}"
+    },
+    "embeddingDeploymentName": {
+      "value": "${AZURE_OPENAI_EMBEDDING_DEPLOYMENT=embedding}"
+    },
+    "openAiServiceName": {
+      "value": "${AZURE_OPENAI_SERVICE}"
+    },
+    "openAiSkuName": {
+      "value": "S0"
+    },
+    "principalId": {
+      "value": "${AZURE_PRINCIPAL_ID}"
+    },
+    "principalType": {
+      "value": "${AZURE_PRINCIPAL_TYPE=User}"
+    },
+    "resourceGroupName": {
+      "value": "${AZURE_RESOURCE_GROUP}"
+    },
+    "searchServiceName": {
+      "value": "${AZURE_SEARCH_SERVICE}"
+    },
+    "searchServiceResourceGroupName": {
+      "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP}"
+    },
+    "searchServiceSkuName": {
+      "value": "standard"
+    },
+    "storageAccountName": {
+      "value": "${AZURE_STORAGE_ACCOUNT}"
+    },
+    "storageResourceGroupName": {
+      "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
+    },
+    "webAppExists": {
+      "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}"
+    },
+    "webIdentityName": {
+      "value": "${SERVICE_WEB_IDENTITY_NAME}"
+    },
+    "useApplicationInsights": {
+      "value": "${AZURE_USE_APPLICATION_INSIGHTS=true}"
+    },
+    "openAIApiKey": {
+      "value": "${OPENAI_API_KEY}"
+    },
+    "useAOAI": {
+      "value": "${USE_AOAI=true}"
+    },
+    "computerVisionServiceName": {
+      "value": "${AZURE_COMPUTERVISION_SERVICE_NAME}"
+    },
+    "useVision": {
+      "value": "${USE_VISION=false}"
+    },
+    "openAiChatGptDeployment": {
+      "value": "${OPENAI_CHATGPT_DEPLOYMENT=gpt-3.5-turbo}"
+    },
+    "openAiEmbeddingDeployment": {
+      "value": "${OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-ada-002}"
+    },
+    "azureOpenAIChatGptModelVersion": {
+      "value": "${AZURE_OPENAI_CHATGPT_MODEL_VERSION=0613}"
+    },
+    "azureOpenAIChatGptModelName": {
+      "value": "${AZURE_OPENAI_CHATGPT_MODEL_NAME=gpt-35-turbo}"
+    },
+    "azureOpenAIChatGptDeploymentCapacity": {
+      "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT_CAPACITY=30}"
+    }
+  }
+}
