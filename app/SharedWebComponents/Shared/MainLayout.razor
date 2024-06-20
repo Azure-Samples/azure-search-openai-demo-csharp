@@ -30,7 +30,7 @@
             <MudSpacer />
             @if (SettingsDisabled is false)
             {
-                <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Tertiary" Size="Size.Large"
+                <MudIconButton Icon="@Icons.Material.Filled.Settings" style="@($"{(_isDarkTheme ? Colors.Brown.Default : Colors.Cyan.Default)}")" Size="Size.Large"
                            Title="Open the developer settings side panel"
                            OnClick="@(_ => _settingsOpen = _settingsOpen is false)" />
             }
@@ -45,7 +45,7 @@
         </MudAppBar>
         <MudDrawer @bind-Open="_drawerOpen" Elevation="5" id="drawer">
             <MudDrawerHeader>
-                <MudImage Src="favicon.png" Class="rounded filter-shadow" Alt="Blazor Logo" Width="30" Height="30" Elevation="0" />
+                <MudImage Src="knipperai2.png" Class="rounded filter-shadow" Alt="Blazor Logo" Width="30" Height="30" Elevation="0" />
                 <MudSpacer />
                 <MudText Typo="Typo.h5" Color=Color.Surface>
                     Blazor OpenAI
