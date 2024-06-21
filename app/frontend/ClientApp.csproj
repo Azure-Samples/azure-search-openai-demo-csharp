@@ -11,7 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Blazor.LocalStorage.WebAssembly" />
     <PackageReference Include="Blazor.SessionStorage.WebAssembly" />
     <PackageReference Include="Blazor.SpeechRecognition.WebAssembly" />
@@ -19,7 +18,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
-    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
   <ItemGroup>
