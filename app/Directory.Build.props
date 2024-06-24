@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AzureFormRecognizerVersion>4.1.0</AzureFormRecognizerVersion>
-    <AzureIdentityVersion>1.11.0</AzureIdentityVersion>
+    <AzureIdentityVersion>1.11.4</AzureIdentityVersion>
     <AzureSearchDocumentsVersion>11.5.0-beta.4</AzureSearchDocumentsVersion>
     <AzureStorageBlobsVersion>12.17.0</AzureStorageBlobsVersion>
     <AzureOpenAIVersion>1.0.0-beta.7</AzureOpenAIVersion>
