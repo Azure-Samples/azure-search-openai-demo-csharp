@@ -20,7 +20,7 @@ param tags string = ''
 param openAiResourceGroupLocation string
 
 @description('Name of the chat GPT model. Default: gpt-35-turbo')
-@allowed([ 'gpt-35-turbo', 'gpt-4', 'gpt-35-turbo-16k', 'gpt-4-16k' ])
+@allowed([ 'gpt-35-turbo', 'gpt-4', 'gpt-4o', 'gpt-35-turbo-16k', 'gpt-4-16k' ])
 param azureOpenAIChatGptModelName string = 'gpt-35-turbo'
 
 param azureOpenAIChatGptModelVersion string ='0613'
@@ -420,7 +420,7 @@ module azureOpenAi 'core/ai/cognitiveservices.bicep' = if (useAOAI) {
         model: {
           format: 'OpenAI'
           name: azureOpenAIChatGptModelName
-          version: 'vision-preview'
+          version: '2024-05-13'
         }
         sku: {
           name: 'Standard'
