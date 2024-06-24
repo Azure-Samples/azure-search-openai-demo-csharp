@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Shared.Models;
+
 internal static partial class Program
 {
     private static BlobContainerClient? s_corpusContainerClient;

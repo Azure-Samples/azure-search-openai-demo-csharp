@@ -1,4 +1,6 @@
-﻿@inherits             LayoutComponentBase
+﻿@inherits LayoutComponentBase
+@using SharedWebComponents.Components
+@using SharedWebComponents.Models
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkTheme" Theme="_theme" />
 <MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Small"
@@ -9,41 +11,49 @@
 <MudSnackbarProvider />
 
 <HeadContent>
-    <ConditionalStyles IsDarkTheme=@_isDarkTheme />
+    <ConditionalStyles IsDarkTheme="@_isDarkTheme" />
 </HeadContent>
 <MudRTLProvider RightToLeft="_isRightToLeft">
     <MudLayout class="@(_isRightToLeft ? "rtl-lang" : "")">
         <MudAppBar Elevation="20">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" id="nav-toggle"
-                        Title="Toggle navigation sidebar"
-                        Size="Size.Large" Edge="Edge.Start" OnClick="@OnMenuClicked" />
+                            Title="Toggle navigation sidebar"
+                            Size="Size.Large" Edge="Edge.Start" OnClick="@OnMenuClicked" />
             @if (SortDisabled is false)
             {
                 <MudTooltip Text="@(_isReversed ? "Sort conversations with latest answers on bottom" : "Sort conversations with latest answers on top")"
                             Placement="Placement.Right" Arrow="true" Color="Color.Primary">
-                    <MudToggleIconButton Toggled="@_isReversed" ToggledChanged=@OnIsReversedChanged Size="Size.Large"
+                    <MudToggleIconButton Toggled="@_isReversed" ToggledChanged="@OnIsReversedChanged" Size="Size.Large"
                                          ToggledSize="Size.Large" Color="Color.Inherit"
-                                         Icon=@Icons.Material.Filled.ArrowCircleDown ToggledColor="Color.Inherit"
-                                         ToggledIcon=@Icons.Material.Filled.ArrowCircleUp />
+                                         Icon="@Icons.Material.Filled.ArrowCircleDown" ToggledColor="Color.Inherit"
+                                         ToggledIcon="@Icons.Material.Filled.ArrowCircleUp" />
                 </MudTooltip>
             }
-            <MudSpacer />
+
+            <MudToggleIconButton Toggled="@_isDarkTheme" ToggledChanged="@OnThemeChanged" Size="Size.Large"
+                                 ToggledSize="Size.Large"
+                                 Title="Switch to Dark theme" Icon="@Icons.Material.Filled.DarkMode" Color="@Color.Inherit"
+                                 ToggledTitle="Switch to Light theme" ToggledIcon="@Icons.Material.Filled.WbSunny" ToggledColor="@Color.Warning" />
+            
             @if (SettingsDisabled is false)
-                    {
-            <MudIconButton Icon="@Icons.Material.Filled.Settings" style="@($"{(_isDarkTheme ? Colors.Brown.Default : Colors.Cyan.Default)}")" Size="Size.Large"
-            Title="Open the developer settings side panel"
-                           OnClick="@(_ => _settingsOpen = _settingsOpen is false)" />
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Settings" style="@($"{(_isDarkTheme ? Colors.Brown.Default : Colors.Cyan.Default)}")" Size="Size.Large"
+                               Title="Open the developer settings side panel"
+                               OnClick="@(_ => _settingsOpen = !_settingsOpen)" />
+                <MudText Typo="Typo.h5" Class="align-self-center">
+                    Exclude Category:
+                </MudText>
+                
+                <MultiSelectAutoComplete T="string" @bind-Values="@Settings.Overrides.ExcludeCategory"
+                                         SearchFunc="@MySearchFuncAsync"
+                                         GetNameFunc="c => c" />
+                
             }
-            <MudToggleIconButton Toggled="@_isDarkTheme" ToggledChanged=@OnThemeChanged Size="Size.Large"
-                                ToggledSize="Size.Large"
-                                 Title="Switch to Dark theme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Inherit"
-                                ToggledTitle="Switch to Light theme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Warning />
-            <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Size="Size.Large"
-                        Title="Visit the Azure Samples: GitHub repository for this app."
-                        Href="https://github.com/Azure-Samples/azure-search-openai-demo-csharp" Target="_blank" />
+
+            
             <LogoutDisplay />
         </MudAppBar>
-        <MudDrawer @bind-Open="_drawerOpen" Elevation="5" id="drawer">
+        <MudDrawer Open="@_drawerOpen" Elevation="5" id="drawer">
             <MudDrawerHeader>
                 <MudImage Src="knipperai2.png" Class="rounded filter-shadow" Alt="Blazor Logo" Height="57" Elevation="0" />
                 <MudSpacer />
@@ -59,7 +69,7 @@
                     </CascadingValue>
                 </CascadingValue>
             </MudContainer>
-            <SettingsPanel @ref="_settingsPanel" @bind-Open="@_settingsOpen" />
+            <SettingsPanel @ref="_settingsPanel" Open="@_settingsOpen" />
         </MudMainContent>
     </MudLayout>
 </MudRTLProvider>

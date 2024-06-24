@@ -18,10 +18,6 @@
                          aria-label="Number input for the number of documents to search."
                          Variant="Variant.Outlined" Min="1" Max="50" />
 
-        <MudTextField T="string" Variant="Variant.Outlined"
-                      Label="Exclude category" Placeholder="Exclude category" Class="pa-2"
-                      @bind-Value="Settings.Overrides.ExcludeCategory" Clearable="true" />
-
         <MudCheckBox @bind-Checked="@Settings.Overrides.SemanticRanker" Size="Size.Large"
                      Color="Color.Primary" Label="Use semantic ranker for retrieval" />
 
