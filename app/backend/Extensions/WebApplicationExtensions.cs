@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using MinimalApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using Newtonsoft;
