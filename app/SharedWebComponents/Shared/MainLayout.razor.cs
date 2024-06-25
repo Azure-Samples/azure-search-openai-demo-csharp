@@ -84,9 +84,9 @@ public sealed partial class MainLayout
 
     protected override async Task OnInitializedAsync()
     {
-
+        Settings = new();
         var httpClient = new HttpClient();
-        var endpoint = new Uri("https://localhost:7181/api/categories");
+        var endpoint = new Uri("https://ca-web-lwaqutnfw7yny.yellowcliff-105b26b2.eastus2.azurecontainerapps.io/api/categories");
 
         try
         {
