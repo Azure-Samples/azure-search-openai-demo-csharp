@@ -15,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Blazor.LocalStorage.WebAssembly" />
     <PackageReference Include="Blazor.SessionStorage.WebAssembly" />
     <PackageReference Include="Blazor.SpeechRecognition.WebAssembly" />
@@ -24,7 +23,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="MudBlazor" />
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 

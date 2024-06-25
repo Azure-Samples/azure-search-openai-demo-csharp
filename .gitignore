@@ -1,15 +1,6 @@
 # Azure az webapp deployment details
-.azure
-*_env
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+
 
 # Spyder project settings
 .spyderproject
@@ -438,7 +429,6 @@ FodyWeavers.xsd
 *.crt
 *.key
 
-.env
 BackendUri
 certs/
 testsettings.development.json
@@ -475,11 +465,3 @@ _site
 .yarn
 .yarnrc.yml
 
-# Python Environments
-.env
-.venv
-.myenv
-env/
-venv/
-myvenv/
-ENV/

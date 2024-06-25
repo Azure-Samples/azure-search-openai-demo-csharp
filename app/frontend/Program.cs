@@ -2,8 +2,6 @@
 
 using ClientApp.Services;
 
-Console.Write("Hello from C#!");
-
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.RootComponents.Add<SharedWebComponents.App>("#app");

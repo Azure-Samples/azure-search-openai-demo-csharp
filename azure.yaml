@@ -2,17 +2,28 @@
 
 name: azure-search-openai-demo-csharp
 metadata:
-    template: azd-init@1.9.3
+  template: azure-search-openai-demo-csharp@0.0.3-beta
 services:
-    EmbedFunctions:
-        project: app\functions\EmbedFunctions
-        host: containerapp
-        language: dotnet
-    PrepareDocs:
-        project: app\prepdocs\PrepareDocs
-        host: containerapp
-        language: dotnet
-    backend:
-        project: app\backend
-        host: containerapp
-        language: dotnet
+  web:
+    project: ./app/backend/
+    host: containerapp
+    language: dotnet
+    docker:
+      path: ../Dockerfile
+      context: ../
+  function:
+    project: ./app/functions/EmbedFunctions
+    host: function
+    language: dotnet
+hooks:
+  postprovision:
+    windows:
+      shell: pwsh
+      run: ./scripts/prepdocs.ps1
+      interactive: true
+      continueOnError: false
+    posix:
+      shell: sh
+      run: chmod +x ./scripts/prepdocs.sh
+      interactive: true
+      continueOnError: false
