@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -30,7 +31,7 @@ public sealed partial class AzureSearchEmbedService(
     [GeneratedRegex("[^0-9a-zA-Z_-]")]
     private static partial Regex MatchInSetRegex();
 
-    public async Task<bool> EmbedPDFBlobAsync(Stream pdfBlobStream, string blobName)
+    public async Task<bool> EmbedPDFBlobAsync(Stream pdfBlobStream, string blobName, string category)
     {
         try
         {
@@ -48,7 +49,7 @@ public sealed partial class AzureSearchEmbedService(
                 await UploadCorpusAsync(corpusName, page.Text);
             }
 
-            var sections = CreateSections(pageMap, blobName);
+            var sections = CreateSections(pageMap, blobName, category);
 
             var infoLoggingEnabled = logger?.IsEnabled(LogLevel.Information);
             if (infoLoggingEnabled is true)
@@ -130,7 +131,7 @@ public sealed partial class AzureSearchEmbedService(
             {
                 new SimpleField("id", SearchFieldDataType.String) { IsKey = true },
                 new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
-                new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
+                new SearchField("category", SearchFieldDataType.String) { IsFacetable = true, IsFilterable = true },
                 new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
                 new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
                 new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
@@ -316,7 +317,7 @@ public sealed partial class AzureSearchEmbedService(
     }
 
     public IEnumerable<Section> CreateSections(
-        IReadOnlyList<PageDetail> pageMap, string blobName)
+        IReadOnlyList<PageDetail> pageMap, string blobName, string category)
     {
         const int MaxSectionLength = 1_000;
         const int SentenceSearchLimit = 100;
@@ -390,7 +391,8 @@ public sealed partial class AzureSearchEmbedService(
                 Id: MatchInSetRegex().Replace($"{blobName}-{start}", "_").TrimStart('_'),
                 Content: sectionText,
                 SourcePage: BlobNameFromFilePage(blobName, FindPage(pageMap, start)),
-                SourceFile: blobName);
+                SourceFile: blobName,
+                Category: category );
 
             var lastTableStart = sectionText.LastIndexOf("<table", StringComparison.Ordinal);
             if (lastTableStart > 2 * SentenceSearchLimit && lastTableStart > sectionText.LastIndexOf("</table", StringComparison.Ordinal))
@@ -449,19 +451,39 @@ public sealed partial class AzureSearchEmbedService(
         var batch = new IndexDocumentsBatch<SearchDocument>();
         foreach (var section in sections)
         {
-            var embeddings = await openAIClient.GetEmbeddingsAsync(new Azure.AI.OpenAI.EmbeddingsOptions(embeddingModelName, [section.Content.Replace('\r', ' ')]));
-            var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
-            batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
-                IndexActionType.MergeOrUpload,
-                new SearchDocument
+            bool success = false;
+            while (!success)
+            {
+                try
                 {
-                    ["id"] = section.Id,
-                    ["content"] = section.Content,
-                    ["category"] = section.Category,
-                    ["sourcepage"] = section.SourcePage,
-                    ["sourcefile"] = section.SourceFile,
-                    ["embedding"] = embedding,
-                }));
+                    var embeddings = await openAIClient.GetEmbeddingsAsync(new Azure.AI.OpenAI.EmbeddingsOptions(embeddingModelName, new[] { section.Content.Replace('\r', ' ') }));
+                    var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
+                    batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
+                        IndexActionType.MergeOrUpload,
+                        new SearchDocument
+                        {
+                            ["id"] = section.Id,
+                            ["content"] = section.Content,
+                            ["category"] = section.Category,
+                            ["sourcepage"] = section.SourcePage,
+                            ["sourcefile"] = section.SourceFile,
+                            ["embedding"] = embedding,
+                        }));
+                    success = true;
+                }
+                catch (Azure.RequestFailedException ex)
+                {
+                    if (ex.Status == (int)HttpStatusCode.TooManyRequests)
+                    {
+                        Console.WriteLine("Too many requests, waiting 5 seconds");
+                        await Task.Delay(TimeSpan.FromSeconds(5));
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
 
             iteration++;
             if (iteration % 1_000 is 0)

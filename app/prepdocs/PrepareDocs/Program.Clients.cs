@@ -169,18 +169,20 @@ internal static partial class Program
                var useAOAI = true;
                if (!useAOAI)
                {
-                     var openAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-                     Console.WriteLine("useAOAI value is: " + useAOAI.ToString());
-                     ArgumentNullException.ThrowIfNullOrEmpty(openAIApiKey);
-                     s_openAIClient = new OpenAIClient(openAIApiKey);
+                   var openAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+                   Console.WriteLine("useAOAI value is: " + useAOAI.ToString());
+                   ArgumentNullException.ThrowIfNullOrEmpty(openAIApiKey);
+                   s_openAIClient = new OpenAIClient(openAIApiKey);
                }
                else
                {
+                   Console.WriteLine("useAOAI value is: " + useAOAI.ToString());
                    var endpoint = o.AzureOpenAIServiceEndpoint;
                    ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+                   Console.WriteLine("endpoint value is: " + endpoint);
                    s_openAIClient = new OpenAIClient(
                        new Uri(endpoint),
-                       DefaultCredential);
+                       new DefaultAzureCredential());
                }
            }
            await Task.CompletedTask;

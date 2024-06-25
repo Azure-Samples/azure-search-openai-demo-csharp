@@ -11,7 +11,6 @@ internal static class KeyVaultConfigurationBuilderExtensions
 
         builder.AddAzureKeyVault(
             new Uri(azureKeyVaultEndpoint), new DefaultAzureCredential());
-
         return builder;
     }
 }
