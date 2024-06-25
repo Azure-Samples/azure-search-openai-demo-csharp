@@ -4,9 +4,6 @@ using MinimalApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using Newtonsoft;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
-using Microsoft.Extensions.FileSystemGlobbing;
-using Shared.Models;
 
 
 namespace MinimalApi.Extensions;
@@ -36,20 +33,8 @@ internal static class WebApplicationExtensions
 
         api.MapGet("enableLogout", OnGetEnableLogout);
 
-        api.MapGet("categories", OnGetCategories);
-
         return app;
     }
-
-    private static IResult OnGetCategories(HttpContext context)
-    {
-        var dataPath = "../../data/";
-        var subdirs = Directory.GetDirectories(dataPath);
-        var categories = subdirs.Select(Path.GetFileName).ToList();
-
-        return Results.Json(categories);
-    }
-
 
     private static IResult OnGetEnableLogout(HttpContext context)
     {
