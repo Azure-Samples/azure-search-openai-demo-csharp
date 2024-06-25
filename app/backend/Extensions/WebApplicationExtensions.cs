@@ -69,7 +69,7 @@ internal static class WebApplicationExtensions
                     new ChatRequestUserMessage(prompt.Prompt)
                 }
             }, cancellationToken);
-        
+
         await foreach (var choice in response.WithCancellation(cancellationToken))
         {
             if (choice.ContentUpdate is { Length: > 0 })
@@ -77,7 +77,7 @@ internal static class WebApplicationExtensions
                 yield return new ChatChunkResponse(choice.ContentUpdate.Length, choice.ContentUpdate);
             }
         }
-        Console.WriteLine("Prompt: "+ prompt.Prompt);
+        Console.WriteLine("Prompt: " + prompt.Prompt);
         await Task.Delay(1);
 
         /*var httpClient = new HttpClient();

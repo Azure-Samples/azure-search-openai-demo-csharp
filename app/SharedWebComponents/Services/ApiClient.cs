@@ -91,7 +91,7 @@ public sealed class ApiClient(HttpClient httpClient)
     }
 
     public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request)
-        {
+    {
 
         Console.WriteLine("Entered Here...");
         return PostRequestAsync(request, "api/chat");
