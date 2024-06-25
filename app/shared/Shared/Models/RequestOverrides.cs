@@ -15,7 +15,7 @@ public record RequestOverrides
     public bool? SemanticCaptions { get; set; }
 
     [JsonPropertyName("exclude_category")]
-    public IEnumerable<string>? ExcludeCategory { get; set; }
+    public string? ExcludeCategory { get; set; }
 
     [JsonPropertyName("top")]
     public int? Top { get; set; } = 3;
