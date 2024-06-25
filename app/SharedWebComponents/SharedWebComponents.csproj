@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="shared\MultiSelectAutoComplete.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
@@ -30,6 +34,18 @@
 
   <ItemGroup>
     <ProjectReference Include="..\shared\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="shared\MultiSelectAutoComplete.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="shared\MultiSelectAutoComplete.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="shared\MultiSelectAutoComplete.razor" />
   </ItemGroup>
 
 </Project>

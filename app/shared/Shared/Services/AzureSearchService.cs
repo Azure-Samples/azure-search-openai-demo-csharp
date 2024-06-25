@@ -2,6 +2,7 @@
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Shared.Models;
+using System.Linq;
 
 public class AzureSearchService(SearchClient searchClient) : ISearchService
 {
@@ -18,8 +19,25 @@ public class AzureSearchService(SearchClient searchClient) : ISearchService
 
         var documentContents = string.Empty;
         var top = overrides?.Top ?? 3;
-        var exclude_category = overrides?.ExcludeCategory;
-        var filter = exclude_category == null ? string.Empty : $"category ne '{exclude_category}'";
+        var exclude_category_ienum = overrides?.ExcludeCategory;
+        var filter = string.Empty;
+
+        if (exclude_category_ienum != null)
+        {
+            var exclude_category = exclude_category_ienum.ToList<string>();
+            if (exclude_category != null && exclude_category.Count > 0)
+            {
+                for (int i = 0; i < exclude_category.Count; i++)
+                {
+                    filter += $"category ne '{exclude_category[i]}'";
+                    if (i < exclude_category.Count - 1)
+                    {
+                        filter += " and ";
+                    }
+                }
+            }
+        }
+
         var useSemanticRanker = overrides?.SemanticRanker ?? false;
         var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
 
@@ -123,8 +141,19 @@ public class AzureSearchService(SearchClient searchClient) : ISearchService
         CancellationToken cancellationToken = default)
     {
         var top = overrides?.Top ?? 3;
-        var exclude_category = overrides?.ExcludeCategory;
-        var filter = exclude_category == null ? string.Empty : $"category ne '{exclude_category}'";
+        List<string> exclude_category = overrides?.ExcludeCategory.ToList<string>();
+        var filter = string.Empty;
+        if (exclude_category != null && exclude_category.Count > 0)
+        {
+            for (int i = 0; i < exclude_category.Count; i++)
+            {
+                filter += $"category ne '{exclude_category[i]}'";
+                if (i < exclude_category.Count - 1)
+                {
+                    filter += " and ";
+                }
+            }
+        }
 
         var searchOptions = new SearchOptions
         {
