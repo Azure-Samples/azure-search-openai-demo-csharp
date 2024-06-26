@@ -69,8 +69,24 @@ public class ReadRetrieveReadChatService
         var top = overrides?.Top ?? 3;
         var useSemanticCaptions = overrides?.SemanticCaptions ?? false;
         var useSemanticRanker = overrides?.SemanticRanker ?? false;
-        var excludeCategory = overrides?.ExcludeCategory ?? null;
-        var filter = excludeCategory is null ? null : $"category ne '{excludeCategory}'";
+        var exclude_category_ienum = overrides?.ExcludeCategory;
+        var filter = string.Empty;
+
+        if (exclude_category_ienum != null)
+        {
+            var exclude_category = exclude_category_ienum.ToList<string>();
+            if (exclude_category != null && exclude_category.Count > 0)
+            {
+                for (int i = 0; i < exclude_category.Count; i++)
+                {
+                    filter += $"category ne '{exclude_category[i]}'";
+                    if (i < exclude_category.Count - 1)
+                    {
+                        filter += " and ";
+                    }
+                }
+            }
+        }
         var chat = _kernel.GetRequiredService<IChatCompletionService>();
         var embedding = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
         float[]? embeddings = null;

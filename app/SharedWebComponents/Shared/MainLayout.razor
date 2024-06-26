@@ -44,7 +44,7 @@
                     Exclude Category:
                 </MudText>
                 
-                <MultiSelectAutoComplete T="string" @bind-Values="@Settings.Overrides.ExcludeCategory"
+                <MultiSelectAutoComplete T="string" @bind-Values="@Settings2.Overrides.ExcludeCategory"
                                          SearchFunc="@MySearchFuncAsync"
                                          GetNameFunc="c => c" />
                 
@@ -64,8 +64,10 @@
         <MudMainContent>
             <MudContainer MaxWidth="MaxWidth.Large" Fixed="false" Class="my-6 pt-6">
                 <CascadingValue Value="_settingsPanel?.Settings" Name="Settings">
-                    <CascadingValue Value="_isReversed" Name="IsReversed">
-                        @Body
+                    <CascadingValue Value="Settings2" Name="Settings2">
+                        <CascadingValue Value="_isReversed" Name="IsReversed">
+                            @Body
+                        </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
             </MudContainer>

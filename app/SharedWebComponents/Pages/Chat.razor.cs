@@ -18,6 +18,9 @@ public sealed partial class Chat
     [CascadingParameter(Name = nameof(Settings))]
     public required RequestSettingsOverrides Settings { get; set; }
 
+    [CascadingParameter(Name = nameof(Settings2))]
+    public required RequestSettingsOverrides Settings2 { get; set; }
+
     [CascadingParameter(Name = nameof(IsReversed))]
     public required bool IsReversed { get; set; }
 
@@ -47,6 +50,8 @@ public sealed partial class Chat
                 .ToList();
 
             history.Add(new ChatMessage("user", _userQuestion));
+
+            Settings.Overrides.ExcludeCategory = Settings2.Overrides.ExcludeCategory.ToList<string>();
 
             var request = new ChatRequest([.. history], Settings.Overrides);
             var result = await ApiClient.ChatConversationAsync(request);

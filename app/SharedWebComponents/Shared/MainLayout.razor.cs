@@ -40,7 +40,7 @@ public sealed partial class MainLayout
     [Inject] public required ILocalStorageService LocalStorage { get; set; }
     [Inject] public required IDialogService Dialog { get; set; }
 
-    public RequestSettingsOverrides Settings { get; set; } = new();
+    public RequestSettingsOverrides Settings2 { get; set; } = new();
 
     public List<string>? cList = null;
 
