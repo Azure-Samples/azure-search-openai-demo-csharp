@@ -387,6 +387,9 @@ public sealed partial class AzureSearchEmbedService(
 
             var sectionText = allText[start..end];
 
+            Console.WriteLine($"[V1] Section given category: {category}");
+
+
             yield return new Section(
                 Id: MatchInSetRegex().Replace($"{blobName}-{start}", "_").TrimStart('_'),
                 Content: sectionText,
@@ -421,6 +424,7 @@ public sealed partial class AzureSearchEmbedService(
 
         if (start + SectionOverlap < end)
         {
+            Console.WriteLine($"[V2] Section given category: {category}");
             yield return new Section(
                 Id: MatchInSetRegex().Replace($"{blobName}-{start}", "_").TrimStart('_'),
                 Content: allText[start..end],
@@ -452,6 +456,11 @@ public sealed partial class AzureSearchEmbedService(
         var batch = new IndexDocumentsBatch<SearchDocument>();
         foreach (var section in sections)
         {
+            if(section.Category == null || section.Category == string.Empty)
+            {
+                Console.WriteLine($"Section category: {section.Category} & section is {section.Id}");
+                Environment.Exit(1);
+            }
             bool success = false;
             while (!success)
             {

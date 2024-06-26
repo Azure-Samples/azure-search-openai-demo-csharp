@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using PdfSharpCore.Pdf.Filters;
 using Shared.Models;
 
 namespace EmbedFunctions.Services;
