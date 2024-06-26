@@ -425,7 +425,8 @@ public sealed partial class AzureSearchEmbedService(
                 Id: MatchInSetRegex().Replace($"{blobName}-{start}", "_").TrimStart('_'),
                 Content: allText[start..end],
                 SourcePage: BlobNameFromFilePage(blobName, FindPage(pageMap, start)),
-                SourceFile: blobName);
+                SourceFile: blobName,
+                Category: category);
         }
     }
 

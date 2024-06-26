@@ -37,7 +37,6 @@ public sealed partial class MainLayout
     [Inject] public required IDialogService Dialog { get; set; }
 
     public RequestSettingsOverrides Settings { get; set; } = new();
-    public required CategoryList CategoryList { get; set; }
 
     public List<string>? cList = null;
 
