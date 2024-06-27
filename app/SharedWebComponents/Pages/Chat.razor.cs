@@ -51,7 +51,7 @@ public sealed partial class Chat
 
             history.Add(new ChatMessage("user", _userQuestion));
 
-            Settings.Overrides.ExcludeCategory = Settings2.Overrides.ExcludeCategory.ToList<string>();
+            Settings.Overrides.ExcludeCategory = Settings2.Overrides.ExcludeCategory.ToList<string>() ?? new List<string>();
 
             var request = new ChatRequest([.. history], Settings.Overrides);
             var result = await ApiClient.ChatConversationAsync(request);
