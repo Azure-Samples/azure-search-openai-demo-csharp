@@ -26,7 +26,7 @@ internal static class WebApplicationExtensions
         api.MapPost("chat", OnPostChatAsync);
 
         // Upload a document
-        api.MapPost("documents", OnPostDocumentAsync);
+        api.MapPost("documents", OnPostDocumentAsync).DisableAntiforgery();
 
         // Get all documents
         api.MapGet("documents", OnGetDocumentsAsync);
@@ -150,9 +150,19 @@ internal static class WebApplicationExtensions
         [FromServices] ILogger<AzureBlobStorageService> logger,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Upload documents");
 
-        var response = await service.UploadFilesAsync(files, cancellationToken);
+        logger.LogInformation("Upload documents");
+        Console.WriteLine("Upload documents");
+
+
+        var filesList = files.ToList();
+        var content = new List<IFormFile>();
+        for(int i = 0; i < filesList.Count-1; i++){
+            content.Add(filesList[i]);
+        }
+        var category = filesList[filesList.Count-1].FileName;
+        
+        var response = await service.UploadFilesAsync(content, category, cancellationToken);
 
         logger.LogInformation("Upload documents: {x}", response);
 
