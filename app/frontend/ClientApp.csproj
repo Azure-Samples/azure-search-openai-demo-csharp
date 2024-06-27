@@ -8,6 +8,7 @@
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UserSecretsId>48daa172-8fe4-4b81-94b2-0d5a3a5ad30e</UserSecretsId>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
