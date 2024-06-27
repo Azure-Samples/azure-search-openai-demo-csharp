@@ -89,6 +89,7 @@ public sealed partial class MainLayout
 
     protected override async Task OnInitializedAsync()
     {
+        Settings2.Overrides.ExcludeCategory = new List<string>();
         var httpClient = new HttpClient();
         //httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         //httpClient.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
