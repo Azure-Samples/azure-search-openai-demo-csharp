@@ -16,6 +16,8 @@ public sealed partial class Docs : IDisposable
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly HashSet<DocumentResponse> _documents = [];
 
+    public string category = "";
+
     [Inject]
     public required ApiClient Client { get; set; }
 
@@ -70,7 +72,7 @@ public sealed partial class Docs : IDisposable
             var cookie = await JSRuntime.InvokeAsync<string>("getCookie", "XSRF-TOKEN");
 
             var result = await Client.UploadDocumentsAsync(
-                _fileUpload.Files, MaxIndividualFileSize, cookie);
+                _fileUpload.Files, MaxIndividualFileSize, cookie, category);
 
             Logger.LogInformation("Result: {x}", result);
 
