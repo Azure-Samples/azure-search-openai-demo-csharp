@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+
 namespace EmbedFunctions.Services;
 
 public sealed class EmbeddingAggregateService(
@@ -8,6 +9,7 @@ public sealed class EmbeddingAggregateService(
     BlobContainerClient corpusClient,
     ILogger<EmbeddingAggregateService> logger)
 {
+
     internal async Task EmbedBlobAsync(Stream blobStream, string blobName)
     {
         try
@@ -37,7 +39,9 @@ public sealed class EmbeddingAggregateService(
             else if (Path.GetExtension(blobName) is ".pdf")
             {
                 logger.LogInformation("Embedding pdf: {Name}", blobName);
-                var result = await embedService.EmbedPDFBlobAsync(blobStream, blobName);
+                var category = Path.GetDirectoryName(blobName).Split('\\').Last();
+                Console.WriteLine("category/path(blobName): " + category);
+                var result = await embedService.EmbedPDFBlobAsync(blobStream, blobName, category);
 
                 var status = result switch
                 {

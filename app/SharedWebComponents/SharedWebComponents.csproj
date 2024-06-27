@@ -5,12 +5,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+<!-- 
+  <ItemGroup>
+    <Content Remove="shared/MultiSelectAutoComplete.razor" />
+  </ItemGroup> -->
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Blazor.LocalStorage.WebAssembly" />
     <PackageReference Include="Blazor.SessionStorage.WebAssembly" />
     <PackageReference Include="Blazor.SpeechRecognition.WebAssembly" />
@@ -19,15 +24,28 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="MudBlazor" />
+    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot/" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\shared\Shared\Shared.csproj" />
+    <ProjectReference Include="../shared/Shared/Shared.csproj" />
   </ItemGroup>
 
+  <!-- <ItemGroup>
+    <UpToDateCheckInput Remove="shared/MultiSelectAutoComplete.razor" />
+  </ItemGroup> -->
+<!-- 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="shared/MultiSelectAutoComplete.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="shared/MultiSelectAutoComplete.razor" />
+  </ItemGroup>
+ -->
 </Project>

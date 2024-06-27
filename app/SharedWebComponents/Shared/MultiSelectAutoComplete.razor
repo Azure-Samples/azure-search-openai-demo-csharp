@@ -1,0 +1,92 @@
+@inject HttpClient Http
+@typeparam T
+
+<div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
+    <MudAutocomplete T="@T" @bind-Value="theValue" SearchFunc="SearchFunc"
+                     ShowProgressIndicator="true" DebounceInterval="600"
+                     Label="@Label" Clearable="true" Immediate="false"
+                     Variant="Variant.Outlined" CoerceValue="true"
+                     ToStringFunc="@GetNameFunc" AdornmentColor="Color.Default" />
+
+    <MudChipSet AllClosable=true OnClose="RemoveValue" style="margin-left: 8px;">
+        @foreach (var val in selectedValues)
+        {
+            <MudChip Size=Size.Small Text="@GetNameFunc(val)" Color="Color.Secondary"/>
+        }
+    </MudChipSet>
+</div>
+
+@code {
+    #nullable enable
+    [Parameter]
+    public IEnumerable<T>? Values { get; set; }
+#nullable restore
+    [Parameter]
+    public EventCallback<IEnumerable<T>> ValuesChanged { get; set; }
+
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<string, Task<IEnumerable<T>>> SearchFunc { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<T, string> GetNameFunc { get; set; }
+
+    private HashSet<T> selectedValues = new HashSet<T>();
+
+    //[CascadingParameter(Name = nameof(Settings))]
+    //public required RequestSettingsOverrides Settings { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (Values == null)
+        {
+            selectedValues.Clear();
+            //Settings.Overrides.ExcludeCategory = new List<string>();
+        }
+        else if (!Values.SequenceEqual(selectedValues))
+        {
+            selectedValues = Values.ToHashSet();
+            //Settings.Overrides.ExcludeCategory = selectedValues.Select(GetNameFunc).ToList();
+            ValuesChanged.InvokeAsync(Values);
+        }
+    }
+
+    private void RefreshBinding()
+    {
+        Values = selectedValues.ToList();
+        //Settings.Overrides.ExcludeCategory = selectedValues.Select(GetNameFunc).ToList();
+        ValuesChanged.InvokeAsync(Values);
+        StateHasChanged();
+    }
+
+    private void RemoveValue(MudChip chip)
+    {
+        if (selectedValues.RemoveWhere(x => GetNameFunc(x) == chip.Text) > 0)
+            RefreshBinding();
+    }
+
+    private void AddValue(T newValue)
+    {
+        if (newValue != null)
+        {
+            if (selectedValues.Add(newValue))
+                RefreshBinding();
+        }
+    }
+
+    /// <summary>
+    /// Note that this is required to a) clear the control after you add
+    /// an item to the list, and b) to trigger the addvalue method.
+    /// If MudAutoComplete's bind-Value:after worked, we could get rid
+    /// of this and just clear the value after it was added.
+    /// </summary>
+    private T theValue
+    {
+        get => default(T);
+        set { AddValue(value); }
+    }
+}

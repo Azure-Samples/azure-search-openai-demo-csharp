@@ -1,11 +1,18 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Microsoft.AspNetCore.Mvc;
+using System.Text;
+using Newtonsoft;
+
+
 namespace MinimalApi.Extensions;
 
 internal static class WebApplicationExtensions
 {
     internal static WebApplication MapApi(this WebApplication app)
     {
+        // ** This is where you define your API endpoints **
+        Console.WriteLine("Mapping API endpoints");
         var api = app.MapGroup("api");
 
         // Blazor 📎 Clippy streaming endpoint
@@ -25,6 +32,7 @@ internal static class WebApplicationExtensions
 
         api.MapGet("enableLogout", OnGetEnableLogout);
 
+        api.MapGet("categories", OnGetCategories);
         return app;
     }
 
@@ -42,7 +50,8 @@ internal static class WebApplicationExtensions
         IConfiguration config,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
+        //var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
+        var deploymentId = "chat";
         var response = await client.GetChatCompletionsStreamingAsync(
             new ChatCompletionsOptions
             {
@@ -68,6 +77,40 @@ internal static class WebApplicationExtensions
                 yield return new ChatChunkResponse(choice.ContentUpdate.Length, choice.ContentUpdate);
             }
         }
+        Console.WriteLine("Prompt: " + prompt.Prompt);
+        await Task.Delay(1);
+
+        /*var httpClient = new HttpClient();
+
+        var endpoint = new Uri("https://app-backend-2aogn7isw2jry.azurewebsites.net/chat"); // endpoint uri must be set this way
+
+        var promptToSend = new PostAppRequest();
+        var message = new MinimalApi.Models.ResponseMessage();
+        message.content = prompt.Prompt;
+        message.role = "user";
+        // add the message to messages array
+        promptToSend.messages.Add(message);
+        
+
+        var json = JsonSerializer.Serialize(promptToSend);
+        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+        // print the content as string
+        // Console.WriteLine(content.ReadAsStringAsync().Result);
+        var response = httpClient.PostAsync(endpoint, content).Result;
+        ChatPromptResponse chatPromptResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<ChatPromptResponse>(response.Content.ReadAsStringAsync().Result) ?? new();
+
+        content.Dispose();
+        httpClient.Dispose(); // must dispose of the HttpClient when done
+
+
+        string chatString = chatPromptResponse.choices[0].message.content;
+
+        var responseString = response.Content.ReadAsStringAsync().Result;
+
+        yield return new ChatChunkResponse(chatString.Length, chatString);*/
+
+
+
     }
 
     private static async Task<IResult> OnPostChatAsync(
@@ -101,10 +144,21 @@ internal static class WebApplicationExtensions
         return TypedResults.Ok(response);
     }
 
+    private static IResult OnGetCategories(HttpContext context)
+{
+    // var dataPath = "../../data/";
+    // var subdirs = Directory.GetDirectories(dataPath);
+    // var categories = subdirs.Select(Path.GetFileName).ToList();
+            // FIXME: testing hardcoded values for endpoint
+    var categories = new List<string> {"abbv", "knipper"};
+ 
+    return Results.Json(categories);
+}
     private static async IAsyncEnumerable<DocumentResponse> OnGetDocumentsAsync(
         BlobContainerClient client,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        Console.WriteLine("Got Document Request");
         await foreach (var blob in client.GetBlobsAsync(cancellationToken: cancellationToken))
         {
             if (blob is not null and { Deleted: false })

@@ -1,5 +1,4 @@
 ﻿@inherits             LayoutComponentBase
-
 <MudThemeProvider @bind-IsDarkMode="@_isDarkTheme" Theme="_theme" />
 <MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Small"
                    CloseButton="true"
@@ -26,6 +25,15 @@
                                          Icon=@Icons.Material.Filled.ArrowCircleDown ToggledColor="Color.Inherit"
                                          ToggledIcon=@Icons.Material.Filled.ArrowCircleUp />
                 </MudTooltip>
+                <MudText Typo="Typo.h5" Class="align-self-center">
+                    Exclude Category:
+                </MudText>
+                
+                <MultiSelectAutoComplete T="string" @bind-Values="@Settings2.Overrides.ExcludeCategory"
+                                         SearchFunc="@MySearchFuncAsync"
+                                         GetNameFunc="c => c" />
+
+                
             }
             <MudSpacer />
             @if (SettingsDisabled is false)
@@ -38,9 +46,6 @@
                                 ToggledSize="Size.Large"
                                  Title="Switch to Dark theme" Icon=@Icons.Material.Filled.DarkMode Color="@Color.Inherit"
                                 ToggledTitle="Switch to Light theme" ToggledIcon=@Icons.Material.Filled.WbSunny ToggledColor=@Color.Warning />
-            <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Size="Size.Large"
-                        Title="Visit the Azure Samples: GitHub repository for this app."
-                        Href="https://github.com/Azure-Samples/azure-search-openai-demo-csharp" Target="_blank" />
             <LogoutDisplay />
         </MudAppBar>
         <MudDrawer @bind-Open="_drawerOpen" Elevation="5" id="drawer">
@@ -54,8 +59,10 @@
         <MudMainContent>
             <MudContainer MaxWidth="MaxWidth.Large" Fixed="false" Class="my-6 pt-6">
                 <CascadingValue Value="_settingsPanel?.Settings" Name="Settings">
-                    <CascadingValue Value="_isReversed" Name="IsReversed">
-                        @Body
+                    <CascadingValue Value="Settings2" Name="Settings2">
+                        <CascadingValue Value="_isReversed" Name="IsReversed">
+                            @Body
+                        </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
             </MudContainer>
