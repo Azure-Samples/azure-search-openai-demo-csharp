@@ -96,9 +96,35 @@ public sealed class ApiClient(HttpClient httpClient)
             }
         }
     }
+    public async IAsyncEnumerable<DocumentResponse> GetCategoriesAsync(
+    [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var response = await httpClient.GetAsync("api/documents", cancellationToken);
+
+        Console.WriteLine(response);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var options = SerializerOptions.Default;
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+            Console.WriteLine(stream.ToString());
+            await foreach (var document in
+                JsonSerializer.DeserializeAsyncEnumerable<DocumentResponse>(stream, options, cancellationToken))
+            {
+                if (document is null)
+                {
+                    continue;
+                }
+
+                yield return document;
+            }
+        }
+    }
 
     public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request)
-        {
+    {
 
         Console.WriteLine("Entered Here...");
         return PostRequestAsync(request, "api/chat");
