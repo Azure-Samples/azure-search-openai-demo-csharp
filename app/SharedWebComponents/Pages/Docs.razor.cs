@@ -16,6 +16,8 @@ public sealed partial class Docs : IDisposable
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly HashSet<DocumentResponse> _documents = [];
 
+    public string category = "";
+
     [Inject]
     public required ApiClient Client { get; set; }
 

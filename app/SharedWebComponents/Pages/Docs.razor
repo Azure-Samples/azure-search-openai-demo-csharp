@@ -70,6 +70,9 @@
                             </MudExpansionPanels>
                         </SelectedTemplate>
                     </MudFileUpload>
+                    <MudTextField T="string" Lines="1" Variant="Variant.Outlined"
+                             Label="Enter Category" Placeholder="Must Enter a Category" Class="pa-2"
+                             @bind-Value="category" Clearable="true" />
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton StartIcon="@Icons.Material.Filled.Clear"
@@ -83,7 +86,7 @@
                     <MudButton StartIcon="@Icons.Material.Filled.Upload"
                                Variant="Variant.Filled"
                                Color="Color.Primary"
-                               Disabled=@(!FilesSelected)
+                               Disabled=@(!FilesSelected || category == string.Empty)
                                Size="Size.Large" Class="ml-auto mr-2 mb-2"
                                OnClick="@(async _ => await SubmitFilesForUploadAsync())">
                         Upload File(s)
