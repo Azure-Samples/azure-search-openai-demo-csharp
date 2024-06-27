@@ -197,16 +197,6 @@ static async ValueTask UploadBlobsAndCreateIndexAsync(
                 document.Save(tempFileName);
 
                 await using var stream = File.OpenRead(tempFileName);
-                /*var uploadOptions = new BlobUploadOptions();
-                uploadOptions.Tags = new Dictionary<string, string>
-                {
-                    { "category", options.Category ?? "knipper" }
-                };
-                uploadOptions.HttpHeaders = new BlobHttpHeaders
-                {
-                    ContentType = "application/pdf"
-                };
-                await blobClient.UploadAsync(stream, uploadOptions);*/
                 await blobClient.UploadAsync(stream, new BlobHttpHeaders
                 {
                     ContentType = "application/pdf"

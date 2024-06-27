@@ -1,15 +1,67 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.AI.FormRecognizer.DocumentAnalysis;
+using Azure.AI.OpenAI;
+using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents;
+using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Builder.Extensions;
+using System.IO;
+
 namespace MinimalApi.Services;
 
 internal sealed class AzureBlobStorageService(BlobContainerClient container)
 {
     internal static DefaultAzureCredential DefaultCredential { get; } = new();
 
-    internal async Task<UploadDocumentsResponse> UploadFilesAsync(IEnumerable<IFormFile> files, CancellationToken cancellationToken)
+    internal async Task<UploadDocumentsResponse> UploadFilesAsync(IEnumerable<IFormFile> files, string category, CancellationToken cancellationToken)
     {
         try
         {
+
+            /*string openAiEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? string.Empty;
+            string embeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? string.Empty;
+            string searchServiceEndpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? string.Empty;
+            string searchIndex = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? string.Empty;
+            string formRecognizerServiceEndpoint = Environment.GetEnvironmentVariable("AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT") ?? string.Empty;
+            string storageBlobEndpoint = Environment.GetEnvironmentVariable("AZURE_STORAGE_BLOB_ENDPOINT") ?? string.Empty;*/
+
+            string openAiEndpoint = "https://cog-r6lomx22dqabk.openai.azure.com/";
+            string embeddingDeployment = "embedding";
+            string searchServiceEndpoint = "https://gptkb-r6lomx22dqabk.search.windows.net/";
+            string searchIndex = "gptkbindex";
+            string formRecognizerServiceEndpoint = "https://cog-fr-r6lomx22dqabk.cognitiveservices.azure.com/";
+            string storageBlobEndpoint = "https://str6lomx22dqabk.blob.core.windows.net/";
+
+            DefaultAzureCredential defaultCredential = new DefaultAzureCredential();
+            var embedService = new AzureSearchEmbedService(
+                openAIClient: new OpenAIClient(
+                    new Uri(openAiEndpoint),
+                    defaultCredential),
+                embeddingModelName: embeddingDeployment,
+                searchClient: new SearchClient(
+                    new Uri(searchServiceEndpoint),
+                    searchIndex,
+                    defaultCredential),
+                searchIndexName: searchIndex,
+                searchIndexClient: new SearchIndexClient(
+                    new Uri(searchServiceEndpoint),
+                    defaultCredential),
+                documentAnalysisClient: new DocumentAnalysisClient(
+                    new Uri(formRecognizerServiceEndpoint),
+                    defaultCredential,
+                    new DocumentAnalysisClientOptions
+                    {
+                        Diagnostics =
+                        {
+                            IsLoggingContentEnabled = true
+                        }
+                    }),
+                corpusContainerClient: new BlobServiceClient(
+                    new Uri(storageBlobEndpoint),
+                    defaultCredential).GetBlobContainerClient("corpus")
+            );
+
             List<string> uploadedFiles = [];
             foreach (var file in files)
             {
@@ -69,14 +121,19 @@ internal sealed class AzureBlobStorageService(BlobContainerClient container)
                         }
                     }
                 }
+                // revert stream position
+                stream.Position = 0;
+                await embedService.EmbedPDFBlobAsync(stream, fileName, category);
             }
 
             if (uploadedFiles.Count is 0)
             {
                 return UploadDocumentsResponse.FromError("""
                     No files were uploaded. Either the files already exist or the files are not PDFs or images.
-                    """);
+                    """
+                );
             }
+            
 
             return new UploadDocumentsResponse([.. uploadedFiles]);
         }
