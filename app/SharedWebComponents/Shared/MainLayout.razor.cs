@@ -42,6 +42,7 @@ public sealed partial class MainLayout
 
     public RequestSettingsOverrides Settings2 { get; set; } = new();
 
+
     public List<string>? cList = null;
 
 
@@ -88,7 +89,6 @@ public sealed partial class MainLayout
 
     protected override async Task OnInitializedAsync()
     {
-
         var httpClient = new HttpClient();
         //httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         //httpClient.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -96,7 +96,11 @@ public sealed partial class MainLayout
         HttpRequestMessage request = new();
         request.RequestUri = new Uri("https://gptkb-r6lomx22dqabk.search.windows.net/indexes/gptkbindex/docs?api-version=2024-05-01-preview&facet=category,count:1000");
         request.Method = HttpMethod.Get;
+      
+      // FIXME : Doesn't work locally
         request.Headers.Add("api-key", Environment.GetEnvironmentVariable("SEARCH_SERVICE_KEY"));
+      
+ 
         //request.Headers.Add("Access-Control-Allow-Origin", "*");
         
         //request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -112,6 +116,7 @@ public sealed partial class MainLayout
             if (response.IsSuccessStatusCode)
             {
                 //jsonResponse = await response.Content.ReadAsStringAsync();
+
                 // Assuming the API returns a JSON array of strings.
                 //cList = JsonConvert.DeserializeObject<List<string>>(jsonResponse);
                 jsonResponse = await response.Content.ReadAsStringAsync();

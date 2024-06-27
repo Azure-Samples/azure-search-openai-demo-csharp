@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "secrets1": {
-      "type": "secrets",
-      "connectionId": "AZURE_KEY_VAULT_ENDPOINT"
-    }
-  }
-}

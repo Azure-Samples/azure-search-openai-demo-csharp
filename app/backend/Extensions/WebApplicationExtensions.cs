@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using MinimalApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using Newtonsoft;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
-using Microsoft.Extensions.FileSystemGlobbing;
-using Shared.Models;
 
 
 namespace MinimalApi.Extensions;
@@ -37,19 +33,8 @@ internal static class WebApplicationExtensions
         api.MapGet("enableLogout", OnGetEnableLogout);
 
         api.MapGet("categories", OnGetCategories);
-
         return app;
     }
-
-    private static IResult OnGetCategories(HttpContext context)
-    {
-        var dataPath = "../../data/";
-        var subdirs = Directory.GetDirectories(dataPath);
-        var categories = subdirs.Select(Path.GetFileName).ToList();
-
-        return Results.Json(categories);
-    }
-
 
     private static IResult OnGetEnableLogout(HttpContext context)
     {
@@ -84,7 +69,7 @@ internal static class WebApplicationExtensions
                     new ChatRequestUserMessage(prompt.Prompt)
                 }
             }, cancellationToken);
-        
+
         await foreach (var choice in response.WithCancellation(cancellationToken))
         {
             if (choice.ContentUpdate is { Length: > 0 })
@@ -92,7 +77,7 @@ internal static class WebApplicationExtensions
                 yield return new ChatChunkResponse(choice.ContentUpdate.Length, choice.ContentUpdate);
             }
         }
-        Console.WriteLine("Prompt: "+ prompt.Prompt);
+        Console.WriteLine("Prompt: " + prompt.Prompt);
         await Task.Delay(1);
 
     }
@@ -138,6 +123,16 @@ internal static class WebApplicationExtensions
         return TypedResults.Ok(response);
     }
 
+    private static IResult OnGetCategories(HttpContext context)
+{
+    // var dataPath = "../../data/";
+    // var subdirs = Directory.GetDirectories(dataPath);
+    // var categories = subdirs.Select(Path.GetFileName).ToList();
+            // FIXME: testing hardcoded values for endpoint
+    var categories = new List<string> {"abbv", "knipper"};
+ 
+    return Results.Json(categories);
+}
     private static async IAsyncEnumerable<DocumentResponse> OnGetDocumentsAsync(
         BlobContainerClient client,
         [EnumeratorCancellation] CancellationToken cancellationToken)

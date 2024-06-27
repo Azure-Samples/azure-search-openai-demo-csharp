@@ -79,11 +79,6 @@ jobs:
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Set up Resource Group
-        run: azd config set alpha.resourceGroupDeployments on
-        env:
-          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-
       - name: Provision Infrastructure
         run: azd provision --no-prompt --debug
         env:
