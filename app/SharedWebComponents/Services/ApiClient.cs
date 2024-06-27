@@ -89,9 +89,8 @@ public sealed class ApiClient(HttpClient httpClient)
             }
         }
     }
-
     public async IAsyncEnumerable<DocumentResponse> GetCategoriesAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var response = await httpClient.GetAsync("api/documents", cancellationToken);
 
@@ -118,7 +117,7 @@ public sealed class ApiClient(HttpClient httpClient)
     }
 
     public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request)
-        {
+    {
 
         Console.WriteLine("Entered Here...");
         return PostRequestAsync(request, "api/chat");

@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Microsoft.AspNetCore.Antiforgery;
-using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
-
-//var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("AZURE_KEY_VAULT_TOKEN"));
-//builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new VisualStudioCredential());
 
 builder.Configuration.ConfigureAzureKeyVault();
 
@@ -92,13 +88,13 @@ app.UseAntiforgery();
 app.MapRazorPages();
 app.MapControllers();
 
-//app.Use(next => context =>
-//{
-//    var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
-//    var tokens = antiforgery.GetAndStoreTokens(context);
-//    context.Response.Cookies.Append("XSRF-TOKEN", tokens?.RequestToken ?? string.Empty, new CookieOptions() { HttpOnly = false });
-//    return next(context);
-//});
+app.Use(next => context =>
+{
+    var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
+    var tokens = antiforgery.GetAndStoreTokens(context);
+    context.Response.Cookies.Append("XSRF-TOKEN", tokens?.RequestToken ?? string.Empty, new CookieOptions() { HttpOnly = false });
+    return next(context);
+});
 app.MapFallbackToFile("index.html");
 
 app.MapApi();
