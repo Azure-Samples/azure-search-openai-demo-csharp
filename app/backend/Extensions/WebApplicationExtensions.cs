@@ -95,37 +95,6 @@ internal static class WebApplicationExtensions
         Console.WriteLine("Prompt: "+ prompt.Prompt);
         await Task.Delay(1);
 
-        /*var httpClient = new HttpClient();
-
-        var endpoint = new Uri("https://app-backend-2aogn7isw2jry.azurewebsites.net/chat"); // endpoint uri must be set this way
-
-        var promptToSend = new PostAppRequest();
-        var message = new MinimalApi.Models.ResponseMessage();
-        message.content = prompt.Prompt;
-        message.role = "user";
-        // add the message to messages array
-        promptToSend.messages.Add(message);
-        
-
-        var json = JsonSerializer.Serialize(promptToSend);
-        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-        // print the content as string
-        // Console.WriteLine(content.ReadAsStringAsync().Result);
-        var response = httpClient.PostAsync(endpoint, content).Result;
-        ChatPromptResponse chatPromptResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<ChatPromptResponse>(response.Content.ReadAsStringAsync().Result) ?? new();
-
-        content.Dispose();
-        httpClient.Dispose(); // must dispose of the HttpClient when done
-
-
-        string chatString = chatPromptResponse.choices[0].message.content;
-
-        var responseString = response.Content.ReadAsStringAsync().Result;
-
-        yield return new ChatChunkResponse(chatString.Length, chatString);*/
-
-
-
     }
 
     private static async Task<IResult> OnPostChatAsync(
