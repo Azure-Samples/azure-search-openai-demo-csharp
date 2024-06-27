@@ -89,7 +89,6 @@ public sealed partial class MainLayout
 
     protected override async Task OnInitializedAsync()
     {
-        Settings = new();
         var httpClient = new HttpClient();
         //httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         //httpClient.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
