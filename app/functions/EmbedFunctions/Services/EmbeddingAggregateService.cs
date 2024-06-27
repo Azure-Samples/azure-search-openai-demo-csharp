@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+
 namespace EmbedFunctions.Services;
 
 public sealed class EmbeddingAggregateService(
@@ -8,6 +9,7 @@ public sealed class EmbeddingAggregateService(
     BlobContainerClient corpusClient,
     ILogger<EmbeddingAggregateService> logger)
 {
+
     internal async Task EmbedBlobAsync(Stream blobStream, string blobName)
     {
         try

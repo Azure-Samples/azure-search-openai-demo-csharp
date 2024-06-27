@@ -35,7 +35,8 @@
 
     private HashSet<T> selectedValues = new HashSet<T>();
 
-    public RequestSettingsOverrides Settings { get; set; } = new();
+    //[CascadingParameter(Name = nameof(Settings))]
+    //public required RequestSettingsOverrides Settings { get; set; }
 
     protected override void OnParametersSet()
     {
@@ -44,12 +45,12 @@
         if (Values == null)
         {
             selectedValues.Clear();
-            Settings.Overrides.ExcludeCategory = new List<string>();
+            //Settings.Overrides.ExcludeCategory = new List<string>();
         }
         else if (!Values.SequenceEqual(selectedValues))
         {
             selectedValues = Values.ToHashSet();
-            Settings.Overrides.ExcludeCategory = selectedValues.Select(GetNameFunc).ToList();
+            //Settings.Overrides.ExcludeCategory = selectedValues.Select(GetNameFunc).ToList();
             ValuesChanged.InvokeAsync(Values);
         }
     }
@@ -57,8 +58,7 @@
     private void RefreshBinding()
     {
         Values = selectedValues.ToList();
-        Settings.Overrides.ExcludeCategory = selectedValues.Select(GetNameFunc).ToList();
-        Console.WriteLine("Excluded Categories: " + string.Join(", ", Settings.Overrides.ExcludeCategory));
+        //Settings.Overrides.ExcludeCategory = selectedValues.Select(GetNameFunc).ToList();
         ValuesChanged.InvokeAsync(Values);
         StateHasChanged();
     }

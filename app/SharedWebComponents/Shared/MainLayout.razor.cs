@@ -6,6 +6,10 @@ using System.Threading;
 using Azure.Storage.Blobs;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Net.Http.Headers;
+using static MudBlazor.Colors;
+
 
 
 namespace SharedWebComponents.Shared;
@@ -36,7 +40,8 @@ public sealed partial class MainLayout
     [Inject] public required ILocalStorageService LocalStorage { get; set; }
     [Inject] public required IDialogService Dialog { get; set; }
 
-    public RequestSettingsOverrides Settings { get; set; } = new();
+    public RequestSettingsOverrides Settings2 { get; set; } = new();
+
 
     public List<string>? cList = null;
 
@@ -86,19 +91,40 @@ public sealed partial class MainLayout
     {
         Settings = new();
         var httpClient = new HttpClient();
-        var endpoint = new Uri("https://ca-web-lwaqutnfw7yny.yellowcliff-105b26b2.eastus2.azurecontainerapps.io/api/categories");
+        //httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //httpClient.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+        HttpRequestMessage request = new();
+        request.RequestUri = new Uri("https://gptkb-r6lomx22dqabk.search.windows.net/indexes/gptkbindex/docs?api-version=2024-05-01-preview&facet=category,count:1000");
+        request.Method = HttpMethod.Get;
+      
+      // FIXME : Doesn't work locally
+        request.Headers.Add("api-key", Environment.GetEnvironmentVariable("SEARCH_SERVICE_KEY"));
+      
+ 
+        //request.Headers.Add("Access-Control-Allow-Origin", "*");
+        
+        //request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var endpoint = new Uri("https://gptkb-r6lomx22dqabk.search.windows.net/indexes/gptkbindex/docs?api-version=2024-05-01-preview&facet=category,count:1000");
 
         try
         {
 
             // Assuming GetCategoriesAsync returns a List<string> or similar collection of category names.
-
-            HttpResponseMessage response = await httpClient.GetAsync(endpoint);
+            
+            HttpResponseMessage response = await httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                jsonResponse = await response.Content.ReadAsStringAsync();
+                //jsonResponse = await response.Content.ReadAsStringAsync();
+
                 // Assuming the API returns a JSON array of strings.
-                cList = JsonConvert.DeserializeObject<List<string>>(jsonResponse);
+                //cList = JsonConvert.DeserializeObject<List<string>>(jsonResponse);
+                jsonResponse = await response.Content.ReadAsStringAsync();
+                var categories = JObject.Parse(jsonResponse)["@search.facets"]["category"]
+                    .Select(c => c["value"].ToString())
+                    .ToList();
+                cList = categories;
             }
             else
             {
