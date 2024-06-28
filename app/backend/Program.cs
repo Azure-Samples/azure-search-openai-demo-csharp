@@ -93,6 +93,12 @@ app.Use(next => context =>
     var antiforgery = app.Services.GetRequiredService<IAntiforgery>();
     var tokens = antiforgery.GetAndStoreTokens(context);
     context.Response.Cookies.Append("XSRF-TOKEN", tokens?.RequestToken ?? string.Empty, new CookieOptions() { HttpOnly = false });
+    
+    // FIXME: Enable site embeddable, security risk for content security policy
+    // Remove the X-Frame-Options header entirely
+    context.Response.Headers.Remove("X-Frame-Options");
+    // Add or modify the Content-Security-Policy header
+    context.Response.Headers.Add("Content-Security-Policy", "frame-ancestors *;");
     return next(context);
 });
 app.MapFallbackToFile("index.html");
