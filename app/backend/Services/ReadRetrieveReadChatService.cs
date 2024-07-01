@@ -26,7 +26,10 @@ public class ReadRetrieveReadChatService
         _searchClient = searchClient;
         var kernelBuilder = Kernel.CreateBuilder();
 
-        if (configuration["UseAOAI"] == "false")
+        bool useAzureOpenAI = (configuration["UseAOAI"] == "true");
+        useAzureOpenAI = true;
+
+        if (!useAzureOpenAI)
         {
             var deployment = configuration["OpenAiChatGptDeployment"];
             ArgumentNullException.ThrowIfNullOrWhiteSpace(deployment);
@@ -38,9 +41,11 @@ public class ReadRetrieveReadChatService
         }
         else
         {
-            var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
+            //var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
+            var deployedModelName = "chat";
             ArgumentNullException.ThrowIfNullOrWhiteSpace(deployedModelName);
-            var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
+            //var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
+            var embeddingModelName = "embedding";
             if (!string.IsNullOrEmpty(embeddingModelName))
             {
                 var endpoint = configuration["AzureOpenAiServiceEndpoint"];
@@ -86,11 +91,15 @@ public class ReadRetrieveReadChatService
         var embedding = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
         float[]? embeddings = null;
         var question = history.LastOrDefault(m => m.IsUser)?.Content is { } userQuestion
-            ? userQuestion
+            ? userQuestion.Replace("knipper", string.Empty)
             : throw new InvalidOperationException("Use question is null");
 
+        question += " 2024";
+
+
+
         string[]? followUpQuestionList = null;
-        if (overrides?.RetrievalMode != RetrievalMode.Text && embedding is not null)
+        if (overrides?.RetrievalMode != RetrievalMode.Text && embedding is not null) // if Vector mode
         {
             embeddings = (await embedding.GenerateEmbeddingAsync(question, cancellationToken: cancellationToken)).ToArray();
         }
@@ -98,13 +107,13 @@ public class ReadRetrieveReadChatService
         // step 1
         // use llm to get query if retrieval mode is not vector
         string? query = null;
-        if (overrides?.RetrievalMode != RetrievalMode.Vector)
+        if (overrides?.RetrievalMode != RetrievalMode.Vector) // if Text mode
         {
             var getQueryChat = new ChatHistory(@"You are a helpful AI assistant, generate search query for followup question.
-Make your respond simple and precise. Return the query only, do not return any other text.
+Make your response simple and precise. Return the query only, do not return any other text. Your query should start with the keywords Knipper and the current year.
 e.g.
-Knipper Health Plus AND standard plan.
-standard plan AND dental AND employee benefit.
+Knipper 2024 Health Plus AND standard plan.
+Knipper 2024 standard plan AND dental AND employee benefit.
 ");
 
             getQueryChat.AddUserMessage(question);
@@ -114,6 +123,8 @@ standard plan AND dental AND employee benefit.
 
             query = result.Content ?? throw new InvalidOperationException("Failed to get search query");
         }
+
+
 
         // step 2
         // use query to search related docs
@@ -141,10 +152,12 @@ standard plan AND dental AND employee benefit.
         // step 3
         // put together related docs and conversation history to generate answer
         var answerChat = new ChatHistory(
-            "You are a system assistant who helps the company employees with their questions. Be brief in your answer. " +
-            "Answer ONLY with the facts listed in the provided sources. If there isn't enough information, politely express that you don't know the answer. " +
-            "Do not generate answers that don't use the sources. If asking a clarifying question to the user would help, ask the question. " +
-            "For tabular information return it as an html table. Do not return markdown format. If the question is not in English, answer in the language used in the question.");
+           "You are a system assistant who helps the company Knipper's employees with their questions. Be brief in your answer. " +
+           "First try to answer ONLY with the facts listed in the provided sources. " +
+           "Assume all provided sources are related to Knipper Health, and answer with the most recently relevant information. " +
+           "If there isn't enough information, politely express that the answer is not in the provided documents and then search the internet to provide an answer. " +
+           "If asking a clarifying question to the user would help, ask the question. For tabular information return it as an html table. " +
+           "Do not return markdown format. If the question is not in English, answer in the language used in the question.");
 
         // add chat history
         foreach (var message in history)
