@@ -38,10 +38,9 @@ internal static class WebApplicationExtensions
 
     private static IResult OnGetCategories(HttpContext context)
     {
-        var dataPath = "../../data/";
-        var subdirs = Directory.GetDirectories(dataPath);
-        var categories = subdirs.Select(Path.GetFileName).ToList();
+        // FIXME: this isn't even being used..?
 
+        var categories = new List<string> {"abbv", "knipper"}; // default cats
         return Results.Json(categories);
     }
 
