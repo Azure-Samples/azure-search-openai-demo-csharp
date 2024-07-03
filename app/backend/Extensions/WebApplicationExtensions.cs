@@ -36,6 +36,16 @@ internal static class WebApplicationExtensions
         return app;
     }
 
+    private static IResult OnGetCategories(HttpContext context)
+    {
+        var dataPath = "../../data/";
+        var subdirs = Directory.GetDirectories(dataPath);
+        var categories = subdirs.Select(Path.GetFileName).ToList();
+
+        return Results.Json(categories);
+    }
+
+
     private static IResult OnGetEnableLogout(HttpContext context)
     {
         var header = context.Request.Headers["X-MS-CLIENT-PRINCIPAL-ID"];
