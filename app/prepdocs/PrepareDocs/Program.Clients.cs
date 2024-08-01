@@ -26,12 +26,14 @@ internal static partial class Program
             var blobContainerClient = await GetCorpusBlobContainerClientAsync(o);
             var openAIClient = await GetOpenAIClientAsync(o);
             var embeddingModelName = o.EmbeddingModelName ?? throw new ArgumentNullException(nameof(o.EmbeddingModelName));
+            var embeddingModelDimensions = o.EmbeddingModelDimensions;
             var searchIndexName = o.SearchIndexName ?? throw new ArgumentNullException(nameof(o.SearchIndexName));
             var computerVisionService = await GetComputerVisionServiceAsync(o);
 
             return new AzureSearchEmbedService(
                 openAIClient: openAIClient,
                 embeddingModelName: embeddingModelName,
+                embeddingModelDimensions: embeddingModelDimensions,
                 searchClient: searchClient,
                 searchIndexName: searchIndexName,
                 searchIndexClient: searchIndexClient,

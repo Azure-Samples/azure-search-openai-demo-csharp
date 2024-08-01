@@ -61,6 +61,12 @@ param embeddingDeploymentCapacity int = 30
 @description('Name of the embedding model. Default: text-embedding-ada-002')
 param azureEmbeddingModelName string = 'text-embedding-ada-002'
 
+@description('Version of the embedding model')
+param azureEmbeddingModelVersion string = '2'
+
+@description('Dimensions of the embedding model. Defaults: 1536')
+param azureEmbeddingModelDimensions string = '1536'
+
 @description('Name of the container apps environment')
 param containerAppsEnvironmentName string = ''
 
@@ -122,7 +128,7 @@ param searchIndexName string = 'gptkbindex'
 param searchServiceName string = ''
 
 @description('Location of the resource group for the Azure AI Search service')
-param searchServiceResourceGroupLocation string = location
+param searchServiceResourceGroupLocation string = ''
 
 @description('Name of the resource group for the Azure AI Search service')
 param searchServiceResourceGroupName string = ''
@@ -328,6 +334,7 @@ module web './app/web.bicep' = {
     openAiEndpoint: useAOAI ? azureOpenAi.outputs.endpoint : ''
     openAiChatGptDeployment: useAOAI ? azureChatGptDeploymentName : ''
     openAiEmbeddingDeployment: useAOAI ? azureEmbeddingDeploymentName : ''
+    openAiEmbeddingModelDimensions: azureEmbeddingModelDimensions
     serviceBinds: []
   }
 }
@@ -366,6 +373,7 @@ module function './app/function.bicep' = {
       AZURE_SEARCH_INDEX: searchIndexName
       AZURE_STORAGE_BLOB_ENDPOINT: storage.outputs.primaryEndpoints.blob
       AZURE_OPENAI_EMBEDDING_DEPLOYMENT: useAOAI ? azureEmbeddingDeploymentName : ''
+      AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS: useAOAI ? azureEmbeddingModelDimensions : ''
       OPENAI_EMBEDDING_DEPLOYMENT: useAOAI ? '' : openAiEmbeddingDeployment
       AZURE_OPENAI_ENDPOINT: useAOAI ? azureOpenAi.outputs.endpoint : ''
       USE_VISION: string(useVision)
@@ -407,7 +415,7 @@ module azureOpenAi 'core/ai/cognitiveservices.bicep' = if (useAOAI) {
         model: {
           format: 'OpenAI'
           name: azureEmbeddingModelName
-          version: '2'
+          version: azureEmbeddingModelVersion
         }
         sku: {
           name: 'Standard'
@@ -748,6 +756,7 @@ output AZURE_LOCATION string = location
 output AZURE_OPENAI_RESOURCE_LOCATION string = openAiResourceGroupLocation
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = azureChatGptDeploymentName
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = azureEmbeddingDeploymentName
+output AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS string = azureEmbeddingModelDimensions
 output AZURE_OPENAI_ENDPOINT string = useAOAI? azureOpenAi.outputs.endpoint : ''
 output AZURE_OPENAI_RESOURCE_GROUP string = useAOAI ? azureOpenAiResourceGroup.name : ''
 output AZURE_OPENAI_SERVICE string = useAOAI ? azureOpenAi.outputs.name : ''
