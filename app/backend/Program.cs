@@ -1,6 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.AspNetCore.Antiforgery;
+using OpenTelemetry;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,14 +22,30 @@ builder.Services.AddAzureServices();
 builder.Services.AddAntiforgery(options => { options.HeaderName = "X-CSRF-TOKEN-HEADER"; options.FormFieldName = "X-CSRF-TOKEN-FORM"; });
 builder.Services.AddHttpClient();
 
+static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddDistributedMemoryCache();
+
+    builder.Logging.AddOpenTelemetry(
+        options =>
+        {
+            options.AddOtlpExporter();
+        }
+    );
+    using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        .AddMeter("Microsoft.SemanticKernel*")
+        .AddOtlpExporter()
+        .Build();
+
+    using var traceProvider = Sdk.CreateTracerProviderBuilder()
+        .AddSource("Microsoft.SemanticKernel*")
+        .AddOtlpExporter()
+        .Build();
 }
 else
 {
-    static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
-
     builder.Services.AddStackExchangeRedisCache(options =>
     {
         var name = builder.Configuration["AzureRedisCacheName"] +
@@ -62,6 +83,10 @@ else
         {
             option.ConnectionString = appInsightsConnectionString;
         });
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter("Microsoft.SemanticKernel*")
+            .AddAzureMonitorMetricExporter(options => options.ConnectionString = appInsightsConnectionString)
+            .Build();
     }
 }
 
