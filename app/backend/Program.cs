@@ -24,6 +24,7 @@ builder.Services.AddAzureServices();
 builder.Services.AddAntiforgery(options => { options.HeaderName = "X-CSRF-TOKEN-HEADER"; options.FormFieldName = "X-CSRF-TOKEN-FORM"; });
 builder.Services.AddHttpClient();
 
+List<IDisposable> disposables = [];
 static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
 
 if (builder.Environment.IsDevelopment())
@@ -39,7 +40,7 @@ if (builder.Environment.IsDevelopment())
             });
         }
     );
-    using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    var meterProvider = Sdk.CreateMeterProviderBuilder()
         .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("SearchDemo"))
         .AddMeter("Microsoft.SemanticKernel*")
         .AddMeter("Azure.*")
@@ -49,9 +50,8 @@ if (builder.Environment.IsDevelopment())
             config.Endpoint = new Uri(defaultEndpoint);
         })
         .Build();
-
-    using var traceProvider = Sdk.CreateTracerProviderBuilder()
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("SearchDemo"))
+    disposables.Add(meterProvider);
+    var traceProvider = Sdk.CreateTracerProviderBuilder()
         .AddSource("Microsoft.SemanticKernel*")
         .AddSource("Azure.*")
         .AddSource("Microsoft.ML.*")
@@ -63,6 +63,7 @@ if (builder.Environment.IsDevelopment())
             config.Endpoint = new Uri(defaultEndpoint);
         })
         .Build();
+    disposables.Add(traceProvider);
 }
 else
 {
@@ -92,8 +93,6 @@ else
             {name},abortConnect=false,ssl={ssl},allowAdmin=true,password={key}
             """;
         options.InstanceName = "content";
-
-        
     });
 
     // set application telemetry
@@ -103,10 +102,11 @@ else
         {
             option.ConnectionString = appInsightsConnectionString;
         });
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddMeter("Microsoft.SemanticKernel*")
             .AddAzureMonitorMetricExporter(options => options.ConnectionString = appInsightsConnectionString)
             .Build();
+        disposables.Add(meterProvider);
     }
 }
 
@@ -145,3 +145,8 @@ app.MapFallbackToFile("index.html");
 app.MapApi();
 
 app.Run();
+
+foreach (var d in disposables)
+{
+    d.Dispose();
+}
