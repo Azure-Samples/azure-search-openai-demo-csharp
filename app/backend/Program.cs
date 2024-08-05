@@ -3,8 +3,10 @@
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.AspNetCore.Antiforgery;
 using OpenTelemetry;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,21 +29,39 @@ static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddDistributedMemoryCache();
-
+    var defaultEndpoint = GetEnvVar("OTEL_EXPORTER_OTLP_ENDPOINT") ?? "http://localhost:4317";
     builder.Logging.AddOpenTelemetry(
         options =>
         {
-            options.AddOtlpExporter();
+            options.AddOtlpExporter(config => {
+                config.Protocol = OtlpExportProtocol.Grpc;
+                config.Endpoint = new Uri(defaultEndpoint);
+            });
         }
     );
     using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("SearchDemo"))
         .AddMeter("Microsoft.SemanticKernel*")
-        .AddOtlpExporter()
+        .AddMeter("Azure.*")
+        .AddOtlpExporter(config =>
+        {
+            config.Protocol = OtlpExportProtocol.Grpc;
+            config.Endpoint = new Uri(defaultEndpoint);
+        })
         .Build();
 
     using var traceProvider = Sdk.CreateTracerProviderBuilder()
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("SearchDemo"))
         .AddSource("Microsoft.SemanticKernel*")
-        .AddOtlpExporter()
+        .AddSource("Azure.*")
+        .AddSource("Microsoft.ML.*")
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddOtlpExporter(config =>
+        {
+            config.Protocol = OtlpExportProtocol.Grpc;
+            config.Endpoint = new Uri(defaultEndpoint);
+        })
         .Build();
 }
 else
