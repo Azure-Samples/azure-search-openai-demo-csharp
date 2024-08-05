@@ -21,16 +21,16 @@ internal static partial class Program
         new(name: "--tenantid", description: "Optional. Use this to define the Azure directory where to authenticate)");
 
     private static readonly Option<string> s_searchService =
-        new(name: "--searchendpoint", description: "The Azure Cognitive Search service endpoint where content should be indexed (must exist already)");
+        new(name: "--searchendpoint", description: "The Azure AI Search service endpoint where content should be indexed (must exist already)");
 
     private static readonly Option<string> s_searchIndexName =
-        new(name: "--searchindex", description: "Name of the Azure Cognitive Search index where content should be indexed (will be created if it doesn't exist)");
+        new(name: "--searchindex", description: "Name of the Azure AI Search index where content should be indexed (will be created if it doesn't exist)");
 
     private static readonly Option<string> s_azureOpenAIService =
         new(name: "--openaiendpoint", description: "Optional. The Azure OpenAI service endpoint which will be used to extract text, tables and layout from the documents (must exist already)");
 
     private static readonly Option<string> s_embeddingModelName =
-        new(name: "--embeddingmodel", description: "Optional. Name of the Azure Cognitive Search embedding model to use for embedding content in the search index (will be created if it doesn't exist)");
+        new(name: "--embeddingmodel", description: "Optional. Name of the Azure AI Search embedding model to use for embedding content in the search index (will be created if it doesn't exist)");
 
     private static readonly Option<bool> s_remove =
        new(name: "--remove", description: "Remove references to this document from blob storage and the search index");

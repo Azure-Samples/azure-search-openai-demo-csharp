@@ -1,3 +1,4 @@
+metadata description = 'Creates or updates an existing Azure Container App.'
 param name string
 param location string = resourceGroup().location
 param tags object = {}
@@ -24,6 +25,9 @@ param containerName string = 'main'
 
 @description('The name of the container registry')
 param containerRegistryName string = ''
+
+@description('Hostname suffix for container registry. Set when deploying to sovereign clouds')
+param containerRegistryHostSuffix string = 'azurecr.io'
 
 @allowed([ 'http', 'grpc' ])
 @description('The protocol used by Dapr to connect to the app, e.g., HTTP or gRPC')
@@ -52,12 +56,13 @@ param identityName string = ''
 param imageName string = ''
 
 @description('The secrets required for the container')
-param secrets array = []
+@secure()
+param secrets object = {}
 
 @description('The environment variables for the container')
 param env array = []
 
-@description('Specifies if the resource is external')
+@description('Specifies if the resource ingress is exposed externally')
 param external bool = true
 
 @description('The service binds associated with the container')
@@ -66,7 +71,7 @@ param serviceBinds array = []
 @description('The target port for the container')
 param targetPort int = 80
 
-resource existingApp 'Microsoft.App/containerApps@2023-04-01-preview' existing = if (exists) {
+resource existingApp 'Microsoft.App/containerApps@2023-05-02-preview' existing = if (exists) {
   name: name
 }
 
@@ -82,6 +87,7 @@ module app 'container-app.bicep' = {
     containerName: containerName
     containerAppsEnvironmentName: containerAppsEnvironmentName
     containerRegistryName: containerRegistryName
+    containerRegistryHostSuffix: containerRegistryHostSuffix
     containerCpuCoreCount: containerCpuCoreCount
     containerMemory: containerMemory
     containerMinReplicas: containerMinReplicas

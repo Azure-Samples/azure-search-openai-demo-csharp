@@ -56,8 +56,8 @@ public class ReadRetrieveReadChatService
         _tokenCredential = tokenCredential;
     }
 
-    public async Task<ApproachResponse> ReplyAsync(
-        ChatTurn[] history,
+    public async Task<ChatAppResponse> ReplyAsync(
+        ChatMessage[] history,
         RequestOverrides? overrides,
         CancellationToken cancellationToken = default)
     {
@@ -69,9 +69,11 @@ public class ReadRetrieveReadChatService
         var chat = _kernel.GetRequiredService<IChatCompletionService>();
         var embedding = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
         float[]? embeddings = null;
-        var question = history.LastOrDefault()?.User is { } userQuestion
+        var question = history.LastOrDefault(m => m.IsUser)?.Content is { } userQuestion
             ? userQuestion
             : throw new InvalidOperationException("Use question is null");
+
+        string[]? followUpQuestionList = null;
         if (overrides?.RetrievalMode != RetrievalMode.Text && embedding is not null)
         {
             embeddings = (await embedding.GenerateEmbeddingAsync(question, cancellationToken: cancellationToken)).ToArray();
@@ -126,12 +128,15 @@ standard plan AND dental AND employee benefit.
             "You are a system assistant who helps the company employees with their questions. Be brief in your answers");
 
         // add chat history
-        foreach (var turn in history)
+        foreach (var message in history)
         {
-            answerChat.AddUserMessage(turn.User);
-            if (turn.Bot is { } botMessage)
+            if (message.IsUser)
             {
-                answerChat.AddAssistantMessage(botMessage);
+                answerChat.AddUserMessage(message.Content);
+            }
+            else
+            {
+                answerChat.AddAssistantMessage(message.Content);
             }
         }
 
@@ -215,17 +220,28 @@ e.g.
 
             var followUpQuestionsJson = followUpQuestions.Content ?? throw new InvalidOperationException("Failed to get search query");
             var followUpQuestionsObject = JsonSerializer.Deserialize<JsonElement>(followUpQuestionsJson);
-            var followUpQuestionsList = followUpQuestionsObject.EnumerateArray().Select(x => x.GetString()).ToList();
+            var followUpQuestionsList = followUpQuestionsObject.EnumerateArray().Select(x => x.GetString()!).ToList();
             foreach (var followUpQuestion in followUpQuestionsList)
             {
                 ans += $" <<{followUpQuestion}>> ";
             }
+
+            followUpQuestionList = followUpQuestionsList.ToArray();
         }
-        return new ApproachResponse(
-            DataPoints: documentContentList,
-            Images: images,
-            Answer: ans,
-            Thoughts: thoughts,
+
+        var responseMessage = new ResponseMessage("assistant", ans);
+        var responseContext = new ResponseContext(
+            DataPointsContent: documentContentList.Select(x => new SupportingContentRecord(x.Title, x.Content)).ToArray(),
+            DataPointsImages: images?.Select(x => new SupportingImageRecord(x.Title, x.Url)).ToArray(),
+            FollowupQuestions: followUpQuestionList ?? Array.Empty<string>(),
+            Thoughts: new[] { new Thoughts("Thoughts", thoughts) });
+
+        var choice = new ResponseChoice(
+            Index: 0,
+            Message: responseMessage,
+            Context: responseContext,
             CitationBaseUrl: _configuration.ToCitationBaseUrl());
+
+        return new ChatAppResponse(new[] { choice });
     }
 }

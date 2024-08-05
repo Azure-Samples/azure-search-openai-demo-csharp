@@ -11,7 +11,7 @@ param location string
 param tags string = ''
 
 @description('Location for the OpenAI resource group')
-@allowed([ 'canadaeast', 'westus', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus', 'australiaeast' ])
+@allowed([ 'canadaeast', 'westus', 'eastus', 'eastus2', 'francecentral', 'swedencentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus', 'australiaeast' ])
 @metadata({
   azd: {
     type: 'location'
@@ -20,7 +20,7 @@ param tags string = ''
 param openAiResourceGroupLocation string
 
 @description('Name of the chat GPT model. Default: gpt-35-turbo')
-@allowed([ 'gpt-35-turbo', 'gpt-4', 'gpt-35-turbo-16k', 'gpt-4-16k' ])
+@allowed([ 'gpt-35-turbo', 'gpt-4', 'gpt-4o', 'gpt-35-turbo-16k', 'gpt-4-16k' ])
 param azureOpenAIChatGptModelName string = 'gpt-35-turbo'
 
 param azureOpenAIChatGptModelVersion string ='0613'
@@ -118,16 +118,16 @@ param resourceGroupName string = ''
 @description('Name of the search index. Default: gptkbindex')
 param searchIndexName string = 'gptkbindex'
 
-@description('Name of the Azure Cognitive Search service')
+@description('Name of the Azure AI Search service')
 param searchServiceName string = ''
 
-@description('Location of the resource group for the Azure Cognitive Search service')
+@description('Location of the resource group for the Azure AI Search service')
 param searchServiceResourceGroupLocation string = location
 
-@description('Name of the resource group for the Azure Cognitive Search service')
+@description('Name of the resource group for the Azure AI Search service')
 param searchServiceResourceGroupName string = ''
 
-@description('SKU name for the Azure Cognitive Search service. Default: standard')
+@description('SKU name for the Azure AI Search service. Default: standard')
 param searchServiceSkuName string = 'standard'
 
 @description('Name of the storage account')
@@ -383,7 +383,6 @@ module monitoring 'core/monitor/monitoring.bicep' = {
   params: {
     location: location
     tags: updatedTags
-    includeDashboard: false
     includeApplicationInsights: true
     logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
     applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'
@@ -421,7 +420,7 @@ module azureOpenAi 'core/ai/cognitiveservices.bicep' = if (useAOAI) {
         model: {
           format: 'OpenAI'
           name: azureOpenAIChatGptModelName
-          version: 'vision-preview'
+          version: '2024-05-13'
         }
         sku: {
           name: 'Standard'

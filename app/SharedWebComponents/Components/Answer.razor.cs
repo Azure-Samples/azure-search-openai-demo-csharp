@@ -4,7 +4,7 @@ namespace SharedWebComponents.Components;
 
 public sealed partial class Answer
 {
-    [Parameter, EditorRequired] public required ApproachResponse Retort { get; set; }
+    [Parameter, EditorRequired] public required ResponseChoice Retort { get; set; }
     [Parameter, EditorRequired] public required EventCallback<string> FollowupQuestionClicked { get; set; }
 
     [Inject] public required IPdfViewer PdfViewer { get; set; }
@@ -14,7 +14,7 @@ public sealed partial class Answer
     protected override void OnParametersSet()
     {
         _parsedAnswer = ParseAnswerToHtml(
-            Retort.Answer, Retort.CitationBaseUrl);
+            Retort.Message.Content, Retort.CitationBaseUrl);
 
         base.OnParametersSet();
     }

@@ -52,7 +52,7 @@
                                 <MudBadge Origin="Origin.TopLeft" Overlap="true" Color="Color.Secondary"
                                           Icon="@Icons.Material.Filled.AutoAwesome"
                                           Style="display:inherit">
-                                    <Answer Retort="@answer" FollowupQuestionClicked="@OnAskQuestionAsync" />
+                                    <Answer Retort="@answer.Choices[0]" FollowupQuestionClicked="@OnAskQuestionAsync" />
                                 </MudBadge>
                             }
                         </div>
