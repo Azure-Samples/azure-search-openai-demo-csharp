@@ -101,17 +101,6 @@ In order to deploy and run this example, you'll need
 > [!WARNING]<br>
 > By default this sample will create an Azure Container App, and Azure AI Search resource that have a monthly cost, as well as Form Recognizer resource that has cost per document page. You can switch them to free versions of each of them if you want to avoid this cost by changing the parameters file under the infra folder (though there are some limits to consider; for example, you can have up to 1 free Cognitive Search resource per subscription, and the free Form Recognizer resource only analyzes the first 2 pages of each document.)
 
-### Cost estimation
-
-Pricing varies per region and usage, so it isn't possible to predict exact costs for your usage. However, you can try the [Azure pricing calculator](https://azure.microsoft.com/pricing/calculator/) for the resources below:
-
-- [**Azure Container Apps**](https://azure.microsoft.com/pricing/details/container-apps/)
-- [**Azure OpenAI Service**](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/)
-- [**Azure Form Recognizer**](https://azure.microsoft.com/pricing/details/form-recognizer/)
-- [**Azure AI Search**](https://azure.microsoft.com/pricing/details/search/)
-- [**Azure Blob Storage**](https://azure.microsoft.com/pricing/details/storage/blobs/)
-- [**Azure Monitor**](https://azure.microsoft.com/pricing/details/monitor/)
-
 ### Project setup
 
 You have a few options for setting up this project. The easiest way to get started is GitHub Codespaces, since it will setup all the tools for you, but you can also set it up [locally](#local-environment) if desired.
@@ -349,6 +338,19 @@ to production. Here are some things to consider:
 * **Authentication**: By default, the deployed app is publicly accessible. We recommend restricting access to authenticated users. See [Enabling authentication](#enabling-authentication) above for how to enable authentication.
 * **Networking**: We recommend deploying inside a Virtual Network. If the app is only for internal enterprise use, use a private DNS zone. Also consider using Azure API Management (APIM) for firewalls and other forms of protection. For more details, read [Azure OpenAI Landing Zone reference architecture](https://techcommunity.microsoft.com/t5/azure-architecture-blog/azure-openai-landing-zone-reference-architecture/ba-p/3882102).
 * **Loadtesting**: We recommend running a loadtest for your expected number of users.
+
+## Guidance
+
+### Cost estimation
+
+Pricing varies per region and usage, so it isn't possible to predict exact costs for your usage. However, you can try the [Azure pricing calculator](https://azure.microsoft.com/pricing/calculator/) for the resources below:
+
+- [**Azure Container Apps**](https://azure.microsoft.com/pricing/details/container-apps/)
+- [**Azure OpenAI Service**](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/)
+- [**Azure Form Recognizer**](https://azure.microsoft.com/pricing/details/form-recognizer/)
+- [**Azure AI Search**](https://azure.microsoft.com/pricing/details/search/)
+- [**Azure Blob Storage**](https://azure.microsoft.com/pricing/details/storage/blobs/)
+- [**Azure Monitor**](https://azure.microsoft.com/pricing/details/monitor/)
 
 ## Resources
 
