@@ -322,8 +322,8 @@ public sealed partial class AzureSearchEmbedService(
         const int SentenceSearchLimit = 100;
         const int SectionOverlap = 100;
 
-        var sentenceEndings = new[] { '.', '!', '?' };
-        var wordBreaks = new[] { ',', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n' };
+        var sentenceEndings = new[] { '.', '。', '．', '!', '?', '‼', '⁇', '⁈', '⁉' };
+        var wordBreaks = new[] { ',', '、', ';', ':', ' ', '(', ')', '[', ']', '{', '}', '\t', '\n' };
         var allText = string.Concat(pageMap.Select(p => p.Text));
         var length = allText.Length;
         var start = 0;
