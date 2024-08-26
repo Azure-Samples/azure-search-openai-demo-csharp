@@ -157,7 +157,7 @@ param webImageName string = ''
 @description('Use Azure OpenAI service')
 param useAOAI bool
 
-@description('OpenAI API Key')
+@description('OpenAI API Key, leave empty to provision a new Azure OpenAI instance')
 param openAIApiKey string
 
 @description('OpenAI Model')
