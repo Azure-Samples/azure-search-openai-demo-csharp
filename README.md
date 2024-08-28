@@ -56,7 +56,7 @@ description: A csharp sample app that chats with your data using OpenAI and AI S
 [![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=624102171&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&location=WestUs2)
 [![Open in Remote - Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/azure-search-openai-demo-csharp)
 
-This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data using the Retrieval Augmented Generation pattern. It uses Azure OpenAI Service to access the ChatGPT model (`gpt-35-turbo`), and Azure AI Search for data indexing and retrieval.
+This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data using the Retrieval Augmented Generation pattern. It uses Azure OpenAI Service to access the ChatGPT model (`gpt-4o-mini`), and Azure AI Search for data indexing and retrieval.
 
 The repo includes sample data so it's ready to try end-to-end. In this sample application, we use a fictitious company called Contoso Electronics, and the experience allows its employees to ask questions about the benefits, internal policies, as well as job descriptions and roles.
 
@@ -94,9 +94,7 @@ We want to hear from you! Are you interested in building or currently building i
 In order to deploy and run this example, you'll need
 
 - **Azure Account** - If you're new to Azure, get an [Azure account for free](https://aka.ms/free) and you'll get some free Azure credits to get started.
-- **Azure subscription with access enabled for the Azure OpenAI service** - [You can request access](https://aka.ms/oaiapply). You can also visit [the Azure AI Search docs](https://azure.microsoft.com/free/cognitive-search/) to get some free Azure credits to get you started.
 - **Azure account permissions** - Your Azure Account must have `Microsoft.Authorization/roleAssignments/write` permissions, such as [User Access Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#user-access-administrator) or [Owner](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#owner).
-
 
 > [!WARNING]<br>
 > By default this sample will create an Azure Container App, and Azure AI Search resource that have a monthly cost, as well as Form Recognizer resource that has cost per document page. You can switch them to free versions of each of them if you want to avoid this cost by changing the parameters file under the infra folder (though there are some limits to consider; for example, you can have up to 1 free Azure AI Search resource per subscription, and the free Form Recognizer resource only analyzes the first 2 pages of each document.)
@@ -126,12 +124,12 @@ Install the following prerequisites:
 - [Git](https://git-scm.com/downloads)
 - [Powershell 7+ (pwsh)](https://github.com/powershell/powershell) - For Windows users only.
   
-   > **Important**<br> 
+   > **Important**: 
    > Ensure you can run `pwsh.exe` from a PowerShell command. If this fails, you likely need to upgrade PowerShell.
 
 - [Docker](https://www.docker.com/products/docker-desktop/)
 
-   > **Important**<br>
+   > **Important**:
    > Ensure Docker is running before running any `azd` provisioning / deployment commands.
 
 Then, run the following commands to get the project on your local environment:
@@ -144,17 +142,19 @@ Then, run the following commands to get the project on your local environment:
 
 #### Deploying from scratch
 
-> **Important**<br>
+[📺 Live stream: Deploying from scratch](https://youtu.be/wgSnkxGH2Sk?si=C4zAbLKhK3LoAS43)
+
+> **Important**:
 > Ensure Docker is running before running any `azd` provisioning / deployment commands.
 
 Execute the following command, if you don't have any pre-existing Azure services and want to start from a fresh deployment.
 
 1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
-   - For the target location, the regions that currently support the model used in this sample are **East US 2** , **East US** or **South Central US**. For an up-to-date list of regions and models, check [here](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models)
+   - For the target location, the regions that currently support the model used in this sample are **East US** or **Sweden Central**. For an up-to-date list of regions and models, check [here](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models)
    - If you have access to multiple Azure subscriptions, you will be prompted to select the subscription you want to use. If you only have access to one subscription, it will be selected automatically.
 
-   > **Note**<br>
-   > This application uses the `gpt-35-turbo` model. When choosing which region to deploy to, make sure they're available in that region (i.e. EastUS). For more information, see the [Azure OpenAI Service documentation](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#gpt-35-models).
+   > **Note**:
+   > This application uses the `gpt-4o-mini` model. When choosing which region to deploy to, make sure they're available in that region (i.e. EastUS). For more information, see the [Azure OpenAI Service documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models#standard-deployment-model-availability).
 
 1. After the application has been successfully deployed you will see a URL printed to the console. Click that URL to interact with the application in your browser.
 
@@ -162,8 +162,9 @@ It will look like the following:
 
 !['Output from running azd up'](assets/endpoint.png)
 
-> [!NOTE]<br>
+> [!NOTE]:
 > It may take a few minutes for the application to be fully deployed.
+> After the application is deployed, it will also take a few minutes to process the documents to be added into the vector database.
 
 #### Use existing resources
 
@@ -298,21 +299,23 @@ To then limit access to a specific set of users or groups, you can follow the st
 
 ### Enable vision (multi-modal) support
 
-With GPT-4o, it's possible to support an enrichmented retrival augmented generation by providing both text and image as source content. To enable vision support, you need to enable `USE_VISION` and use `GPT-4o` model when provisioning.
+With `GPT-4o-mini`, it's possible to support an enrichmented retrival augmented generation by providing both text and image as source content. To enable vision support, you need to enable `USE_VISION` and use `GPT-4o` or `GPT-4o-mini` model when provisioning.
 
 > [!NOTE]
 > You would need to re-indexing supporting material and re-deploy the application after enabling GPT-4o support if you have already deployed the application before. This is because enabling GPT-4o support requires new fields to be added to the search index.
 
 To enable GPT-4V support with Azure OpenAI Service, run the following commands:
+
 ```bash
 azd env set USE_VISION true
 azd env set USE_AOAI true
-azd env set AZURE_OPENAI_CHATGPT_MODEL_NAME gpt-4o
-azd env set AZURE_OPENAI_RESOURCE_LOCATION westus # Please check the gpt-4o availability for more details.
+azd env set AZURE_OPENAI_CHATGPT_MODEL_NAME gpt-4o-mini
+azd env set AZURE_OPENAI_RESOURCE_LOCATION eastus # Please check the gpt model availability for more details.
 azd up
 ```
 
 To enable vision support with OpenAI, run the following commands:
+
 ```bash
 azd env set USE_VISION true
 azd env set USE_AOAI false
@@ -321,23 +324,31 @@ azd up
 ```
 
 To clean up previously deployed resources, run the following command:
+
 ```bash
 azd down --purge
 azd env set AZD_PREPDOCS_RAN false # This is to ensure that the documents are re-indexed with the new fields.
 ```
+
 ## Productionizing
 
 This sample is designed to be a starting point for your own production application,
 but you should do a thorough review of the security and performance before deploying
 to production. Here are some things to consider:
 
-* **OpenAI Capacity**: The default TPM (tokens per minute) is set to 30K. That is equivalent to approximately 30 conversations per minute (assuming 1K per user message/response). You can increase the capacity by changing the `chatGptDeploymentCapacity` and `embeddingDeploymentCapacity` parameters in `infra/main.bicep` to your account's maximum capacity. You can also view the Quotas tab in [Azure OpenAI studio](https://oai.azure.com/) to understand how much capacity you have.
-* **Azure Storage**: The default storage account uses the `Standard_LRS` SKU. To improve your resiliency, we recommend using `Standard_ZRS` for production deployments, which you can specify using the `sku` property under the `storage` module in `infra/main.bicep`.
-* **Azure AI Search**: If you see errors about search service capacity being exceeded, you may find it helpful to increase the number of replicas by changing `replicaCount` in `infra/core/search/search-services.bicep` or manually scaling it from the Azure Portal.
-* **Azure Container Apps**: By default, this application deploys containers with 0.5 CPU Cores and 1GB of memory. The minimum replicas is 1 and maximum 10. For this app, you can set values such as `containerCpuCoreCount`, `containerMaxReplicas `, `containerMemory`, `containerMinReplicas` in the `infra/core/host/container-app.bicep` file to fit your needs. You can use auto-scaling rules or scheduled scaling rules, and scale up the [maximum/minimum](https://learn.microsoft.com/azure/container-apps/scale-app) based on load.
-* **Authentication**: By default, the deployed app is publicly accessible. We recommend restricting access to authenticated users. See [Enabling authentication](#enabling-authentication) above for how to enable authentication.
-* **Networking**: We recommend deploying inside a Virtual Network. If the app is only for internal enterprise use, use a private DNS zone. Also consider using Azure API Management (APIM) for firewalls and other forms of protection. For more details, read [Azure OpenAI Landing Zone reference architecture](https://techcommunity.microsoft.com/t5/azure-architecture-blog/azure-openai-landing-zone-reference-architecture/ba-p/3882102).
-* **Loadtesting**: We recommend running a loadtest for your expected number of users.
+- **OpenAI Capacity**: The default TPM (tokens per minute) is set to 30K. That is equivalent to approximately 30 conversations per minute (assuming 1K per user message/response). You can increase the capacity by changing the `chatGptDeploymentCapacity` and `embeddingDeploymentCapacity` parameters in `infra/main.bicep` to your account's maximum capacity. You can also view the Quotas tab in [Azure OpenAI studio](https://oai.azure.com/) to understand how much capacity you have.
+
+- **Azure Storage**: The default storage account uses the `Standard_LRS` SKU. To improve your resiliency, we recommend using `Standard_ZRS` for production deployments, which you can specify using the `sku` property under the `storage` module in `infra/main.bicep`.
+
+- **Azure AI Search**: If you see errors about search service capacity being exceeded, you may find it helpful to increase the number of replicas by changing `replicaCount` in `infra/core/search/search-services.bicep` or manually scaling it from the Azure Portal.
+
+- **Azure Container Apps**: By default, this application deploys containers with 0.5 CPU Cores and 1GB of memory. The minimum replicas is 1 and maximum 10. For this app, you can set values such as `containerCpuCoreCount`, `containerMaxReplicas `, `containerMemory`, `containerMinReplicas` in the `infra/core/host/container-app.bicep` file to fit your needs. You can use auto-scaling rules or scheduled scaling rules, and scale up the [maximum/minimum](https://learn.microsoft.com/azure/container-apps/scale-app) based on load.
+
+- **Authentication**: By default, the deployed app is publicly accessible. We recommend restricting access to authenticated users. See [Enabling authentication](#enabling-authentication) above for how to enable authentication.
+
+- **Networking**: We recommend deploying inside a Virtual Network. If the app is only for internal enterprise use, use a private DNS zone. Also consider using Azure API Management (APIM) for firewalls and other forms of protection. For more details, read [Azure OpenAI Landing Zone reference architecture](https://techcommunity.microsoft.com/t5/azure-architecture-blog/azure-openai-landing-zone-reference-architecture/ba-p/3882102).
+
+- **Loadtesting**: We recommend running a loadtest for your expected number of users.
 
 ## Guidance
 

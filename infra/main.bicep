@@ -21,9 +21,11 @@ param openAiResourceGroupLocation string
 
 @description('Name of the chat GPT model. Default: gpt-35-turbo')
 @allowed([ 'gpt-35-turbo', 'gpt-4', 'gpt-4o', 'gpt-4o-mini', 'gpt-35-turbo-16k', 'gpt-4-16k' ])
-param azureOpenAIChatGptModelName string = 'gpt-35-turbo'
+param azureOpenAIChatGptModelName string = 'gpt-4o-mini'
 
-param azureOpenAIChatGptModelVersion string ='0613'
+@description('Name of the chat GPT model. Default: 0613 for gpt-35-turbo, or choose 2024-07-18 for gpt-4o-mini')
+@allowed([ '0613', '2024-07-18' ])
+param azureOpenAIChatGptModelVersion string ='2024-07-18'
 
 @description('Name of the Azure Application Insights dashboard')
 param applicationInsightsDashboardName string = ''
@@ -35,7 +37,7 @@ param applicationInsightsName string = ''
 param appServicePlanName string = ''
 
 @description('Capacity of the chat GPT deployment. Default: 10')
-param chatGptDeploymentCapacity int = 10
+param chatGptDeploymentCapacity int = 8
 
 @description('Name of the chat GPT deployment')
 param azureChatGptDeploymentName string = 'chat'

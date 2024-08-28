@@ -90,16 +90,16 @@
       "value": "${USE_VISION=false}"
     },
     "openAiChatGptDeployment": {
-      "value": "${OPENAI_CHATGPT_DEPLOYMENT=gpt-3.5-turbo}"
+      "value": "${OPENAI_CHATGPT_DEPLOYMENT=gpt-4o-mini}"
     },
     "openAiEmbeddingDeployment": {
       "value": "${OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-ada-002}"
     },
     "azureOpenAIChatGptModelVersion": {
-      "value": "${AZURE_OPENAI_CHATGPT_MODEL_VERSION=0613}"
+      "value": "${AZURE_OPENAI_CHATGPT_MODEL_VERSION=2024-07-18}"
     },
     "azureOpenAIChatGptModelName": {
-      "value": "${AZURE_OPENAI_CHATGPT_MODEL_NAME=gpt-35-turbo}"
+      "value": "${AZURE_OPENAI_CHATGPT_MODEL_NAME=gpt-4o-mini}"
     },
     "azureOpenAIChatGptDeploymentCapacity": {
       "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT_CAPACITY=30}"
