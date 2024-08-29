@@ -27,7 +27,10 @@ param azureOpenAIChatGptModelName string = 'gpt-4o-mini'
 @allowed([ '0613', '2024-07-18' ])
 param azureOpenAIChatGptModelVersion string ='2024-07-18'
 
-@description('Name of the Azure Application Insights dashboard')
+@description('Defines if the process will deploy an Azure Application Insights resource')
+param useApplicationInsights bool = true
+
+// @description('Name of the Azure Application Insights dashboard')
 param applicationInsightsDashboardName string = ''
 
 @description('Name of the Azure Application Insights resource')
@@ -82,6 +85,7 @@ param formRecognizerResourceGroupName string = ''
 param formRecognizerServiceName string = ''
 
 @description('SKU name for the Form Recognizer service. Default: S0')
+@allowed([ 'S0', 'F0' ])
 param formRecognizerSkuName string = 'S0'
 
 @description('Name of the Azure Function App')
@@ -129,8 +133,13 @@ param searchServiceResourceGroupLocation string = location
 @description('Name of the resource group for the Azure AI Search service')
 param searchServiceResourceGroupName string = ''
 
+@description('Azure AI Search Semantic Ranker Level')
+param searchServiceSemanticRankerLevel string // Set in main.parameters.json
+
 @description('SKU name for the Azure AI Search service. Default: standard')
 param searchServiceSkuName string = 'standard'
+
+var actualSearchServiceSemanticRankerLevel = (searchServiceSkuName == 'free') ? 'disabled' : searchServiceSemanticRankerLevel
 
 @description('Name of the storage account')
 param storageAccountName string = ''
@@ -168,7 +177,7 @@ param openAiChatGptDeployment string
 @description('OpenAI Embedding Model')
 param openAiEmbeddingDeployment string
 
-@description('Use Vision retrival. default: false')
+@description('Use Vision retrieval. default: false')
 param useVision bool = false
 
 var abbrs = loadJsonContent('./abbreviations.json')
@@ -176,7 +185,6 @@ var resourceToken = toLower(uniqueString(subscription().id, environmentName, loc
 
 var baseTags = { 'azd-env-name': environmentName }
 var updatedTags = union(empty(tags) ? {} : base64ToJson(tags), baseTags)
-
 
 // Organize resources in a resource group
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -366,6 +374,7 @@ module function './app/function.bicep' = {
       AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT: formRecognizer.outputs.endpoint
       AZURE_SEARCH_SERVICE_ENDPOINT: searchService.outputs.endpoint
       AZURE_SEARCH_INDEX: searchIndexName
+      AZURE_SEARCH_SEMANTIC_RANKER: actualSearchServiceSemanticRankerLevel
       AZURE_STORAGE_BLOB_ENDPOINT: storage.outputs.primaryEndpoints.blob
       AZURE_OPENAI_EMBEDDING_DEPLOYMENT: useAOAI ? azureEmbeddingDeploymentName : ''
       OPENAI_EMBEDDING_DEPLOYMENT: useAOAI ? '' : openAiEmbeddingDeployment
@@ -388,7 +397,7 @@ module monitoring 'core/monitor/monitoring.bicep' = {
     includeApplicationInsights: true
     logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
     applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'
-    applicationInsightsDashboardName: !empty(applicationInsightsDashboardName) ? applicationInsightsDashboardName : '${abbrs.portalDashboards}${resourceToken}'
+    applicationInsightsDashboardName: !empty(applicationInsightsDashboardName) ? applicationInsightsDashboardName : '${abbrs.portalDashboards}${resourceToken}'    
   }
 }
 
@@ -490,7 +499,7 @@ module searchService 'core/search/search-services.bicep' = {
     sku: {
       name: searchServiceSkuName
     }
-    semanticSearch: 'free'
+    semanticSearch: actualSearchServiceSemanticRankerLevel //semanticSearch: 'free'
   }
 }
 
@@ -733,6 +742,7 @@ module visionRoleBackend 'core/security/role.bicep' = if (useVision) {
 
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
 output APPLICATIONINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName
+output AZURE_USE_APPLICATION_INSIGHTS bool = useApplicationInsights
 output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerApps.outputs.environmentName
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerApps.outputs.registryLoginServer
 output AZURE_CONTAINER_REGISTRY_NAME string = containerApps.outputs.registryName
@@ -758,6 +768,7 @@ output AZURE_SEARCH_INDEX string = searchIndexName
 output AZURE_SEARCH_SERVICE string = searchService.outputs.name
 output AZURE_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.endpoint
 output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
+output AZURE_SEARCH_SERVICE_SKU string = searchServiceSkuName
 output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_BLOB_ENDPOINT string = storage.outputs.primaryEndpoints.blob
 output AZURE_STORAGE_CONTAINER string = storageContainerName

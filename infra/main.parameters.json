@@ -18,7 +18,7 @@
       "value": "${AZURE_FORMRECOGNIZER_SERVICE}"
     },
     "formRecognizerSkuName": {
-      "value": "S0"
+      "value": "${AZURE_FORMRECOGNIZER_SERVICE_SKU=S0}"
     },
     "keyVaultName": {
       "value": "${AZURE_KEY_VAULT_NAME}"
@@ -60,7 +60,10 @@
       "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP}"
     },
     "searchServiceSkuName": {
-      "value": "standard"
+      "value": "${AZURE_SEARCH_SERVICE_SKU=standard}"
+    },
+    "searchServiceSemanticRankerLevel": {
+      "value": "${AZURE_SEARCH_SEMANTIC_RANKER=free}"
     },
     "storageAccountName": {
       "value": "${AZURE_STORAGE_ACCOUNT}"
@@ -77,6 +80,9 @@
     "useApplicationInsights": {
       "value": "${AZURE_USE_APPLICATION_INSIGHTS=true}"
     },
+    "publicNetworkAccess": {
+      "value": "${AZURE_PUBLIC_NETWORK_ACCESS=Enabled}"
+    },    
     "openAIApiKey": {
       "value": "${OPENAI_API_KEY}"
     },
