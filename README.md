@@ -358,7 +358,7 @@ Pricing varies per region and usage, so it isn't possible to predict exact costs
 
 - [**Azure Container Apps**](https://azure.microsoft.com/pricing/details/container-apps/)
 - [**Azure OpenAI Service**](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/)
-- [**Azure AI Document Intelligence**](https://azure.microsoft.com/en-us/pricing/details/ai-document-intelligence/)
+- [**Azure AI Document Intelligence**](https://azure.microsoft.com/pricing/details/ai-document-intelligence/)
 - [**Azure AI Search**](https://azure.microsoft.com/pricing/details/search/)
 - [**Azure Blob Storage**](https://azure.microsoft.com/pricing/details/storage/blobs/)
 - [**Azure Monitor**](https://azure.microsoft.com/pricing/details/monitor/)
