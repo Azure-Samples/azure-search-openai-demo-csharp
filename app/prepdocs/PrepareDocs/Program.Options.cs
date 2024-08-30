@@ -39,7 +39,7 @@ internal static partial class Program
         new(name: "--removeall", description: "Remove all blobs from blob storage and documents from the search index");
 
     private static readonly Option<string> s_formRecognizerServiceEndpoint =
-        new(name: "--formrecognizerendpoint", description: "Optional. The Azure Form Recognizer service endpoint which will be used to extract text, tables and layout from the documents (must exist already)");
+        new(name: "--formrecognizerendpoint", description: "Optional. The Azure AI Document Intelligence service endpoint which will be used to extract text, tables and layout from the documents (must exist already)");
 
     private static readonly Option<string> s_computerVisionServiceEndpoint =
         new(name: "--computervisionendpoint", description: "Optional. The Azure Computer Vision service endpoint which will be used to vectorize image and query");

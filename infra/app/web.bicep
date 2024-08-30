@@ -41,7 +41,7 @@ param searchServiceEndpoint string
 @description('The search index name')
 param searchIndexName string
 
-@description('The Form Recognizer endpoint')
+@description('The Azure AI Document Intelligence endpoint')
 param formRecognizerEndpoint string
 
 @description('The Computer Vision endpoint')

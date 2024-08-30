@@ -194,7 +194,7 @@ public sealed partial class AzureSearchEmbedService(
     public async Task<IReadOnlyList<PageDetail>> GetDocumentTextAsync(Stream blobStream, string blobName)
     {
         logger?.LogInformation(
-            "Extracting text from '{Blob}' using Azure Form Recognizer", blobName);
+            "Extracting text from '{Blob}' using Azure AI Document Intelligence", blobName);
 
         using var ms = new MemoryStream();
         blobStream.CopyTo(ms);
