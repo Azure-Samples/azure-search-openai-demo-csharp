@@ -358,10 +358,12 @@ Pricing varies per region and usage, so it isn't possible to predict exact costs
 
 - [**Azure Container Apps**](https://azure.microsoft.com/pricing/details/container-apps/)
 - [**Azure OpenAI Service**](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/)
-- [**Azure Form Recognizer**](https://azure.microsoft.com/pricing/details/form-recognizer/)
+- [**Azure AI Document Intelligence**](https://azure.microsoft.com/en-us/pricing/details/ai-document-intelligence/)
 - [**Azure AI Search**](https://azure.microsoft.com/pricing/details/search/)
 - [**Azure Blob Storage**](https://azure.microsoft.com/pricing/details/storage/blobs/)
 - [**Azure Monitor**](https://azure.microsoft.com/pricing/details/monitor/)
+
+To reduce costs, you can switch to free SKUs for various services, but those SKUs have limitations. See this [guide on deploying with minimal costs](./docs/deploy_lowcost.md) for more details.
 
 ## Resources
 
