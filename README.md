@@ -97,7 +97,7 @@ In order to deploy and run this example, you'll need
 - **Azure account permissions** - Your Azure Account must have `Microsoft.Authorization/roleAssignments/write` permissions, such as [User Access Administrator](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#user-access-administrator) or [Owner](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#owner).
 
 > [!WARNING]<br>
-> By default this sample will create an Azure Container App, and Azure AI Search resource that have a monthly cost, as well as Form Recognizer resource that has cost per document page. You can switch them to free versions of each of them if you want to avoid this cost by changing the parameters file under the infra folder (though there are some limits to consider; for example, you can have up to 1 free Azure AI Search resource per subscription, and the free Form Recognizer resource only analyzes the first 2 pages of each document.)
+> By default this sample will create an Azure Container App, and Azure AI Search resource that have a monthly cost, as well as Azure AI Document Intelligence resource that has cost per document page. You can switch them to free versions of each of them if you want to avoid this cost by changing the parameters file under the infra folder (though there are some limits to consider; for example, you can have up to 1 free Azure AI Search resource per subscription, and the free Azure AI Document Intelligence resource only analyzes the first 2 pages of each document.)
 
 ### Project setup
 

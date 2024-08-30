@@ -21,7 +21,7 @@ However, if your goal is to minimize costs while prototyping your application, f
     Enter a name that will be used for the resource group.
     This will create a new folder in the `.azure` folder, and set it as the active environment for any calls to `azd` going forward.
 
-1. Use the free tier of **Azure AI Document Intelligence** (aka [Form Recognizer](https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview?view=doc-intel-4.0.0)):
+1. Use the free tier of **Azure AI Document Intelligence** (previously known as [Form Recognizer](https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview?view=doc-intel-4.0.0)):
 
     ```shell
     azd env set AZURE_FORMRECOGNIZER_SERVICE_SKU F0

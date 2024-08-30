@@ -75,16 +75,16 @@ param containerRegistryName string = ''
 @description('Name of the resource group for the Azure container registry')
 param containerRegistryResourceGroupName string = ''
 
-@description('Location of the resource group for the Form Recognizer service')
+@description('Location of the resource group for the Azure AI Document Intelligence service')
 param formRecognizerResourceGroupLocation string = location
 
-@description('Name of the resource group for the Form Recognizer service')
+@description('Name of the resource group for the Azure AI Document Intelligence service')
 param formRecognizerResourceGroupName string = ''
 
-@description('Name of the Form Recognizer service')
+@description('Name of the Azure AI Document Intelligence service')
 param formRecognizerServiceName string = ''
 
-@description('SKU name for the Form Recognizer service. Default: S0')
+@description('SKU name for the Azure AI Document Intelligence service. Default: S0')
 @allowed([ 'S0', 'F0' ])
 param formRecognizerSkuName string = 'S0'
 
