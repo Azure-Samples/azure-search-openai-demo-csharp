@@ -4,7 +4,7 @@ This AI RAG chat application is designed to be easily deployed using the Azure D
 
 However, if your goal is to minimize costs while prototyping your application, follow the steps below *before* running `azd up`. Once you've gone through these steps, return to the [deployment steps](../README.md#deployment).
 
-[📺 Live stream: Deploying from a free account]()
+[📺 Live stream: Deploying from a free account](https://youtu.be/V1ZLzXU4iiw)
 
 1. Log in to your Azure account using the Azure Developer CLI:
 
