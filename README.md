@@ -142,7 +142,8 @@ Then, run the following commands to get the project on your local environment:
 
 #### Deploying from scratch
 
-[📺 Live stream: Deploying from scratch](https://youtu.be/wgSnkxGH2Sk?si=C4zAbLKhK3LoAS43)
+[📺 Live stream: Deploying from scratch in CodeSpaces](https://youtu.be/TORUsRNimM0)
+[📺 Live stream: Deploying from scratch in Windows 11](https://youtu.be/wgSnkxGH2Sk?si=C4zAbLKhK3LoAS43)
 
 > **Important**:
 > Ensure Docker is running before running any `azd` provisioning / deployment commands.
