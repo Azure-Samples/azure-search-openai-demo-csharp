@@ -167,7 +167,7 @@ Then, run the following commands to get the project on your local environment:
 Execute the following command, if you don't have any pre-existing Azure services and want to start from a fresh deployment.
 
 1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
-   - For the target location, the regions that currently support the model used in this sample are **East US** or **Sweden Central**. For an up-to-date list of regions and models, check [here](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models)
+   - For the target location, the regions that currently support the model used in this sample are **East US**. For an up-to-date list of regions and models, check [here](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models)
    - If you have access to multiple Azure subscriptions, you will be prompted to select the subscription you want to use. If you only have access to one subscription, it will be selected automatically.
 
    > **Note**:
