@@ -132,7 +132,7 @@ public sealed partial class AzureSearchEmbedService(
                 new SearchableField("content") { AnalyzerName = LexicalAnalyzerName.EnMicrosoft },
                 new SimpleField("category", SearchFieldDataType.String) { IsFacetable = true },
                 new SimpleField("sourcepage", SearchFieldDataType.String) { IsFacetable = true },
-                new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true },
+                new SimpleField("sourcefile", SearchFieldDataType.String) { IsFacetable = true, IsFilterable = true },
                 new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
                 {
                     VectorSearchDimensions = 1536,
