@@ -28,6 +28,7 @@ function Invoke-ExternalCommand {
     $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
     $processStartInfo.FileName = $Command
     $processStartInfo.Arguments = $Arguments
+    $processStartInfo.WorkingDirectory = Get-Location | Select -ExpandProperty Path
     $processStartInfo.RedirectStandardOutput = $true
     $processStartInfo.RedirectStandardError = $true
     $processStartInfo.UseShellExecute = $false
@@ -50,7 +51,8 @@ function Invoke-ExternalCommand {
 if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq "false") {
     Write-Host 'Running "PrepareDocs.dll"'
 
-    Get-Location | Select-Object -ExpandProperty Path
+    # Set azd environment variables
+    ./app/map-env.ps1
 
     $dotnetArguments = "run --project app/prepdocs/PrepareDocs/PrepareDocs.csproj ./data/**/* " +
     "--storageendpoint $($env:AZURE_STORAGE_BLOB_ENDPOINT) " +
@@ -70,6 +72,7 @@ if ([string]::IsNullOrEmpty($env:AZD_PREPDOCS_RAN) -or $env:AZD_PREPDOCS_RAN -eq
         Write-Host "Using Azure OpenAI"
         $dotnetArguments += " --openaiendpoint $($env:AZURE_OPENAI_ENDPOINT) "
         $dotnetArguments += " --embeddingmodel $($env:AZURE_OPENAI_EMBEDDING_DEPLOYMENT) "
+        $dotnetArguments += " --embeddingmodeldimensions $($env:AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS)"
     }
     else{
         Write-Host "Using OpenAI"

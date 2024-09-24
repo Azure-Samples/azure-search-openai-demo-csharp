@@ -35,7 +35,7 @@
     "chatGptDeploymentName": {
       "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT=chat}"
     },
-    "embeddingDeploymentName": {
+    "azureEmbeddingDeploymentName": {
       "value": "${AZURE_OPENAI_EMBEDDING_DEPLOYMENT=embedding}"
     },
     "openAiServiceName": {
@@ -58,6 +58,9 @@
     },
     "searchServiceResourceGroupName": {
       "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP}"
+    },
+    "searchServiceResourceGroupLocation": {
+      "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP_LOCATION}"
     },
     "searchServiceSkuName": {
       "value": "${AZURE_SEARCH_SERVICE_SKU=standard}"
@@ -84,7 +87,7 @@
       "value": "${AZURE_PUBLIC_NETWORK_ACCESS=Enabled}"
     },    
     "openAIApiKey": {
-      "value": "${OPENAI_API_KEY}"
+      "value": "${OPENAI_API_KEY=''}"
     },
     "useAOAI": {
       "value": "${USE_AOAI=true}"
@@ -109,6 +112,15 @@
     },
     "azureOpenAIChatGptDeploymentCapacity": {
       "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT_CAPACITY=30}"
+    },
+    "azureEmbeddingModelName": {
+      "value": "${AZURE_OPENAI_EMBEDDING_MODEL_NAME=text-embedding-ada-002}"
+    },
+    "azureEmbeddingModelDimensions": {
+      "value": "${AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS=1536}"
+    },
+    "azureEmbeddingModelVersion": {
+      "value": "${AZURE_OPENAI_EMBEDDING_MODEL_VERSION=2}"
     }
   }
 }

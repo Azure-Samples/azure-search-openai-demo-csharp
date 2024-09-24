@@ -32,6 +32,9 @@ internal static partial class Program
     private static readonly Option<string> s_embeddingModelName =
         new(name: "--embeddingmodel", description: "Optional. Name of the Azure AI Search embedding model to use for embedding content in the search index (will be created if it doesn't exist)");
 
+    private static readonly Option<int> s_embeddingModelDimensions =
+        new(name: "--embeddingmodeldimensions", description: "Optional. Name of the Azure AI Search embedding model dimensions to use for embedding content in the search index");
+
     private static readonly Option<bool> s_remove =
        new(name: "--remove", description: "Remove references to this document from blob storage and the search index");
 
@@ -63,6 +66,7 @@ internal static partial class Program
             s_searchIndexName,
             s_azureOpenAIService,
             s_embeddingModelName,
+            s_embeddingModelDimensions,
             s_remove,
             s_removeAll,
             s_formRecognizerServiceEndpoint,
@@ -81,6 +85,7 @@ internal static partial class Program
             SearchIndexName: context.ParseResult.GetValueForOption(s_searchIndexName),
             AzureOpenAIServiceEndpoint: context.ParseResult.GetValueForOption(s_azureOpenAIService),
             EmbeddingModelName: context.ParseResult.GetValueForOption(s_embeddingModelName),
+            EmbeddingModelDimensions: context.ParseResult.GetValueForOption(s_embeddingModelDimensions),
             Remove: context.ParseResult.GetValueForOption(s_remove),
             RemoveAll: context.ParseResult.GetValueForOption(s_removeAll),
             FormRecognizerServiceEndpoint: context.ParseResult.GetValueForOption(s_formRecognizerServiceEndpoint),

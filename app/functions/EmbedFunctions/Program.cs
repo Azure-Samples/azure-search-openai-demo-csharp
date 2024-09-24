@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Azure.AI.OpenAI;
+using Microsoft.Extensions.Logging.Abstractions;
 
 var host = new HostBuilder()
     .ConfigureServices(services =>
@@ -65,17 +66,24 @@ var host = new HostBuilder()
 
             OpenAIClient? openAIClient = null;
             string? embeddingModelName = null;
+            int embeddingModelDimensions = -1;
 
             if (useAOAI)
             {
                 var openaiEndPoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new ArgumentNullException("AZURE_OPENAI_ENDPOINT is null");
                 embeddingModelName = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new ArgumentNullException("AZURE_OPENAI_EMBEDDING_DEPLOYMENT is null");
+                if (!int.TryParse(Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS"), out embeddingModelDimensions)) {
+                    embeddingModelDimensions = 1536;
+                }
                 openAIClient = new OpenAIClient(new Uri(openaiEndPoint), new DefaultAzureCredential());
             }
             else
             {
                 embeddingModelName = Environment.GetEnvironmentVariable("OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new ArgumentNullException("OPENAI_EMBEDDING_DEPLOYMENT is null");
                 var openaiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? throw new ArgumentNullException("OPENAI_API_KEY is null");
+                if (!int.TryParse(Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS"), out embeddingModelDimensions)) {
+                    embeddingModelDimensions = 1536;
+                }
                 openAIClient = new OpenAIClient(openaiKey);
             }
 
@@ -94,6 +102,7 @@ var host = new HostBuilder()
                 return new AzureSearchEmbedService(
                     openAIClient: openAIClient,
                     embeddingModelName: embeddingModelName,
+                    embeddingModelDimensions: embeddingModelDimensions,
                     searchClient: searchClient,
                     searchIndexName: searchIndexName,
                     searchIndexClient: searchIndexClient,
@@ -108,6 +117,7 @@ var host = new HostBuilder()
                 return new AzureSearchEmbedService(
                 openAIClient: openAIClient,
                 embeddingModelName: embeddingModelName,
+                embeddingModelDimensions: embeddingModelDimensions,
                 searchClient: searchClient,
                 searchIndexName: searchIndexName,
                 searchIndexClient: searchIndexClient,

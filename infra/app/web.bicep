@@ -56,6 +56,9 @@ param openAiChatGptDeployment string
 @description('The OpenAI Embedding deployment name')
 param openAiEmbeddingDeployment string
 
+@description('The OpenAI Embedding model dimensions')
+param openAiEmbeddingModelDimensions string
+
 @description('use gpt-4v')
 param useVision bool = false
 
@@ -136,6 +139,10 @@ module app '../core/host/container-app-upsert.bicep' = {
       {
         name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT'
         value: openAiEmbeddingDeployment
+      }
+      {
+        name: 'AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS'
+        value: openAiEmbeddingModelDimensions
       }
       {
         name: 'AZURE_COMPUTER_VISION_ENDPOINT'

@@ -37,6 +37,34 @@ public class AzureDocumentSearchServiceTest
         records.Count().Should().Be(3);
     }
 
+    [EnvironmentVariablesFact("AZURE_SEARCH_INDEX", "AZURE_SEARCH_SERVICE_ENDPOINT", "AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS")]
+    public async Task QueryDocumentsTestEmbeddingOnlyDimensionsAsync()
+    {
+        var index = Environment.GetEnvironmentVariable("AZURE_SEARCH_INDEX") ?? throw new InvalidOperationException();
+        var searchServceEndpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
+        var openAiEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new InvalidOperationException();
+        var openAiEmbeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new InvalidOperationException();
+        var openAiEmbeddingModelDimensions = int.Parse(Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS") ?? "");
+        var openAIClient = new OpenAIClient(new Uri(openAiEndpoint), new DefaultAzureCredential());
+        var query = "What is included in my Northwind Health Plus plan that is not in standard?";
+        var embeddingResponse = await openAIClient.GetEmbeddingsAsync(new EmbeddingsOptions(openAiEmbeddingDeployment, [query]) { Dimensions = openAiEmbeddingModelDimensions });
+        var embedding = embeddingResponse.Value.Data.First().Embedding;
+        var searchClient = new SearchClient(new Uri(searchServceEndpoint), index, new DefaultAzureCredential());
+        var service = new AzureSearchService(searchClient);
+
+        // query only
+        var option = new RequestOverrides
+        {
+            RetrievalMode = RetrievalMode.Vector,
+            Top = 3,
+            SemanticCaptions = true,
+            SemanticRanker = true,
+        };
+
+        var records = await service.QueryDocumentsAsync(query: query, embedding: embedding.ToArray(), overrides: option);
+        records.Count().Should().Be(3);
+    }
+
     [EnvironmentVariablesFact("AZURE_SEARCH_INDEX", "AZURE_SEARCH_SERVICE_ENDPOINT", "AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT")]
     public async Task QueryDocumentsTestEmbeddingOnlyAsync()
     {
