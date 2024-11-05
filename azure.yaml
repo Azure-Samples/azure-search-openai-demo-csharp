@@ -11,6 +11,7 @@ services:
     docker:
       path: ../Dockerfile
       context: ../
+      remoteBuild: true      
   function:
     project: ./app/functions/EmbedFunctions
     host: function
