@@ -25,12 +25,14 @@ public class AzureSearchEmbedServiceTest
         "AZURE_SEARCH_SERVICE_ENDPOINT",
         "AZURE_OPENAI_ENDPOINT",
         "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
+        "AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS",
         "AZURE_STORAGE_BLOB_ENDPOINT")]
     public async Task EnsureSearchIndexWithoutImageEmbeddingsAsync()
     {
         var indexName = nameof(EnsureSearchIndexWithoutImageEmbeddingsAsync).ToLower();
         var openAIEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new InvalidOperationException();
         var embeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new InvalidOperationException();
+        var embeddingModelDimensions = int.Parse(Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS") ?? "");
         var azureSearchEndpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
         var blobEndpoint = Environment.GetEnvironmentVariable("AZURE_STORAGE_BLOB_ENDPOINT") ?? throw new InvalidOperationException();
         var blobContainer = "test";
@@ -45,6 +47,7 @@ public class AzureSearchEmbedServiceTest
         var service = new AzureSearchEmbedService(
             openAIClient: openAIClient,
             embeddingModelName: embeddingDeployment,
+            embeddingModelDimensions: embeddingModelDimensions,
             searchClient: searchClient,
             searchIndexName: indexName,
             searchIndexClient: searchIndexClient,
@@ -82,12 +85,14 @@ public class AzureSearchEmbedServiceTest
         "AZURE_SEARCH_SERVICE_ENDPOINT",
         "AZURE_OPENAI_ENDPOINT",
         "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
+        "AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS",
         "AZURE_STORAGE_BLOB_ENDPOINT")]
     public async Task EnsureSearchIndexWithImageEmbeddingsAsync()
     {
         var indexName = nameof(EnsureSearchIndexWithImageEmbeddingsAsync).ToLower();
         var openAIEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new InvalidOperationException();
         var embeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new InvalidOperationException();
+        var embeddingModelDimensions = int.Parse(Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS") ?? "");
         var azureSearchEndpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
         var blobEndpoint = Environment.GetEnvironmentVariable("AZURE_STORAGE_BLOB_ENDPOINT") ?? throw new InvalidOperationException();
         var blobContainer = "test";
@@ -104,6 +109,7 @@ public class AzureSearchEmbedServiceTest
         var service = new AzureSearchEmbedService(
             openAIClient: openAIClient,
             embeddingModelName: embeddingDeployment,
+            embeddingModelDimensions: embeddingModelDimensions,
             searchClient: searchClient,
             searchIndexName: indexName,
             searchIndexClient: searchIndexClient,
@@ -141,6 +147,7 @@ public class AzureSearchEmbedServiceTest
         "AZURE_SEARCH_SERVICE_ENDPOINT",
         "AZURE_OPENAI_ENDPOINT",
         "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
+        "AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS",
         "AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT",
         "AZURE_STORAGE_BLOB_ENDPOINT")]
     public async Task GetDocumentTextTestAsync()
@@ -148,6 +155,7 @@ public class AzureSearchEmbedServiceTest
         var indexName = nameof(GetDocumentTextTestAsync).ToLower();
         var openAIEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new InvalidOperationException();
         var embeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new InvalidOperationException();
+        var embeddingModelDimensions = int.Parse(Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS") ?? "");
         var azureSearchEndpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
         var blobEndpoint = Environment.GetEnvironmentVariable("AZURE_STORAGE_BLOB_ENDPOINT") ?? throw new InvalidOperationException();
         var azureFormRecognizerEndpoint = Environment.GetEnvironmentVariable("AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
@@ -163,6 +171,7 @@ public class AzureSearchEmbedServiceTest
         var service = new AzureSearchEmbedService(
             openAIClient: openAIClient,
             embeddingModelName: embeddingDeployment,
+            embeddingModelDimensions: embeddingModelDimensions,
             searchClient: searchClient,
             searchIndexName: indexName,
             searchIndexClient: searchIndexClient,
@@ -191,6 +200,7 @@ public class AzureSearchEmbedServiceTest
         "AZURE_SEARCH_SERVICE_ENDPOINT",
         "AZURE_OPENAI_ENDPOINT",
         "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
+        "AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS",
         "AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT",
         "AZURE_STORAGE_BLOB_ENDPOINT")]
     public async Task EmbedBlobWithoutImageEmbeddingTestAsync()
@@ -198,6 +208,7 @@ public class AzureSearchEmbedServiceTest
         var indexName = nameof(EmbedBlobWithoutImageEmbeddingTestAsync).ToLower();
         var openAIEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new InvalidOperationException();
         var embeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new InvalidOperationException();
+        var embeddingModelDimensions = int.Parse(Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS") ?? "");
         var azureSearchEndpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
         var blobEndpoint = Environment.GetEnvironmentVariable("AZURE_STORAGE_BLOB_ENDPOINT") ?? throw new InvalidOperationException();
         var azureFormRecognizerEndpoint = Environment.GetEnvironmentVariable("AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
@@ -215,6 +226,7 @@ public class AzureSearchEmbedServiceTest
         var service = new AzureSearchEmbedService(
             openAIClient: openAIClient,
             embeddingModelName: embeddingDeployment,
+            embeddingModelDimensions: embeddingModelDimensions,
             searchClient: searchClient,
             searchIndexName: indexName,
             searchIndexClient: searchIndexClient,
@@ -251,6 +263,7 @@ public class AzureSearchEmbedServiceTest
         "AZURE_SEARCH_SERVICE_ENDPOINT",
         "AZURE_OPENAI_ENDPOINT",
         "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
+        "AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS",
         "AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT",
         "AZURE_STORAGE_BLOB_ENDPOINT")]
     public async Task EmbedImageBlobTestAsync()
@@ -258,6 +271,7 @@ public class AzureSearchEmbedServiceTest
         var indexName = nameof(EmbedImageBlobTestAsync).ToLower();
         var openAIEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new InvalidOperationException();
         var embeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new InvalidOperationException();
+        var embeddingModelDimensions = int.Parse(Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_MODEL_DIMENSIONS") ?? "");
         var azureSearchEndpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
         var blobEndpoint = Environment.GetEnvironmentVariable("AZURE_STORAGE_BLOB_ENDPOINT") ?? throw new InvalidOperationException();
         var azureFormRecognizerEndpoint = Environment.GetEnvironmentVariable("AZURE_FORMRECOGNIZER_SERVICE_ENDPOINT") ?? throw new InvalidOperationException();
@@ -278,6 +292,7 @@ public class AzureSearchEmbedServiceTest
         var service = new AzureSearchEmbedService(
             openAIClient: openAIClient,
             embeddingModelName: embeddingDeployment,
+            embeddingModelDimensions: embeddingModelDimensions,
             searchClient: searchClient,
             searchIndexName: indexName,
             searchIndexClient: searchIndexClient,

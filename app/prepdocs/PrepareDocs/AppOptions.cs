@@ -13,6 +13,7 @@ internal record class AppOptions(
     string? AzureOpenAIServiceEndpoint,
     string? SearchIndexName,
     string? EmbeddingModelName,
+    int EmbeddingModelDimensions,
     bool Remove,
     bool RemoveAll,
     string? FormRecognizerServiceEndpoint,
