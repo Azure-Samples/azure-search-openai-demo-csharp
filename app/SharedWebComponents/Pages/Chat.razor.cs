@@ -54,23 +54,15 @@ public sealed partial class Chat
 
             if (_useStreaming)
             {
-                var streamingResponse = new StringBuilder();
                 try
                 {
-                    await foreach (var chunk in await ApiClient.PostStreamingRequestAsync(request, "api/chat/stream"))
+                    await foreach (var response in await ApiClient.PostStreamingRequestAsync(request, "api/chat/stream"))
                     {
-                        streamingResponse.Append(chunk.Text);
-
                         _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(
-                            new[] {
-                                new ResponseChoice(0,
-                                    new ResponseMessage("assistant", streamingResponse.ToString()),
-                                    null, null)
-                            },
+                            response.Choices,
                             null);
 
                         StateHasChanged();
-
                         await Task.Delay(10);
                     }
                 }

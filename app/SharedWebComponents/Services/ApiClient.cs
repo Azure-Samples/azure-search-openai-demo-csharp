@@ -136,7 +136,7 @@ public sealed class ApiClient(HttpClient httpClient)
         }
     }
 
-    public async Task<IAsyncEnumerable<ChatChunkResponse>> PostStreamingRequestAsync<TRequest>(
+    public async Task<IAsyncEnumerable<ChatAppResponse>> PostStreamingRequestAsync<TRequest>(
         TRequest request, string apiRoute) where TRequest : ApproachRequest
     {
         var json = JsonSerializer.Serialize(
@@ -150,7 +150,7 @@ public sealed class ApiClient(HttpClient httpClient)
         
         if (response.IsSuccessStatusCode)
         {
-            return response.Content.ReadFromJsonAsAsyncEnumerable<ChatChunkResponse>();
+            return response.Content.ReadFromJsonAsAsyncEnumerable<ChatAppResponse>();
         }
         
         throw new HttpRequestException($"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "Unknown error"}");

@@ -89,7 +89,7 @@ internal static class WebApplicationExtensions
         return Results.BadRequest();
     }
 
-    private static async IAsyncEnumerable<ChatChunkResponse> OnPostChatStreamingAsync(
+    private static async IAsyncEnumerable<ChatAppResponse> OnPostChatStreamingAsync(
         ChatRequest request,
         ReadRetrieveReadChatService chatService,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -99,12 +99,12 @@ internal static class WebApplicationExtensions
             yield break;
         }
 
-        await foreach (var chunk in chatService.ReplyStreamingAsync(
+        await foreach (var response in chatService.ReplyStreamingAsync(
             request.History,
             request.Overrides,
             cancellationToken))
         {
-            yield return new ChatChunkResponse(chunk.Length, chunk.Text);
+            yield return response;
         }
     }
 

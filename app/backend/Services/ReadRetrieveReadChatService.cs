@@ -4,6 +4,7 @@ using Azure.Core;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
+using System.Text;
 
 namespace MinimalApi.Services;
 #pragma warning disable SKEXP0011 // Mark members as static
@@ -245,7 +246,7 @@ e.g.
         return new ChatAppResponse(new[] { choice });
     }
 
-    public async IAsyncEnumerable<ChatChunkResponse> ReplyStreamingAsync(
+    public async IAsyncEnumerable<ChatAppResponse> ReplyStreamingAsync(
         ChatMessage[] history,
         RequestOverrides? overrides,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -356,6 +357,13 @@ You answer needs to be a json object with the following format.
             StopSequences = [],
         };
 
+        var streamingResponse = new StringBuilder();
+        var documentContext = new ResponseContext(
+            DataPointsContent: documentContentList.Select(x => new SupportingContentRecord(x.Title, x.Content)).ToArray(),
+            DataPointsImages: images?.Select(x => new SupportingImageRecord(x.Title, x.Url)).ToArray(),
+            FollowupQuestions: Array.Empty<string>(), // Will be populated after full response
+            Thoughts: Array.Empty<Thoughts>()); // Will be populated after full response
+
         // Stream the response
         await foreach (var content in chat.GetStreamingChatMessageContentsAsync(
             answerChat,
@@ -365,8 +373,137 @@ You answer needs to be a json object with the following format.
         {
             if (content.Content is { Length: > 0 })
             {
-                yield return new ChatChunkResponse(content.Content.Length, content.Content);
+                streamingResponse.Append(content.Content);
+
+                ChatAppResponse response;
+                try
+                {
+                    // Try parse as JSON to extract answer and thoughts
+                    var currentJson = streamingResponse.ToString();
+                    var answerObject = JsonSerializer.Deserialize<JsonElement>(currentJson);
+                    var answer = answerObject.GetProperty("answer").GetString() ?? "";
+                    var thoughts = answerObject.TryGetProperty("thoughts", out var thoughtsProp)
+                        ? thoughtsProp.GetString()
+                        : "";
+
+                    var responseMessage = new ResponseMessage("assistant", answer);
+                    var updatedContext = documentContext with
+                    {
+                        Thoughts = !string.IsNullOrEmpty(thoughts)
+                            ? new[] { new Thoughts("Thoughts", thoughts!) }
+                            : Array.Empty<Thoughts>()
+                    };
+
+                    var choice = new ResponseChoice(
+                        Index: 0,
+                        Message: responseMessage,
+                        Context: updatedContext,
+                        CitationBaseUrl: _configuration.ToCitationBaseUrl());
+
+                    response = new ChatAppResponse(new[] { choice });
+                }
+                catch (JsonException)
+                {
+                    // If JSON parsing fails, return raw content
+                    var responseMessage = new ResponseMessage("assistant", streamingResponse.ToString());
+                    var choice = new ResponseChoice(
+                        Index: 0,
+                        Message: responseMessage,
+                        Context: documentContext,
+                        CitationBaseUrl: _configuration.ToCitationBaseUrl());
+
+                    response = new ChatAppResponse(new[] { choice });
+                }
+
+                yield return response;
             }
         }
+
+        // After streaming complete, add follow-up questions if requested
+        if (overrides?.SuggestFollowupQuestions is true)
+        {
+            ChatAppResponse response;
+            var finalAnswer = streamingResponse.ToString();
+            try
+            {
+                var answerObject = JsonSerializer.Deserialize<JsonElement>(finalAnswer);
+                var answer = answerObject.GetProperty("answer").GetString() ?? "";
+                var thoughts = answerObject.GetProperty("thoughts").GetString() ?? "";
+
+                var followUpQuestions = await GenerateFollowUpQuestionsAsync(
+                    answer,
+                    chat,
+                    promptExecutingSetting,
+                    cancellationToken);
+
+                // Add follow-up questions to the answer text, just like in ReplyAsync
+                var answerWithQuestions = answer;
+                foreach (var followUpQuestion in followUpQuestions)
+                {
+                    answerWithQuestions += $" <<{followUpQuestion}>> ";
+                }
+
+                var responseMessage = new ResponseMessage("assistant", answerWithQuestions);
+                var finalContext = documentContext with
+                {
+                    Thoughts = new[] { new Thoughts("Thoughts", thoughts) },
+                    FollowupQuestions = followUpQuestions
+                };
+
+                var choice = new ResponseChoice(
+                    Index: 0,
+                    Message: responseMessage,
+                    Context: finalContext,
+                    CitationBaseUrl: _configuration.ToCitationBaseUrl());
+
+                response = new ChatAppResponse(new[] { choice });
+            }
+            catch (JsonException)
+            {
+                // If JSON parsing fails, return raw content
+                var responseMessage = new ResponseMessage("assistant", streamingResponse.ToString());
+                var choice = new ResponseChoice(
+                    Index: 0,
+                    Message: responseMessage,
+                    Context: documentContext,
+                    CitationBaseUrl: _configuration.ToCitationBaseUrl());
+
+                response = new ChatAppResponse(new[] { choice });
+            }
+
+            yield return response;
+        }
+    }
+
+    private async Task<string[]> GenerateFollowUpQuestionsAsync(
+        string answer,
+        IChatCompletionService chat,
+        OpenAIPromptExecutionSettings settings,
+        CancellationToken cancellationToken)
+    {
+        var followUpQuestionChat = new ChatHistory(@"You are a helpful AI assistant");
+        followUpQuestionChat.AddUserMessage($@"Generate three follow-up question based on the answer you just generated.
+# Answer
+{answer}
+
+# Format of the response
+Return the follow-up question as a json string list. Don't put your answer between ```json and ```, return the json string directly.
+e.g.
+[
+    ""What is the deductible?"",
+    ""What is the co-pay?"",
+    ""What is the out-of-pocket maximum?""
+]");
+
+        var followUpQuestions = await chat.GetChatMessageContentAsync(
+            followUpQuestionChat,
+            settings,
+            cancellationToken: cancellationToken);
+
+        var followUpQuestionsJson = followUpQuestions.Content ?? throw new InvalidOperationException("Failed to get follow-up questions");
+        var followUpQuestionsObject = JsonSerializer.Deserialize<JsonElement>(followUpQuestionsJson);
+        return followUpQuestionsObject.EnumerateArray()
+            .Select(x => x.GetString()!)
+            .ToArray();
     }
 }
