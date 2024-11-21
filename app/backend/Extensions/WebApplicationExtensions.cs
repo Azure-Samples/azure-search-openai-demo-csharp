@@ -25,6 +25,9 @@ internal static class WebApplicationExtensions
 
         api.MapGet("enableLogout", OnGetEnableLogout);
 
+        // Add streaming chat endpoint
+        api.MapPost("chat/stream", OnPostChatStreamingAsync);
+
         return app;
     }
 
@@ -84,6 +87,25 @@ internal static class WebApplicationExtensions
         }
 
         return Results.BadRequest();
+    }
+
+    private static async IAsyncEnumerable<ChatChunkResponse> OnPostChatStreamingAsync(
+        ChatRequest request,
+        ReadRetrieveReadChatService chatService,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        if (request is not { History.Length: > 0 })
+        {
+            yield break;
+        }
+
+        await foreach (var chunk in chatService.ReplyStreamingAsync(
+            request.History,
+            request.Overrides,
+            cancellationToken))
+        {
+            yield return new ChatChunkResponse(chunk.Length, chunk.Text);
+        }
     }
 
     private static async Task<IResult> OnPostDocumentAsync(

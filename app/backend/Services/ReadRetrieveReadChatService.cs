@@ -110,7 +110,7 @@ standard plan AND dental AND employee benefit.
         }
         else
         {
-            documentContents = string.Join("\r", documentContentList.Select(x =>$"{x.Title}:{x.Content}"));
+            documentContents = string.Join("\r", documentContentList.Select(x => $"{x.Title}:{x.Content}"));
         }
 
         // step 2.5
@@ -140,7 +140,7 @@ standard plan AND dental AND employee benefit.
             }
         }
 
-        
+
         if (images != null)
         {
             var prompt = @$"## Source ##
@@ -243,5 +243,130 @@ e.g.
             CitationBaseUrl: _configuration.ToCitationBaseUrl());
 
         return new ChatAppResponse(new[] { choice });
+    }
+
+    public async IAsyncEnumerable<ChatChunkResponse> ReplyStreamingAsync(
+        ChatMessage[] history,
+        RequestOverrides? overrides,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var chat = _kernel.GetRequiredService<IChatCompletionService>();
+        var embedding = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+        float[]? embeddings = null;
+        var question = history.LastOrDefault(m => m.IsUser)?.Content is { } userQuestion
+            ? userQuestion
+            : throw new InvalidOperationException("User question is null");
+
+        // Generate embeddings if needed
+        if (overrides?.RetrievalMode != RetrievalMode.Text && embedding is not null)
+        {
+            embeddings = (await embedding.GenerateEmbeddingAsync(question, cancellationToken: cancellationToken)).ToArray();
+        }
+
+        // Get search query
+        string? query = null;
+        if (overrides?.RetrievalMode != RetrievalMode.Vector)
+        {
+            var getQueryChat = new ChatHistory(@"You are a helpful AI assistant, generate search query for followup question.
+Make your respond simple and precise. Return the query only, do not return any other text.
+e.g.
+Northwind Health Plus AND standard plan.
+standard plan AND dental AND employee benefit.
+");
+
+            getQueryChat.AddUserMessage(question);
+            var result = await chat.GetChatMessageContentAsync(
+                getQueryChat,
+                cancellationToken: cancellationToken);
+
+            query = result.Content ?? throw new InvalidOperationException("Failed to get search query");
+        }
+
+        // Search related documents
+        var documentContentList = await _searchClient.QueryDocumentsAsync(query, embeddings, overrides, cancellationToken);
+        string documentContents = documentContentList.Length == 0
+            ? "no source available."
+            : string.Join("\r", documentContentList.Select(x => $"{x.Title}:{x.Content}"));
+
+        // Get images if vision service available
+        SupportingImageRecord[]? images = default;
+        if (_visionService is not null)
+        {
+            var queryEmbeddings = await _visionService.VectorizeTextAsync(query ?? question, cancellationToken);
+            images = await _searchClient.QueryImagesAsync(query, queryEmbeddings.vector, overrides, cancellationToken);
+        }
+
+        // Prepare chat history
+        var answerChat = new ChatHistory(
+            "You are a system assistant who helps the company employees with their questions. Be brief in your answers");
+
+        foreach (var message in history)
+        {
+            if (message.IsUser)
+            {
+                answerChat.AddUserMessage(message.Content);
+            }
+            else
+            {
+                answerChat.AddAssistantMessage(message.Content);
+            }
+        }
+
+        // Add final prompt with context
+        if (images != null)
+        {
+            var prompt = @$"## Source ##
+{documentContents}
+## End ##
+
+Answer question based on available source and images.
+Your answer needs to be a json object with answer and thoughts field.
+Don't put your answer between ```json and ```, return the json string directly. e.g {{""answer"": ""I don't know"", ""thoughts"": ""I don't know""}}";
+
+            var tokenRequestContext = new TokenRequestContext(new[] { "https://storage.azure.com/.default" });
+            var sasToken = await (_tokenCredential?.GetTokenAsync(tokenRequestContext, cancellationToken) ?? throw new InvalidOperationException("Failed to get token"));
+            var imageUrls = images.Select(x => $"{x.Url}?{sasToken.Token}").ToArray();
+            var collection = new ChatMessageContentItemCollection();
+            collection.Add(new TextContent(prompt));
+            foreach (var imageUrl in imageUrls)
+            {
+                collection.Add(new ImageContent(new Uri(imageUrl)));
+            }
+
+            answerChat.AddUserMessage(collection);
+        }
+        else
+        {
+            var prompt = @$" ## Source ##
+{documentContents}
+## End ##
+
+You answer needs to be a json object with the following format.
+{{
+    ""answer"": // the answer to the question, add a source reference to the end of each sentence. e.g. Apple is a fruit [reference1.pdf][reference2.pdf]. If no source available, put the answer as I don't know.
+    ""thoughts"": // brief thoughts on how you came up with the answer, e.g. what sources you used, what you thought about, etc.
+}}";
+            answerChat.AddUserMessage(prompt);
+        }
+
+        var promptExecutingSetting = new OpenAIPromptExecutionSettings
+        {
+            MaxTokens = 1024,
+            Temperature = overrides?.Temperature ?? 0.7,
+            StopSequences = [],
+        };
+
+        // Stream the response
+        await foreach (var content in chat.GetStreamingChatMessageContentsAsync(
+            answerChat,
+            executionSettings: promptExecutingSetting,
+            kernel: _kernel,
+            cancellationToken: cancellationToken))
+        {
+            if (content.Content is { Length: > 0 })
+            {
+                yield return new ChatChunkResponse(content.Content.Length, content.Content);
+            }
+        }
     }
 }
