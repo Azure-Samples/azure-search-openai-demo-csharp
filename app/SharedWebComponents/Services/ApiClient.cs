@@ -92,8 +92,6 @@ public sealed class ApiClient(HttpClient httpClient)
 
     public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request) => PostRequestAsync(request, "api/chat");
 
-    public Task<AnswerResult<ChatRequest>> ChatConversationStreamingAsync(ChatRequest request) => PostRequestAsync(request, "api/chat/stream");
-
     private async Task<AnswerResult<TRequest>> PostRequestAsync<TRequest>(
         TRequest request, string apiRoute) where TRequest : ApproachRequest
     {
@@ -140,19 +138,20 @@ public sealed class ApiClient(HttpClient httpClient)
         TRequest request, string apiRoute) where TRequest : ApproachRequest
     {
         var json = JsonSerializer.Serialize(
-            request, 
+            request,
             SerializerOptions.Default);
 
         using var body = new StringContent(
             json, Encoding.UTF8, "application/json");
 
         var response = await httpClient.PostAsync(apiRoute, body);
-        
+
         if (response.IsSuccessStatusCode)
         {
-            return response.Content.ReadFromJsonAsAsyncEnumerable<ChatAppResponse>();
+            var nullableResponses = response.Content.ReadFromJsonAsAsyncEnumerable<ChatAppResponse>();
+            return nullableResponses.Where(r => r != null)!;
         }
-        
+
         throw new HttpRequestException($"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "Unknown error"}");
     }
 }
