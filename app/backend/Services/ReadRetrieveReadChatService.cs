@@ -220,11 +220,38 @@ You answer needs to be a json object with the following format.
                         try
                         {
                             currentStreamedContent.Append(content.Content);
-
-                            // Send raw content as streaming message
-                            var streamingMessage = new StreamingMessage<string>("content", content.Content);
-                            await _hubContext.Clients.Client(connectionId)
-                                .SendAsync("ReceiveMessage", JsonSerializer.Serialize(streamingMessage), cancellationToken);
+                            
+                            // Try to parse as JSON to separate answer and thoughts
+                            if (TryParseAsJson(currentStreamedContent.ToString(), out var answerObj))
+                            {
+                                // If successfully parsed as JSON with answer/thoughts
+                                if (answerObj.TryGetProperty("answer", out var answerProp))
+                                {
+                                    ans = answerProp.GetString() ?? "";
+                                    // Send answer update
+                                    var answerMessage = new StreamingMessage<string>("answer", ans);
+                                    await _hubContext.Clients.Client(connectionId)
+                                        .SendAsync("ReceiveMessage", JsonSerializer.Serialize(answerMessage), cancellationToken);
+                                }
+                                
+                                if (answerObj.TryGetProperty("thoughts", out var thoughtsProp))
+                                {
+                                    thoughts = thoughtsProp.GetString() ?? "";
+                                    // Send thoughts update
+                                    var thoughtsMessage = new StreamingMessage<Thoughts[]>(
+                                        "thoughts",
+                                        new[] { new Thoughts("Thoughts", thoughts) });
+                                    await _hubContext.Clients.Client(connectionId)
+                                        .SendAsync("ReceiveMessage", JsonSerializer.Serialize(thoughtsMessage), cancellationToken);
+                                }
+                            }
+                            else
+                            {
+                                // If not valid JSON yet, send as raw content
+                                var streamingMessage = new StreamingMessage<string>("content", content.Content);
+                                await _hubContext.Clients.Client(connectionId)
+                                    .SendAsync("ReceiveMessage", JsonSerializer.Serialize(streamingMessage), cancellationToken);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -410,5 +437,19 @@ e.g.
         return followUpQuestionsObject.EnumerateArray()
             .Select(x => x.GetString()!)
             .ToArray();
+    }
+
+    private bool TryParseAsJson(string content, out JsonElement result)
+    {
+        try
+        {
+            result = JsonSerializer.Deserialize<JsonElement>(content);
+            return true;
+        }
+        catch
+        {
+            result = default;
+            return false;
+        }
     }
 }

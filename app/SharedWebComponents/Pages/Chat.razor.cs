@@ -60,6 +60,23 @@ public sealed partial class Chat : IAsyncDisposable
                             UpdateAnswerInMap(_streamingResponse);
                             break;
 
+                        case "answer":
+                            if (streamingMessage.Content is JsonElement answerElement)
+                            {
+                                var answer = answerElement.GetString();
+                                if (answer != null)
+                                {
+                                    _streamingResponse = answer;
+                                    UpdateAnswerInMap(answer);
+                                }
+                            }
+                            else if (streamingMessage.Content is string answerString)
+                            {
+                                _streamingResponse = answerString;
+                                UpdateAnswerInMap(answerString);
+                            }
+                            break;
+
                         case "thoughts":
                             if (streamingMessage.Content is JsonElement thoughtsElement)
                             {
