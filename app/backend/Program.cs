@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,14 @@ builder.Services.AddCrossOriginResourceSharing();
 builder.Services.AddAzureServices();
 builder.Services.AddAntiforgery(options => { options.HeaderName = "X-CSRF-TOKEN-HEADER"; options.FormFieldName = "X-CSRF-TOKEN-FORM"; });
 builder.Services.AddHttpClient();
+builder.Services.AddSignalR().AddAzureSignalR(options =>
+{
+    var signalRConnectionString = Environment.GetEnvironmentVariable("AZURE_SIGNALR_CONNECTION_STRING") 
+        ?? throw new InvalidOperationException("Azure SignalR connection string is not set.");
+    ArgumentNullException.ThrowIfNullOrEmpty(signalRConnectionString);
+    
+    options.ConnectionString = signalRConnectionString;
+});
 
 if (builder.Environment.IsDevelopment())
 {

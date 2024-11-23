@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Azure.Core;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
+using MinimalApi.Hubs;
+using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace MinimalApi.Services;
 #pragma warning disable SKEXP0011 // Mark members as static
@@ -15,13 +19,17 @@ public class ReadRetrieveReadChatService
     private readonly IConfiguration _configuration;
     private readonly IComputerVisionService? _visionService;
     private readonly TokenCredential? _tokenCredential;
+    private readonly IHubContext<ChatHub> _hubContext;
+    private readonly ILogger<ReadRetrieveReadChatService> _logger;
 
     public ReadRetrieveReadChatService(
         ISearchService searchClient,
         OpenAIClient client,
         IConfiguration configuration,
+        IHubContext<ChatHub> hubContext,
         IComputerVisionService? visionService = null,
-        TokenCredential? tokenCredential = null)
+        TokenCredential? tokenCredential = null,
+        ILogger<ReadRetrieveReadChatService> logger = default!)
     {
         _searchClient = searchClient;
         var kernelBuilder = Kernel.CreateBuilder();
@@ -54,11 +62,14 @@ public class ReadRetrieveReadChatService
         _configuration = configuration;
         _visionService = visionService;
         _tokenCredential = tokenCredential;
+        _hubContext = hubContext;
+        _logger = logger;
     }
 
     public async Task<ChatAppResponse> ReplyAsync(
         ChatMessage[] history,
         RequestOverrides? overrides,
+        string? connectionId = null,
         CancellationToken cancellationToken = default)
     {
         var top = overrides?.Top ?? 3;
@@ -110,7 +121,7 @@ standard plan AND dental AND employee benefit.
         }
         else
         {
-            documentContents = string.Join("\r", documentContentList.Select(x =>$"{x.Title}:{x.Content}"));
+            documentContents = string.Join("\r", documentContentList.Select(x => $"{x.Title}:{x.Content}"));
         }
 
         // step 2.5
@@ -140,7 +151,7 @@ standard plan AND dental AND employee benefit.
             }
         }
 
-        
+
         if (images != null)
         {
             var prompt = @$"## Source ##
@@ -186,14 +197,84 @@ You answer needs to be a json object with the following format.
         };
 
         // get answer
-        var answer = await chat.GetChatMessageContentAsync(
-                       answerChat,
-                       promptExecutingSetting,
-                       cancellationToken: cancellationToken);
-        var answerJson = answer.Content ?? throw new InvalidOperationException("Failed to get search query");
-        var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
-        var ans = answerObject.GetProperty("answer").GetString() ?? throw new InvalidOperationException("Failed to get answer");
-        var thoughts = answerObject.GetProperty("thoughts").GetString() ?? throw new InvalidOperationException("Failed to get thoughts");
+        var streamedAnswer = new StringBuilder();
+        string ans;
+        string thoughts;
+        
+        if (overrides?.UseStreaming == true && !string.IsNullOrEmpty(connectionId))
+        {
+            try
+            {
+                var streamingResponse = chat.GetStreamingChatMessageContentsAsync(
+                    answerChat,
+                    promptExecutingSetting,
+                    cancellationToken: cancellationToken);
+
+                await foreach (var content in streamingResponse)
+                {
+                    if (!string.IsNullOrEmpty(content.Content))
+                    {
+                        try
+                        {
+                            streamedAnswer.Append(content.Content);
+                            await _hubContext.Clients.Client(connectionId)
+                                .SendAsync("ReceiveMessage", content.Content, cancellationToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error sending message through SignalR");
+                        }
+                    }
+                }
+
+                // Parse the complete response after streaming
+                var answerJson = streamedAnswer.ToString();
+                try
+                {
+                    var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
+                    ans = answerObject.GetProperty("answer").GetString() ?? 
+                        throw new InvalidOperationException("Failed to get answer");
+                    thoughts = answerObject.GetProperty("thoughts").GetString() ?? 
+                        throw new InvalidOperationException("Failed to get thoughts");
+                }
+                catch (JsonException)
+                {
+                    // If the streamed response isn't valid JSON, use it as the answer directly
+                    ans = answerJson;
+                    thoughts = "Generated through streaming";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in streaming response");
+                // Fallback to non-streaming if streaming fails
+                var answer = await chat.GetChatMessageContentAsync(
+                    answerChat,
+                    promptExecutingSetting,
+                    cancellationToken: cancellationToken);
+                var answerJson = answer.Content ?? 
+                    throw new InvalidOperationException("Failed to get response");
+                var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
+                ans = answerObject.GetProperty("answer").GetString() ?? 
+                    throw new InvalidOperationException("Failed to get answer");
+                thoughts = answerObject.GetProperty("thoughts").GetString() ?? 
+                    throw new InvalidOperationException("Failed to get thoughts");
+            }
+        }
+        else
+        {
+            var answer = await chat.GetChatMessageContentAsync(
+                answerChat,
+                promptExecutingSetting,
+                cancellationToken: cancellationToken);
+            var answerJson = answer.Content ?? 
+                throw new InvalidOperationException("Failed to get response");
+            var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
+            ans = answerObject.GetProperty("answer").GetString() ?? 
+                throw new InvalidOperationException("Failed to get answer");
+            thoughts = answerObject.GetProperty("thoughts").GetString() ?? 
+                throw new InvalidOperationException("Failed to get thoughts");
+        }
 
         // step 4
         // add follow up questions if requested

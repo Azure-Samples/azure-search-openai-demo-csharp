@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Microsoft.AspNetCore.SignalR;
+using MinimalApi.Hubs;
+
 namespace MinimalApi.Extensions;
 
 internal static class ServiceCollectionExtensions
@@ -82,6 +85,8 @@ internal static class ServiceCollectionExtensions
             var useVision = config["UseVision"] == "true";
             var openAIClient = sp.GetRequiredService<OpenAIClient>();
             var searchClient = sp.GetRequiredService<ISearchService>();
+            var hubContext = sp.GetRequiredService<IHubContext<ChatHub>>();
+
             if (useVision)
             {
                 var azureComputerVisionServiceEndpoint = config["AzureComputerVisionServiceEndpoint"];
@@ -89,11 +94,22 @@ internal static class ServiceCollectionExtensions
                 var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
                 
                 var visionService = new AzureComputerVisionService(httpClient, azureComputerVisionServiceEndpoint, s_azureCredential);
-                return new ReadRetrieveReadChatService(searchClient, openAIClient, config, visionService, s_azureCredential);
+                return new ReadRetrieveReadChatService(
+                    searchClient, 
+                    openAIClient, 
+                    config, 
+                    hubContext,
+                    visionService, 
+                    s_azureCredential);
             }
             else
             {
-                return new ReadRetrieveReadChatService(searchClient, openAIClient, config, tokenCredential: s_azureCredential);
+                return new ReadRetrieveReadChatService(
+                    searchClient, 
+                    openAIClient, 
+                    config,
+                    hubContext,
+                    tokenCredential: s_azureCredential);
             }
         });
 

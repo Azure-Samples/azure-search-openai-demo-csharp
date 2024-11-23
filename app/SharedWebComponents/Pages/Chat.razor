@@ -92,6 +92,14 @@
             </MudItem>
         </MudGrid>
     </MudItem>
+    <MudItem xs="12" Class="d-flex justify-end">
+        <MudSwitch T="bool" Color="Color.Primary" 
+                   @bind-Checked="@Settings.Overrides.UseStreaming"
+                   Label="Use Streaming" 
+                   UnCheckedColor="Color.Default"
+                   Disabled="@_isReceivingResponse"
+                   OnValueChanged="@OnStreamingToggled"/>
+    </MudItem>
     <MudScrollToTop Selector="#answers" 
                     VisibleCssClass="visible absolute"
                     HiddenCssClass="invisible">

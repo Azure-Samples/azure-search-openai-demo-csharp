@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using MinimalApi.Hubs;
+
 namespace MinimalApi.Extensions;
 
 internal static class WebApplicationExtensions
@@ -24,6 +26,9 @@ internal static class WebApplicationExtensions
         api.MapPost("images", OnPostImagePromptAsync);
 
         api.MapGet("enableLogout", OnGetEnableLogout);
+
+        // Only need to map the Hub
+        app.MapHub<ChatHub>(ChatHub.HubUrl);
 
         return app;
     }
@@ -78,7 +83,10 @@ internal static class WebApplicationExtensions
         if (request is { History.Length: > 0 })
         {
             var response = await chatService.ReplyAsync(
-                request.History, request.Overrides, cancellationToken);
+                request.History,
+                request.Overrides,
+                request.ConnectionId,
+                cancellationToken);
 
             return TypedResults.Ok(response);
         }
