@@ -2,6 +2,7 @@
 
 namespace SharedWebComponents.Pages;
 using Microsoft.AspNetCore.SignalR.Client;
+using System.Text.Json;
 
 public sealed partial class Chat : IAsyncDisposable
 {
@@ -45,28 +46,83 @@ public sealed partial class Chat : IAsyncDisposable
 
         _hubConnection.On<string>("ReceiveMessage", (message) =>
         {
-            if (_currentQuestion != default)
+            try
             {
-                _streamingResponse += message;
-                
-                var responseChoice = new ResponseChoice(
-                    Index: 0,
-                    Message: new ResponseMessage("assistant", _streamingResponse),
-                    Context: new ResponseContext(null, null, Array.Empty<string>(), Array.Empty<Thoughts>()),
-                    CitationBaseUrl: "");
+                if (_currentQuestion != default)
+                {
+                    var streamingMessage = JsonSerializer.Deserialize<StreamingMessage>(message);
+                    if (streamingMessage?.Content == null) return;
 
-                if (_questionAndAnswerMap[_currentQuestion] == null)
-                {
-                    _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(
-                        new[] { responseChoice });
+                    switch (streamingMessage.Type.ToLowerInvariant())
+                    {
+                        case "content":
+                            _streamingResponse += streamingMessage.Content;
+                            UpdateAnswerInMap(_streamingResponse);
+                            break;
+
+                        case "thoughts":
+                            if (streamingMessage.Content is JsonElement thoughtsElement)
+                            {
+                                var thoughts = thoughtsElement.EnumerateArray()
+                                    .Select(t => new Thoughts(
+                                        t.GetProperty("Title").GetString()!,
+                                        t.GetProperty("Description").GetString()!))
+                                    .ToArray();
+                                UpdateThoughtsInMap(thoughts);
+                            }
+                            break;
+
+                        case "followup":
+                            if (streamingMessage.Content is JsonElement followupElement)
+                            {
+                                var followupQuestions = followupElement.EnumerateArray()
+                                    .Select(q => q.GetString()!)
+                                    .ToArray();
+                                UpdateFollowupQuestionsInMap(followupQuestions);
+                            }
+                            break;
+
+                        case "supporting":
+                            if (streamingMessage.Content is JsonElement supportingElement)
+                            {
+                                var supportingContent = supportingElement.Deserialize<SupportingContentRecord[]>();
+                                if (supportingContent != null)
+                                {
+                                    UpdateSupportingContentInMap(supportingContent);
+                                }
+                            }
+                            break;
+
+                        case "images":
+                            if (streamingMessage.Content is JsonElement imagesElement)
+                            {
+                                var images = imagesElement.Deserialize<SupportingImageRecord[]>();
+                                if (images != null)
+                                {
+                                    UpdateImagesInMap(images);
+                                }
+                            }
+                            break;
+
+                        case "complete":
+                            if (streamingMessage.Content is JsonElement completeElement)
+                            {
+                                var finalResponse = completeElement.Deserialize<ChatAppResponseOrError>();
+                                if (finalResponse != null)
+                                {
+                                    _questionAndAnswerMap[_currentQuestion] = finalResponse;
+                                    _userQuestion = "";
+                                    _currentQuestion = default;
+                                }
+                            }
+                            break;
+                    }
+                    StateHasChanged();
                 }
-                else
-                {
-                    _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(
-                        new[] { responseChoice });
-                }
-                
-                StateHasChanged();
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"Error deserializing response: {ex.Message}");
             }
         });
 
@@ -106,7 +162,7 @@ public sealed partial class Chat : IAsyncDisposable
             history.Add(new ChatMessage("user", _userQuestion));
 
             var request = new ChatRequest([.. history], Settings.Overrides);
-            
+
             if (Settings.Overrides.UseStreaming && _hubConnection?.State == HubConnectionState.Connected)
             {
                 try
@@ -179,4 +235,93 @@ public sealed partial class Chat : IAsyncDisposable
             _hubConnection = null;
         }
     }
+
+    private void UpdateAnswerInMap(string answer)
+    {
+        var currentResponse = _questionAndAnswerMap[_currentQuestion];
+        var choice = currentResponse?.Choices.FirstOrDefault();
+        var context = choice?.Context ?? new ResponseContext(null, null, Array.Empty<string>(), Array.Empty<Thoughts>());
+
+        _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(new[] {
+            new ResponseChoice(
+                Index: 0,
+                Message: new ResponseMessage("assistant", answer),
+                Context: context,
+                CitationBaseUrl: choice?.CitationBaseUrl ?? "")
+        });
+    }
+
+    private void UpdateThoughtsInMap(Thoughts[] thoughts)
+    {
+        var currentResponse = _questionAndAnswerMap[_currentQuestion];
+        if (currentResponse?.Choices.FirstOrDefault() is { } choice)
+        {
+            var context = new ResponseContext(
+                choice.Context.DataPointsContent,
+                choice.Context.DataPointsImages,
+                choice.Context.FollowupQuestions,
+                thoughts);
+
+            _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(new[] {
+                choice with { Context = context }
+            });
+        }
+    }
+
+    private void UpdateFollowupQuestionsInMap(string[] followupQuestions)
+    {
+        var currentResponse = _questionAndAnswerMap[_currentQuestion];
+        if (currentResponse?.Choices.FirstOrDefault() is { } choice)
+        {
+            var context = new ResponseContext(
+                choice.Context.DataPointsContent,
+                choice.Context.DataPointsImages,
+                followupQuestions,
+                choice.Context.Thoughts);
+
+            _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(new[] {
+                choice with { Context = context }
+            });
+        }
+    }
+
+    private void UpdateSupportingContentInMap(SupportingContentRecord[] supportingContent)
+    {
+        var currentResponse = _questionAndAnswerMap[_currentQuestion];
+        if (currentResponse?.Choices.FirstOrDefault() is { } choice)
+        {
+            var context = new ResponseContext(
+                supportingContent,
+                choice.Context.DataPointsImages,
+                choice.Context.FollowupQuestions,
+                choice.Context.Thoughts);
+
+            _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(new[] {
+                choice with { Context = context }
+            });
+        }
+    }
+
+    private void UpdateImagesInMap(SupportingImageRecord[] images)
+    {
+        var currentResponse = _questionAndAnswerMap[_currentQuestion];
+        if (currentResponse?.Choices.FirstOrDefault() is { } choice)
+        {
+            var context = new ResponseContext(
+                choice.Context.DataPointsContent,
+                images,
+                choice.Context.FollowupQuestions,
+                choice.Context.Thoughts);
+
+            _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(new[] {
+                choice with { Context = context }
+            });
+        }
+    }
+}
+
+internal class StreamingMessage
+{
+    public string Type { get; set; } = "";
+    public object? Content { get; set; }
 }

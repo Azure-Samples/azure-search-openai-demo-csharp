@@ -22,6 +22,8 @@ public class ReadRetrieveReadChatService
     private readonly IHubContext<ChatHub> _hubContext;
     private readonly ILogger<ReadRetrieveReadChatService> _logger;
 
+    private record StreamingMessage<T>(string Type, T Content);
+
     public ReadRetrieveReadChatService(
         ISearchService searchClient,
         OpenAIClient client,
@@ -200,7 +202,7 @@ You answer needs to be a json object with the following format.
         var streamedAnswer = new StringBuilder();
         string ans;
         string thoughts;
-        
+
         if (overrides?.UseStreaming == true && !string.IsNullOrEmpty(connectionId))
         {
             try
@@ -210,15 +212,19 @@ You answer needs to be a json object with the following format.
                     promptExecutingSetting,
                     cancellationToken: cancellationToken);
 
+                var currentStreamedContent = new StringBuilder();
                 await foreach (var content in streamingResponse)
                 {
                     if (!string.IsNullOrEmpty(content.Content))
                     {
                         try
                         {
-                            streamedAnswer.Append(content.Content);
+                            currentStreamedContent.Append(content.Content);
+
+                            // Send raw content as streaming message
+                            var streamingMessage = new StreamingMessage<string>("content", content.Content);
                             await _hubContext.Clients.Client(connectionId)
-                                .SendAsync("ReceiveMessage", content.Content, cancellationToken);
+                                .SendAsync("ReceiveMessage", JsonSerializer.Serialize(streamingMessage), cancellationToken);
                         }
                         catch (Exception ex)
                         {
@@ -228,18 +234,76 @@ You answer needs to be a json object with the following format.
                 }
 
                 // Parse the complete response after streaming
-                var answerJson = streamedAnswer.ToString();
+                var answerJson = currentStreamedContent.ToString();
                 try
                 {
                     var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
-                    ans = answerObject.GetProperty("answer").GetString() ?? 
+                    ans = answerObject.GetProperty("answer").GetString() ??
                         throw new InvalidOperationException("Failed to get answer");
-                    thoughts = answerObject.GetProperty("thoughts").GetString() ?? 
+                    thoughts = answerObject.GetProperty("thoughts").GetString() ??
                         throw new InvalidOperationException("Failed to get thoughts");
+
+                    // Send thoughts as a separate message
+                    var thoughtsMessage = new StreamingMessage<Thoughts[]>(
+                        "thoughts",
+                        new[] { new Thoughts("Thoughts", thoughts) });
+                    await _hubContext.Clients.Client(connectionId)
+                        .SendAsync("ReceiveMessage", JsonSerializer.Serialize(thoughtsMessage), cancellationToken);
+
+                    // Handle follow-up questions
+                    if (overrides?.SuggestFollowupQuestions is true)
+                    {
+                        var followUpQuestions = await GetFollowUpQuestionsAsync(
+                            chat, ans, promptExecutingSetting, cancellationToken);
+
+                        // Send follow-up questions as a separate message
+                        var followUpMessage = new StreamingMessage<string[]>("followup", followUpQuestions);
+                        await _hubContext.Clients.Client(connectionId)
+                            .SendAsync("ReceiveMessage", JsonSerializer.Serialize(followUpMessage), cancellationToken);
+
+                        foreach (var followupQuestion in followUpQuestions)
+                        {
+                            ans += $" <<{followupQuestion}>> ";
+                        }
+                    }
+
+                    // Send supporting content
+                    var supportingContent = new StreamingMessage<SupportingContentRecord[]>(
+                        "supporting",
+                        documentContentList.Select(x => new SupportingContentRecord(x.Title, x.Content)).ToArray());
+                    await _hubContext.Clients.Client(connectionId)
+                        .SendAsync("ReceiveMessage", JsonSerializer.Serialize(supportingContent), cancellationToken);
+
+                    // Send supporting images if available
+                    if (images?.Length > 0)
+                    {
+                        var supportingImages = new StreamingMessage<SupportingImageRecord[]>(
+                            "images",
+                            images.Select(x => new SupportingImageRecord(x.Title, x.Url)).ToArray());
+                        await _hubContext.Clients.Client(connectionId)
+                            .SendAsync("ReceiveMessage", JsonSerializer.Serialize(supportingImages), cancellationToken);
+                    }
+
+                    // Send final complete response
+                    var finalResponse = new ChatAppResponse(new[] {
+                        new ResponseChoice(
+                            Index: 0,
+                            Message: new ResponseMessage("assistant", ans),
+                            Context: new ResponseContext(
+                                DataPointsContent: documentContentList.Select(x => new SupportingContentRecord(x.Title, x.Content)).ToArray(),
+                                DataPointsImages: images?.Select(x => new SupportingImageRecord(x.Title, x.Url)).ToArray(),
+                                FollowupQuestions: followUpQuestionList ?? Array.Empty<string>(),
+                                Thoughts: new[] { new Thoughts("Thoughts", thoughts) }),
+                            CitationBaseUrl: _configuration.ToCitationBaseUrl())
+                    });
+
+                    var completeMessage = new StreamingMessage<ChatAppResponse>("complete", finalResponse);
+                    await _hubContext.Clients.Client(connectionId)
+                        .SendAsync("ReceiveMessage", JsonSerializer.Serialize(completeMessage), cancellationToken);
                 }
                 catch (JsonException)
                 {
-                    // If the streamed response isn't valid JSON, use it as the answer directly
+                    // Handle invalid JSON...
                     ans = answerJson;
                     thoughts = "Generated through streaming";
                 }
@@ -247,18 +311,7 @@ You answer needs to be a json object with the following format.
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in streaming response");
-                // Fallback to non-streaming if streaming fails
-                var answer = await chat.GetChatMessageContentAsync(
-                    answerChat,
-                    promptExecutingSetting,
-                    cancellationToken: cancellationToken);
-                var answerJson = answer.Content ?? 
-                    throw new InvalidOperationException("Failed to get response");
-                var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
-                ans = answerObject.GetProperty("answer").GetString() ?? 
-                    throw new InvalidOperationException("Failed to get answer");
-                thoughts = answerObject.GetProperty("thoughts").GetString() ?? 
-                    throw new InvalidOperationException("Failed to get thoughts");
+                throw;
             }
         }
         else
@@ -267,12 +320,12 @@ You answer needs to be a json object with the following format.
                 answerChat,
                 promptExecutingSetting,
                 cancellationToken: cancellationToken);
-            var answerJson = answer.Content ?? 
+            var answerJson = answer.Content ??
                 throw new InvalidOperationException("Failed to get response");
             var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
-            ans = answerObject.GetProperty("answer").GetString() ?? 
+            ans = answerObject.GetProperty("answer").GetString() ??
                 throw new InvalidOperationException("Failed to get answer");
-            thoughts = answerObject.GetProperty("thoughts").GetString() ?? 
+            thoughts = answerObject.GetProperty("thoughts").GetString() ??
                 throw new InvalidOperationException("Failed to get thoughts");
         }
 
@@ -324,5 +377,38 @@ e.g.
             CitationBaseUrl: _configuration.ToCitationBaseUrl());
 
         return new ChatAppResponse(new[] { choice });
+    }
+
+    private async Task<string[]> GetFollowUpQuestionsAsync(
+        IChatCompletionService chat,
+        string answer,
+        OpenAIPromptExecutionSettings settings,
+        CancellationToken cancellationToken)
+    {
+        var followUpQuestionChat = new ChatHistory(@"You are a helpful AI assistant");
+        followUpQuestionChat.AddUserMessage($@"Generate three follow-up question based on the answer you just generated.
+# Answer
+{answer}
+
+# Format of the response
+Return the follow-up question as a json string list. Don't put your answer between ```json and ```, return the json string directly.
+e.g.
+[
+    ""What is the deductible?"",
+    ""What is the co-pay?"",
+    ""What is the out-of-pocket maximum?""
+]");
+
+        var followUpQuestions = await chat.GetChatMessageContentAsync(
+            followUpQuestionChat,
+            settings,
+            cancellationToken: cancellationToken);
+
+        var followUpQuestionsJson = followUpQuestions.Content ??
+            throw new InvalidOperationException("Failed to get follow-up questions");
+        var followUpQuestionsObject = JsonSerializer.Deserialize<JsonElement>(followUpQuestionsJson);
+        return followUpQuestionsObject.EnumerateArray()
+            .Select(x => x.GetString()!)
+            .ToArray();
     }
 }
