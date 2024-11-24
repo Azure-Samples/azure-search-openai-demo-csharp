@@ -7,7 +7,6 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
 using MinimalApi.Hubs;
 using System.Text;
-using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 
 namespace MinimalApi.Services;
@@ -21,8 +20,6 @@ public class ReadRetrieveReadChatService
     private readonly IComputerVisionService? _visionService;
     private readonly TokenCredential? _tokenCredential;
     private readonly IHubContext<ChatHub> _hubContext;
-    private readonly ILogger<ReadRetrieveReadChatService> _logger;
-
     private record StreamingMessage<T>(string Type, T Content);
 
     private string? _currentAnswer = null;
@@ -34,8 +31,7 @@ public class ReadRetrieveReadChatService
         IConfiguration configuration,
         IHubContext<ChatHub> hubContext,
         IComputerVisionService? visionService = null,
-        TokenCredential? tokenCredential = null,
-        ILogger<ReadRetrieveReadChatService> logger = default!)
+        TokenCredential? tokenCredential = null)
     {
         _searchClient = searchClient;
         var kernelBuilder = Kernel.CreateBuilder();
@@ -69,7 +65,6 @@ public class ReadRetrieveReadChatService
         _visionService = visionService;
         _tokenCredential = tokenCredential;
         _hubContext = hubContext;
-        _logger = logger;
     }
 
     public async Task<ChatAppResponse> ReplyAsync(
@@ -475,7 +470,7 @@ Brief thoughts on how you came up with the answer, e.g. what sources you used, w
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error sending message through SignalR");
+                        throw new InvalidOperationException("Error processing streaming response", ex);
                     }
                 }
             }
@@ -537,7 +532,7 @@ Your follow-up questions here, one per line.
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Error processing follow-up questions streaming");
+                            throw new InvalidOperationException("Error processing follow-up questions streaming", ex);
                         }
                     }
                 }
@@ -582,8 +577,7 @@ Your follow-up questions here, one per line.
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in streaming response");
-            throw;
+            throw new InvalidOperationException("Error in streaming response", ex);
         }
     }
 }
