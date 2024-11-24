@@ -572,7 +572,10 @@ Your follow-up questions here, one per line.
             }
 
             // Finally send the complete message
-            var completeMessage = new StreamingMessage<object>("complete", new { });
+            var completeMessage = new StreamingMessage<object>("complete", new
+            {
+                citationBaseUrl = _configuration.ToCitationBaseUrl()
+            });
             await _hubContext.Clients.Client(connectionId)
                 .SendAsync("ReceiveMessage", JsonSerializer.Serialize(completeMessage), cancellationToken);
 

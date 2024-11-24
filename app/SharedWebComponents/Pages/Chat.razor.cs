@@ -142,13 +142,10 @@ public sealed partial class Chat : IAsyncDisposable
                         case "complete":
                             if (streamingMessage.Content is JsonElement completeElement)
                             {
-                                var finalResponse = completeElement.Deserialize<ChatAppResponseOrError>();
-                                if (finalResponse != null)
-                                {
-                                    _questionAndAnswerMap[_currentQuestion] = finalResponse;
-                                    _userQuestion = "";
-                                    _currentQuestion = default;
-                                }
+                                var citationBaseUrl = completeElement.GetProperty("citationBaseUrl").GetString();
+                                UpdateAnswerInMap(_streamingResponse, citationBaseUrl);
+                                _userQuestion = "";
+                                _currentQuestion = default;
                             }
                             break;
                     }
@@ -273,7 +270,7 @@ public sealed partial class Chat : IAsyncDisposable
         }
     }
 
-    private void UpdateAnswerInMap(string answer)
+    private void UpdateAnswerInMap(string answer, string? citationBaseUrl = null)
     {
         var currentResponse = _questionAndAnswerMap[_currentQuestion];
         var choice = currentResponse?.Choices.FirstOrDefault();
@@ -284,7 +281,7 @@ public sealed partial class Chat : IAsyncDisposable
                 Index: 0,
                 Message: new ResponseMessage("assistant", answer),
                 Context: context,
-                CitationBaseUrl: choice?.CitationBaseUrl ?? "")
+                CitationBaseUrl: citationBaseUrl ?? choice?.CitationBaseUrl ?? "")
         });
     }
 
