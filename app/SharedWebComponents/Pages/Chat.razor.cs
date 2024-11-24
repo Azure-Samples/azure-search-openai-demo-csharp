@@ -10,6 +10,7 @@ public sealed partial class Chat : IAsyncDisposable
     private UserQuestion _currentQuestion;
     private string _lastReferenceQuestion = "";
     private bool _isReceivingResponse = false;
+    private bool _useStreaming = true;
     private HubConnection? _hubConnection;
     private string _streamingResponse = "";
 
@@ -195,7 +196,7 @@ public sealed partial class Chat : IAsyncDisposable
 
             var request = new ChatRequest([.. history], Settings.Overrides);
 
-            if (Settings.Overrides.UseStreaming && _hubConnection?.State == HubConnectionState.Connected)
+            if (_useStreaming && _hubConnection?.State == HubConnectionState.Connected)
             {
                 try
                 {
@@ -251,6 +252,7 @@ public sealed partial class Chat : IAsyncDisposable
 
     private async Task OnStreamingToggled(bool isEnabled)
     {
+        _useStreaming = isEnabled;
         if (isEnabled)
         {
             await ConnectToHub();
