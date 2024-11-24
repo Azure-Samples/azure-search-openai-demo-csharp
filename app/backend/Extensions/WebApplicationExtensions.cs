@@ -16,6 +16,8 @@ internal static class WebApplicationExtensions
         // Long-form chat w/ contextual history endpoint
         api.MapPost("chat", OnPostChatAsync);
 
+        api.MapPost("chat/stream", OnPostChatStreamingAsync);
+
         // Upload a document
         api.MapPost("documents", OnPostDocumentAsync);
 
@@ -83,14 +85,29 @@ internal static class WebApplicationExtensions
         if (request is { History.Length: > 0 })
         {
             var response = await chatService.ReplyAsync(
+                request.History, request.Overrides, cancellationToken);
+
+            return TypedResults.Ok(response);
+        }
+
+        return Results.BadRequest();
+    }
+
+    private static async Task<IResult> OnPostChatStreamingAsync(
+        ChatRequest request,
+        ReadRetrieveReadChatService chatService,
+        CancellationToken cancellationToken)
+    {
+        if (request is { History.Length: > 0 })
+        {
+            await chatService.ReplyStreamingAsync(
                 request.History,
                 request.Overrides,
                 request.ConnectionId,
                 cancellationToken);
 
-            return TypedResults.Ok(response);
+            return TypedResults.Ok();
         }
-
         return Results.BadRequest();
     }
 

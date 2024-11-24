@@ -92,18 +92,31 @@ public sealed partial class Chat : IAsyncDisposable
                         case "followup":
                             if (streamingMessage.Content is JsonElement followupElement)
                             {
-                                var followupQuestions = followupElement.EnumerateArray()
-                                    .Select(q => q.GetString()!)
-                                    .ToArray();
-                                UpdateFollowupQuestionsInMap(followupQuestions);
+                                var followupQuestions = followupElement.ValueKind == JsonValueKind.Array
+                                    ? followupElement.EnumerateArray()
+                                        .Select(q => q.GetString() ?? string.Empty)
+                                        .Where(q => !string.IsNullOrEmpty(q))
+                                        .ToArray()
+                                    : new[] { followupElement.GetString() ?? string.Empty };
+
+                                if (followupQuestions.Any())
+                                {
+                                    UpdateFollowupQuestionsInMap(followupQuestions);
+                                }
                             }
                             break;
 
                         case "supporting":
                             if (streamingMessage.Content is JsonElement supportingElement)
                             {
-                                var supportingContent = supportingElement.Deserialize<SupportingContentRecord[]>();
-                                if (supportingContent != null)
+                                var supportingContent = supportingElement.EnumerateArray()
+                                    .Select(s => new SupportingContentRecord(
+                                        s.GetProperty("Title").GetString()!,
+                                        s.GetProperty("Description").GetString()!
+                                    ))
+                                    .ToArray();
+
+                                if (supportingContent.Any())
                                 {
                                     UpdateSupportingContentInMap(supportingContent);
                                 }
@@ -113,8 +126,13 @@ public sealed partial class Chat : IAsyncDisposable
                         case "images":
                             if (streamingMessage.Content is JsonElement imagesElement)
                             {
-                                var images = imagesElement.Deserialize<SupportingImageRecord[]>();
-                                if (images != null)
+                                var images = imagesElement.EnumerateArray()
+                                    .Select(i => new SupportingImageRecord(
+                                        i.GetProperty("Title").GetString()!,
+                                        i.GetProperty("Url").GetString()!))
+                                    .ToArray();
+
+                                if (images.Any())
                                 {
                                     UpdateImagesInMap(images);
                                 }
@@ -191,18 +209,20 @@ public sealed partial class Chat : IAsyncDisposable
                     _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(
                         Array.Empty<ResponseChoice>(),
                         $"Error: {ex.Message}");
+                    _userQuestion = "";
+                    _currentQuestion = default;
                 }
             }
             else
             {
                 var result = await ApiClient.ChatConversationAsync(request);
                 _questionAndAnswerMap[_currentQuestion] = result.Response;
-            }
 
-            if (_questionAndAnswerMap[_currentQuestion]?.Error == null)
-            {
-                _userQuestion = "";
-                _currentQuestion = default;
+                if (_questionAndAnswerMap[_currentQuestion]?.Error == null)
+                {
+                    _userQuestion = "";
+                    _currentQuestion = default;
+                }
             }
         }
         finally
