@@ -3,6 +3,7 @@
 namespace SharedWebComponents.Pages;
 using Microsoft.AspNetCore.SignalR.Client;
 using System.Text.Json;
+using SharedWebComponents.Models;
 
 public sealed partial class Chat : IAsyncDisposable
 {
@@ -250,28 +251,6 @@ public sealed partial class Chat : IAsyncDisposable
         await OnAskClickedAsync();
     }
 
-    private async Task OnStreamingToggled(bool isEnabled)
-    {
-        _useStreaming = isEnabled;
-        if (isEnabled)
-        {
-            await ConnectToHub();
-        }
-        else
-        {
-            await DisconnectFromHub();
-        }
-    }
-
-    private async Task DisconnectFromHub()
-    {
-        if (_hubConnection is not null)
-        {
-            await _hubConnection.DisposeAsync();
-            _hubConnection = null;
-        }
-    }
-
     private void UpdateAnswerInMap(string answer, string? citationBaseUrl = null)
     {
         var currentResponse = _questionAndAnswerMap[_currentQuestion];
@@ -354,10 +333,4 @@ public sealed partial class Chat : IAsyncDisposable
             });
         }
     }
-}
-
-internal class StreamingMessage
-{
-    public string Type { get; set; } = "";
-    public object? Content { get; set; }
 }

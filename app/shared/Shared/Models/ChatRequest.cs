@@ -10,7 +10,4 @@ public record class ChatRequest(
     ) : ApproachRequest(Approach.RetrieveThenRead)
 {
     public string? LastUserQuestion => History?.Last(m => m.Role == "user")?.Content;
-    
-    [JsonPropertyName("connectionId")]
-    public string? ConnectionId { get; set; }
 }
