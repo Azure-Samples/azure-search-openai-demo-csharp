@@ -65,6 +65,9 @@ param openAiApiKey string
 @description('An array of service binds')
 param serviceBinds array
 
+@description('The SignalR endpoint')
+param signalREndpoint string
+
 resource webIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
   location: location
@@ -148,6 +151,10 @@ module app '../core/host/container-app-upsert.bicep' = {
       {
         name: 'OPENAI_API_KEY'
         value: openAiApiKey
+      }
+      {
+        name: 'AZURE_SIGNALR_ENDPOINT'
+        value: signalREndpoint
       }
     ]
     targetPort: 8080

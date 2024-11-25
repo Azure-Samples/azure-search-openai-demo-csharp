@@ -2,6 +2,8 @@
 
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.SignalR;
+using Azure.Identity;
+using Microsoft.Azure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,11 +21,17 @@ builder.Services.AddAntiforgery(options => { options.HeaderName = "X-CSRF-TOKEN-
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR().AddAzureSignalR(options =>
 {
-    var signalRConnectionString = Environment.GetEnvironmentVariable("AZURE_SIGNALR_CONNECTION_STRING") 
-        ?? throw new InvalidOperationException("Azure SignalR connection string is not set.");
-    ArgumentNullException.ThrowIfNullOrEmpty(signalRConnectionString);
+    static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
+
+    var endpoint = GetEnvVar("AZURE_SIGNALR_ENDPOINT")
+        ?? throw new InvalidOperationException("Azure:SignalR:Endpoint is not configured");
+    var clientId = GetEnvVar("AZURE_CLIENT_ID")
+        ?? throw new InvalidOperationException("Azure:SignalR:IdentityClientId is not configured");
     
-    options.ConnectionString = signalRConnectionString;
+    options.Endpoints = new[] 
+    { 
+        new ServiceEndpoint(new Uri(endpoint), new ManagedIdentityCredential(clientId))
+    };
 });
 
 if (builder.Environment.IsDevelopment())

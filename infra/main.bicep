@@ -339,6 +339,7 @@ module web './app/web.bicep' = {
     openAiChatGptDeployment: useAOAI ? azureChatGptDeploymentName : ''
     openAiEmbeddingDeployment: useAOAI ? azureEmbeddingDeploymentName : ''
     serviceBinds: []
+    signalREndpoint: signalr.outputs.endpoint
   }
 }
 
@@ -740,6 +741,37 @@ module visionRoleBackend 'core/security/role.bicep' = if (useVision) {
   }
 }
 
+module signalr './core/signalr/signalr.bicep' = {
+  name: 'signalr'
+  scope: resourceGroup
+  params: {
+    name: '${abbrs.signalRServiceSignalR}${resourceToken}'
+    location: location
+    tags: updatedTags
+  }
+}
+
+// Add SignalR role assignments for the web app
+module signalRRoleUser 'core/security/role.bicep' = {
+  scope: resourceGroup
+  name: 'signalr-role-user'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '420fcaa2-552c-430f-98ca-3264be4806c7' // SignalR App Server
+    principalType: principalType
+  }
+}
+
+module signalRRoleBackend 'core/security/role.bicep' = {
+  scope: resourceGroup
+  name: 'signalr-role-backend'
+  params: {
+    principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    roleDefinitionId: '420fcaa2-552c-430f-98ca-3264be4806c7' // SignalR App Server
+    principalType: 'ServicePrincipal'
+  }
+}
+
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
 output APPLICATIONINSIGHTS_NAME string = monitoring.outputs.applicationInsightsName
 output AZURE_USE_APPLICATION_INSIGHTS bool = useApplicationInsights
@@ -782,3 +814,4 @@ output USE_VISION bool = useVision
 output OPENAI_EMBEDDING_DEPLOYMENT string = openAiEmbeddingDeployment
 output AZURE_OPENAI_CHATGPT_MODEL_VERSION string = azureOpenAIChatGptModelVersion
 output AZURE_OPENAI_CHATGPT_MODEL_NAME string = azureOpenAIChatGptModelName
+output AZURE_SIGNALR_ENDPOINT string = signalr.outputs.endpoint
