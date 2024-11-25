@@ -24,9 +24,9 @@ builder.Services.AddSignalR().AddAzureSignalR(options =>
     static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
 
     var endpoint = GetEnvVar("AZURE_SIGNALR_ENDPOINT")
-        ?? throw new InvalidOperationException("Azure:SignalR:Endpoint is not configured");
+        ?? throw new InvalidOperationException("AZURE_SIGNALR_ENDPOINT is not configured");
     var clientId = GetEnvVar("AZURE_CLIENT_ID")
-        ?? throw new InvalidOperationException("Azure:SignalR:IdentityClientId is not configured");
+        ?? throw new InvalidOperationException("AZURE_CLIENT_ID is not configured");
     
     options.Endpoints = new[] 
     { 
