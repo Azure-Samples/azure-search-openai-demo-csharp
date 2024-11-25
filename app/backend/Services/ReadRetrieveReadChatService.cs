@@ -151,7 +151,6 @@ standard plan AND dental AND employee benefit.
             }
         }
 
-
         if (images != null)
         {
             var prompt = @$"## Source ##
@@ -159,14 +158,8 @@ standard plan AND dental AND employee benefit.
 ## End ##
 
 Answer question based on available source and images.
-Respond in the following format:
-[ANSWER START]
-Your answer here. If no source available, say I don't know.
-[ANSWER END]
-
-[THOUGHTS START]
-Brief thoughts on how you came up with the answer, e.g. what sources you used, what you thought about, etc.
-[THOUGHTS END]";
+Your answer needs to be a json object with answer and thoughts field.
+Don't put your answer between ```json and ```, return the json string directly. e.g {{""answer"": ""I don't know"", ""thoughts"": ""I don't know""}}";
 
             var tokenRequestContext = new TokenRequestContext(new[] { "https://storage.azure.com/.default" });
             var sasToken = await (_tokenCredential?.GetTokenAsync(tokenRequestContext, cancellationToken) ?? throw new InvalidOperationException("Failed to get token"));
