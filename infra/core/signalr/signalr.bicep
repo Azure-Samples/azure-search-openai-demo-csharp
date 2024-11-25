@@ -16,18 +16,8 @@ resource signalR 'Microsoft.SignalRService/signalR@2023-08-01-preview' = {
   location: location
   tags: tags
   sku: sku
-  identity: {
-    type: 'SystemAssigned'
-  }
   properties: {
-    features: [
-      {
-        flag: 'ServiceMode'
-        value: 'Default'
-      }
-    ]
     disableLocalAuth: disableLocalAuth
-    publicNetworkAccess: 'Enabled'
   }
 }
 
