@@ -276,11 +276,20 @@ standard plan AND dental AND employee benefit.
 ");
 
             getQueryChat.AddUserMessage(question);
-            var result = await chat.GetChatMessageContentAsync(
+            var queryBuilder = new StringBuilder();
+            
+            await foreach (var content in chat.GetStreamingChatMessageContentsAsync(
                 getQueryChat,
-                cancellationToken: cancellationToken);
+                kernel: _kernel,
+                cancellationToken: cancellationToken))
+            {
+                if (content.Content is { Length: > 0 })
+                {
+                    queryBuilder.Append(content.Content);
+                }
+            }
 
-            query = result.Content ?? throw new InvalidOperationException("Failed to get search query");
+            query = queryBuilder.ToString() ?? throw new InvalidOperationException("Failed to get search query");
         }
 
         // Search related documents
@@ -430,15 +439,43 @@ You answer needs to be a json object with the following format.
                 var answer = answerObject.GetProperty("answer").GetString() ?? "";
                 var thoughts = answerObject.GetProperty("thoughts").GetString() ?? "";
 
-                var followUpQuestions = await GenerateFollowUpQuestionsAsync(
-                    answer,
-                    chat,
-                    promptExecutingSetting,
-                    cancellationToken);
+                // Inline the follow-up questions generation
+                var followUpQuestionChat = new ChatHistory(@"You are a helpful AI assistant");
+                followUpQuestionChat.AddUserMessage($@"Generate three follow-up question based on the answer you just generated.
+# Answer
+{answer}
 
-                // Add follow-up questions to the answer text, just like in ReplyAsync
+# Format of the response
+Return the follow-up question as a json string list. Don't put your answer between ```json and ```, return the json string directly.
+e.g.
+[
+    ""What is the deductible?"",
+    ""What is the co-pay?"",
+    ""What is the out-of-pocket maximum?""
+]");
+
+                var followUpBuilder = new StringBuilder();
+                await foreach (var content in chat.GetStreamingChatMessageContentsAsync(
+                    followUpQuestionChat,
+                    executionSettings: promptExecutingSetting,
+                    kernel: _kernel,
+                    cancellationToken: cancellationToken))
+                {
+                    if (content.Content is { Length: > 0 })
+                    {
+                        followUpBuilder.Append(content.Content);
+                    }
+                }
+
+                var followUpQuestionsJson = followUpBuilder.ToString() ?? throw new InvalidOperationException("Failed to get follow-up questions");
+                var followUpQuestionsObject = JsonSerializer.Deserialize<JsonElement>(followUpQuestionsJson);
+                var followUpQuestionsList = followUpQuestionsObject.EnumerateArray()
+                    .Select(x => x.GetString()!)
+                    .ToArray();
+
+                // Add follow-up questions to the answer text
                 var answerWithQuestions = answer;
-                foreach (var followUpQuestion in followUpQuestions)
+                foreach (var followUpQuestion in followUpQuestionsList)
                 {
                     answerWithQuestions += $" <<{followUpQuestion}>> ";
                 }
@@ -447,7 +484,7 @@ You answer needs to be a json object with the following format.
                 var finalContext = documentContext with
                 {
                     Thoughts = new[] { new Thoughts("Thoughts", thoughts) },
-                    FollowupQuestions = followUpQuestions
+                    FollowupQuestions = followUpQuestionsList
                 };
 
                 var choice = new ResponseChoice(
@@ -473,37 +510,5 @@ You answer needs to be a json object with the following format.
 
             yield return response;
         }
-    }
-
-    private async Task<string[]> GenerateFollowUpQuestionsAsync(
-        string answer,
-        IChatCompletionService chat,
-        OpenAIPromptExecutionSettings settings,
-        CancellationToken cancellationToken)
-    {
-        var followUpQuestionChat = new ChatHistory(@"You are a helpful AI assistant");
-        followUpQuestionChat.AddUserMessage($@"Generate three follow-up question based on the answer you just generated.
-# Answer
-{answer}
-
-# Format of the response
-Return the follow-up question as a json string list. Don't put your answer between ```json and ```, return the json string directly.
-e.g.
-[
-    ""What is the deductible?"",
-    ""What is the co-pay?"",
-    ""What is the out-of-pocket maximum?""
-]");
-
-        var followUpQuestions = await chat.GetChatMessageContentAsync(
-            followUpQuestionChat,
-            settings,
-            cancellationToken: cancellationToken);
-
-        var followUpQuestionsJson = followUpQuestions.Content ?? throw new InvalidOperationException("Failed to get follow-up questions");
-        var followUpQuestionsObject = JsonSerializer.Deserialize<JsonElement>(followUpQuestionsJson);
-        return followUpQuestionsObject.EnumerateArray()
-            .Select(x => x.GetString()!)
-            .ToArray();
     }
 }
