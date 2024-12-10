@@ -19,7 +19,7 @@ public class ReadRetrieveReadChatService
     private readonly IConfiguration _configuration;
     private readonly IComputerVisionService? _visionService;
     private readonly TokenCredential? _tokenCredential;
-    private readonly IHubContext<ChatHub> _hubContext;
+    private readonly IHubContext<ChatHub>? _hubContext;
     private record StreamingMessage<T>(string Type, T Content);
 
     private string? _currentAnswer = null;
@@ -29,7 +29,7 @@ public class ReadRetrieveReadChatService
         ISearchService searchClient,
         OpenAIClient client,
         IConfiguration configuration,
-        IHubContext<ChatHub> hubContext,
+        IHubContext<ChatHub>? hubContext = null,
         IComputerVisionService? visionService = null,
         TokenCredential? tokenCredential = null)
     {
@@ -261,6 +261,11 @@ e.g.
             string? connectionId = null,
             CancellationToken cancellationToken = default)
     {
+        if (_hubContext is null)
+        {
+            throw new InvalidOperationException("HubContext is required for streaming response");
+        }
+
         if (string.IsNullOrEmpty(connectionId))
         {
             throw new ArgumentException("ConnectionId is required for streaming response", nameof(connectionId));
