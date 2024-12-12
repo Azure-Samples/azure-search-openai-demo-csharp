@@ -12,7 +12,7 @@ internal static class WebApplicationExtensions
         api.MapPost("openai/chat", OnPostChatPromptAsync);
 
         // Long-form chat w/ contextual history endpoint
-        api.MapPost("chat", OnPostChatAsync);
+        api.MapPost("chat/stream", OnPostChatStreamingAsync);
 
         // Upload a document
         api.MapPost("documents", OnPostDocumentAsync);
@@ -24,9 +24,6 @@ internal static class WebApplicationExtensions
         api.MapPost("images", OnPostImagePromptAsync);
 
         api.MapGet("enableLogout", OnGetEnableLogout);
-
-        // Add streaming chat endpoint
-        api.MapPost("chat/stream", OnPostChatStreamingAsync);
 
         return app;
     }
@@ -71,22 +68,6 @@ internal static class WebApplicationExtensions
                 yield return new ChatChunkResponse(choice.ContentUpdate.Length, choice.ContentUpdate);
             }
         }
-    }
-
-    private static async Task<IResult> OnPostChatAsync(
-        ChatRequest request,
-        ReadRetrieveReadChatService chatService,
-        CancellationToken cancellationToken)
-    {
-        if (request is { History.Length: > 0 })
-        {
-            var response = await chatService.ReplyAsync(
-                request.History, request.Overrides, cancellationToken);
-
-            return TypedResults.Ok(response);
-        }
-
-        return Results.BadRequest();
     }
 
     private static async IAsyncEnumerable<ChatAppResponse> OnPostChatStreamingAsync(

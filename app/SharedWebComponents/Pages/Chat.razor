@@ -88,10 +88,6 @@
                                     OnClick="@OnClearChat" Disabled=@(_isReceivingResponse || _questionAndAnswerMap is { Count: 0 }) />
                         </MudTooltip>
                     </MudItem>
-                    <MudItem xs="12" Class="pa-2">
-                        <MudCheckBox @bind-Checked="_useStreaming" Label="Use streaming mode" Color="Color.Secondary" 
-                                   Disabled="@_isReceivingResponse" />
-                    </MudItem>
                 </MudGrid>
             </MudItem>
         </MudGrid>

@@ -9,7 +9,6 @@ public sealed partial class Chat
     private UserQuestion _currentQuestion;
     private string _lastReferenceQuestion = "";
     private bool _isReceivingResponse = false;
-    private bool _useStreaming = false;
 
     private readonly Dictionary<UserQuestion, ChatAppResponseOrError?> _questionAndAnswerMap = [];
 
@@ -45,38 +44,35 @@ public sealed partial class Chat
         {
             var history = _questionAndAnswerMap
                 .Where(x => x.Value?.Choices is { Length: > 0 })
-                .SelectMany(x => new ChatMessage[] { new ChatMessage("user", x.Key.Question), new ChatMessage("assistant", x.Value!.Choices[0].Message.Content) })
+                .SelectMany(x => new ChatMessage[] { 
+                    new ChatMessage("user", x.Key.Question), 
+                    new ChatMessage("assistant", x.Value!.Choices[0].Message.Content) 
+                })
                 .ToList();
 
             history.Add(new ChatMessage("user", _userQuestion));
 
             var request = new ChatRequest([.. history], Settings.Overrides);
 
-            if (_useStreaming)
+            try
             {
-                try
-                {
-                    await foreach (var response in await ApiClient.PostStreamingRequestAsync(request, "api/chat/stream"))
-                    {
-                        _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(
-                            response.Choices,
-                            null);
-
-                        StateHasChanged();
-                        await Task.Delay(10);
-                    }
-                }
-                catch (Exception ex)
+                var responseStream = await ApiClient.PostStreamingRequestAsync(request, "api/chat/stream");
+                
+                await foreach (var response in responseStream)
                 {
                     _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(
-                        Array.Empty<ResponseChoice>(),
-                        ex.Message);
+                        response.Choices,
+                        null);
+
+                    StateHasChanged();
+                    await Task.Delay(1);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                var result = await ApiClient.ChatConversationAsync(request);
-                _questionAndAnswerMap[_currentQuestion] = result.Response;
+                _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(
+                    Array.Empty<ResponseChoice>(),
+                    ex.Message);
             }
 
             if (_questionAndAnswerMap[_currentQuestion]?.Error is null)

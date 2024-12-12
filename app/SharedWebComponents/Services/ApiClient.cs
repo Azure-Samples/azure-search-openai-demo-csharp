@@ -90,50 +90,6 @@ public sealed class ApiClient(HttpClient httpClient)
         }
     }
 
-    public Task<AnswerResult<ChatRequest>> ChatConversationAsync(ChatRequest request) => PostRequestAsync(request, "api/chat");
-
-    private async Task<AnswerResult<TRequest>> PostRequestAsync<TRequest>(
-        TRequest request, string apiRoute) where TRequest : ApproachRequest
-    {
-        var result = new AnswerResult<TRequest>(
-            IsSuccessful: false,
-            Response: null,
-            Approach: request.Approach,
-            Request: request);
-
-        var json = JsonSerializer.Serialize(
-            request,
-            SerializerOptions.Default);
-
-        using var body = new StringContent(
-            json, Encoding.UTF8, "application/json");
-
-        var response = await httpClient.PostAsync(apiRoute, body);
-
-        if (response.IsSuccessStatusCode)
-        {
-            var answer = await response.Content.ReadFromJsonAsync<ChatAppResponseOrError>();
-            return result with
-            {
-                IsSuccessful = answer is not null,
-                Response = answer,
-            };
-        }
-        else
-        {
-            var errorTitle = $"HTTP {(int)response.StatusCode} : {response.ReasonPhrase ?? "☹️ Unknown error..."}";
-            var answer = new ChatAppResponseOrError(
-                Array.Empty<ResponseChoice>(),
-                errorTitle);
-
-            return result with
-            {
-                IsSuccessful = false,
-                Response = answer
-            };
-        }
-    }
-
     public async Task<IAsyncEnumerable<ChatAppResponse>> PostStreamingRequestAsync<TRequest>(
         TRequest request, string apiRoute) where TRequest : ApproachRequest
     {
@@ -141,14 +97,22 @@ public sealed class ApiClient(HttpClient httpClient)
             request,
             SerializerOptions.Default);
 
-        using var body = new StringContent(
+        using var content = new StringContent(
             json, Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync(apiRoute, body);
+        // Use both HttpCompletionOption and CancellationToken
+        var response = await httpClient.PostAsync(
+            apiRoute, 
+            content, 
+            CancellationToken.None);
 
         if (response.IsSuccessStatusCode)
         {
-            var nullableResponses = response.Content.ReadFromJsonAsAsyncEnumerable<ChatAppResponse>();
+            var stream = await response.Content.ReadAsStreamAsync();
+            var nullableResponses = JsonSerializer.DeserializeAsyncEnumerable<ChatAppResponse>(
+                stream,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            
             return nullableResponses.Where(r => r != null)!;
         }
 
