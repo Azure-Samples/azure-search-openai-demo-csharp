@@ -815,3 +815,4 @@ output OPENAI_EMBEDDING_DEPLOYMENT string = openAiEmbeddingDeployment
 output AZURE_OPENAI_CHATGPT_MODEL_VERSION string = azureOpenAIChatGptModelVersion
 output AZURE_OPENAI_CHATGPT_MODEL_NAME string = azureOpenAIChatGptModelName
 output AZURE_SIGNALR_ENDPOINT string = signalr.outputs.endpoint
+output AZURE_CLIENT_ID string = web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
