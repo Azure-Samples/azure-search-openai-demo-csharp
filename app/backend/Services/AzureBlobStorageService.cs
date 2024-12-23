@@ -27,7 +27,6 @@ internal sealed class AzureBlobStorageService(BlobContainerClient container)
                         continue;
                     }
 
-                    var url = blobClient.Uri.AbsoluteUri;
                     await using var fileStream = file.OpenReadStream();
                     await blobClient.UploadAsync(fileStream, new BlobHttpHeaders
                     {
