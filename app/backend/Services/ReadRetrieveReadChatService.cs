@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Azure.Core;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
+using MinimalApi.Hubs;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MinimalApi.Services;
 #pragma warning disable SKEXP0011 // Mark members as static
@@ -15,11 +19,17 @@ public class ReadRetrieveReadChatService
     private readonly IConfiguration _configuration;
     private readonly IComputerVisionService? _visionService;
     private readonly TokenCredential? _tokenCredential;
+    private readonly IHubContext<ChatHub>? _hubContext;
+    private record StreamingMessage<T>(string Type, T Content);
+
+    private string? _currentAnswer = null;
+    private string? _currentThoughts = null;
 
     public ReadRetrieveReadChatService(
         ISearchService searchClient,
         OpenAIClient client,
         IConfiguration configuration,
+        IHubContext<ChatHub>? hubContext = null,
         IComputerVisionService? visionService = null,
         TokenCredential? tokenCredential = null)
     {
@@ -54,6 +64,7 @@ public class ReadRetrieveReadChatService
         _configuration = configuration;
         _visionService = visionService;
         _tokenCredential = tokenCredential;
+        _hubContext = hubContext;
     }
 
     public async Task<ChatAppResponse> ReplyAsync(
@@ -110,7 +121,7 @@ standard plan AND dental AND employee benefit.
         }
         else
         {
-            documentContents = string.Join("\r", documentContentList.Select(x =>$"{x.Title}:{x.Content}"));
+            documentContents = string.Join("\r", documentContentList.Select(x => $"{x.Title}:{x.Content}"));
         }
 
         // step 2.5
@@ -140,7 +151,6 @@ standard plan AND dental AND employee benefit.
             }
         }
 
-        
         if (images != null)
         {
             var prompt = @$"## Source ##
@@ -243,5 +253,329 @@ e.g.
             CitationBaseUrl: _configuration.ToCitationBaseUrl());
 
         return new ChatAppResponse(new[] { choice });
+    }
+
+    public async Task ReplyStreamingAsync(
+            ChatMessage[] history,
+            RequestOverrides? overrides,
+            string? connectionId = null,
+            CancellationToken cancellationToken = default)
+    {
+        if (_hubContext is null)
+        {
+            throw new InvalidOperationException("HubContext is required for streaming response");
+        }
+
+        if (string.IsNullOrEmpty(connectionId))
+        {
+            throw new ArgumentException("ConnectionId is required for streaming response", nameof(connectionId));
+        }
+
+        var chat = _kernel.GetRequiredService<IChatCompletionService>();
+        var embedding = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+        float[]? embeddings = null;
+        var question = history.LastOrDefault(m => m.IsUser)?.Content is { } userQuestion
+            ? userQuestion
+            : throw new InvalidOperationException("Use question is null");
+
+        if (overrides?.RetrievalMode != RetrievalMode.Text && embedding is not null)
+        {
+            embeddings = (await embedding.GenerateEmbeddingAsync(question, cancellationToken: cancellationToken)).ToArray();
+        }
+
+        // step 1
+        // use llm to get query if retrieval mode is not vector
+        string? query = null;
+        if (overrides?.RetrievalMode != RetrievalMode.Vector)
+        {
+            var getQueryChat = new ChatHistory(@"You are a helpful AI assistant, generate search query for followup question.
+Make your respond simple and precise. Return the query only, do not return any other text.
+e.g.
+Northwind Health Plus AND standard plan.
+standard plan AND dental AND employee benefit.
+");
+
+            getQueryChat.AddUserMessage(question);
+            var result = await chat.GetChatMessageContentAsync(
+                getQueryChat,
+                cancellationToken: cancellationToken);
+
+            query = result.Content ?? throw new InvalidOperationException("Failed to get search query");
+        }
+
+        // step 2
+        // use query to search related docs
+        var documentContentList = await _searchClient.QueryDocumentsAsync(query, embeddings, overrides, cancellationToken);
+
+        string documentContents = string.Empty;
+        if (documentContentList.Length == 0)
+        {
+            documentContents = "no source available.";
+        }
+        else
+        {
+            documentContents = string.Join("\r", documentContentList.Select(x => $"{x.Title}:{x.Content}"));
+        }
+
+        // step 2.5
+        // retrieve images if _visionService is available
+        SupportingImageRecord[]? images = default;
+        if (_visionService is not null)
+        {
+            var queryEmbeddings = await _visionService.VectorizeTextAsync(query ?? question, cancellationToken);
+            images = await _searchClient.QueryImagesAsync(query, queryEmbeddings.vector, overrides, cancellationToken);
+        }
+
+        // step 3
+        // put together related docs and conversation history to generate answer
+        var answerChat = new ChatHistory(
+            "You are a system assistant who helps the company employees with their questions. Be brief in your answers");
+
+        // add chat history
+        foreach (var message in history)
+        {
+            if (message.IsUser)
+            {
+                answerChat.AddUserMessage(message.Content);
+            }
+            else
+            {
+                answerChat.AddAssistantMessage(message.Content);
+            }
+        }
+
+        if (images != null)
+        {
+            var prompt = @$"## Source ##
+{documentContents}
+## End ##
+
+Answer question based on available source and images.
+Respond in the following format:
+[ANSWER START]
+Your answer here. If no source available, say I don't know.
+[ANSWER END]
+
+[THOUGHTS START]
+Brief thoughts on how you came up with the answer, e.g. what sources you used, what you thought about, etc.
+[THOUGHTS END]";
+
+            var tokenRequestContext = new TokenRequestContext(new[] { "https://storage.azure.com/.default" });
+            var sasToken = await (_tokenCredential?.GetTokenAsync(tokenRequestContext, cancellationToken) ?? throw new InvalidOperationException("Failed to get token"));
+            var sasTokenString = sasToken.Token;
+            var imageUrls = images.Select(x => $"{x.Url}?{sasTokenString}").ToArray();
+            var collection = new ChatMessageContentItemCollection();
+            collection.Add(new TextContent(prompt));
+            foreach (var imageUrl in imageUrls)
+            {
+                collection.Add(new ImageContent(new Uri(imageUrl)));
+            }
+
+            answerChat.AddUserMessage(collection);
+        }
+        else
+        {
+            var prompt = @$" ## Source ##
+{documentContents}
+## End ##
+
+Respond in the following format:
+[ANSWER START]
+Your answer here, add a source reference to the end of each sentence. e.g. Apple is a fruit [reference1.pdf][reference2.pdf]. If no source available, say I don't know.
+[ANSWER END]
+
+[THOUGHTS START]
+Brief thoughts on how you came up with the answer, e.g. what sources you used, what you thought about, etc.
+[THOUGHTS END]";
+            answerChat.AddUserMessage(prompt);
+        }
+
+        var promptExecutingSetting = new OpenAIPromptExecutionSettings
+        {
+            MaxTokens = 1024,
+            Temperature = overrides?.Temperature ?? 0.7,
+            StopSequences = [],
+        };
+
+        try
+        {
+            var streamingResponse = chat.GetStreamingChatMessageContentsAsync(
+                answerChat,
+                promptExecutingSetting,
+                cancellationToken: cancellationToken);
+
+            var currentStreamedContent = new StringBuilder();
+            await foreach (var content in streamingResponse)
+            {
+                if (!string.IsNullOrEmpty(content.Content))
+                {
+                    try
+                    {
+                        currentStreamedContent.Append(content.Content);
+                        var currentContent = currentStreamedContent.ToString();
+
+                        // Handle answer section
+                        if (currentContent.Contains("[ANSWER START]"))
+                        {
+                            var answerContent = currentContent
+                                .Split(new[] { "[ANSWER START]" }, StringSplitOptions.None)[1]
+                                .Split(new[] { "[ANSWER END]" }, StringSplitOptions.None)[0]
+                                .Trim();
+
+                            if (answerContent != _currentAnswer)
+                            {
+                                _currentAnswer = answerContent;
+                                var answerMessage = new StreamingMessage<string>("answer", _currentAnswer);
+                                await _hubContext.Clients.Client(connectionId)
+                                    .SendAsync("ReceiveMessage", JsonSerializer.Serialize(answerMessage), cancellationToken);
+                            }
+                        }
+
+                        // Handle thoughts section
+                        if (currentContent.Contains("[THOUGHTS START]"))
+                        {
+                            var thoughtsContent = currentContent
+                                .Split(new[] { "[THOUGHTS START]" }, StringSplitOptions.None)[1]
+                                .Split(new[] { "[THOUGHTS END]" }, StringSplitOptions.None)[0]
+                                .Trim();
+
+                            if (thoughtsContent != _currentThoughts)
+                            {
+                                _currentThoughts = thoughtsContent;
+                                var thoughtsArray = new[]
+                                {
+                                    new
+                                    {
+                                        Title = "Thoughts",
+                                        Description = _currentThoughts
+                                    }
+                                };
+                                var thoughtsMessage = new StreamingMessage<object>(
+                                    "thoughts",
+                                    thoughtsArray);
+                                await _hubContext.Clients.Client(connectionId)
+                                    .SendAsync("ReceiveMessage", JsonSerializer.Serialize(thoughtsMessage), cancellationToken);
+                            }
+                        }
+
+                        // If we haven't started any section yet, send as raw content
+                        if (!currentContent.Contains("[ANSWER START]") && !currentContent.Contains("[THOUGHTS START]"))
+                        {
+                            var streamingMessage = new StreamingMessage<string>("content", content.Content);
+                            await _hubContext.Clients.Client(connectionId)
+                                .SendAsync("ReceiveMessage", JsonSerializer.Serialize(streamingMessage), cancellationToken);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException("Error processing streaming response", ex);
+                    }
+                }
+            }
+
+            // Handle follow-up questions
+            if (overrides?.SuggestFollowupQuestions is true)
+            {
+                var followUpQuestionChat = new ChatHistory(@"You are a helpful AI assistant");
+                followUpQuestionChat.AddUserMessage($@"Generate three follow-up question based on the answer you just generated.
+# Answer
+{_currentAnswer}
+
+# Format of the response
+[FOLLOWUP START]
+Your follow-up questions here, one per line.
+[FOLLOWUP END]");
+
+                var followUpStreamingResponse = chat.GetStreamingChatMessageContentsAsync(
+                    followUpQuestionChat,
+                    promptExecutingSetting,
+                    cancellationToken: cancellationToken);
+
+                var followUpQuestions = new List<string>();
+                var followUpContent = new StringBuilder();
+
+                await foreach (var content in followUpStreamingResponse)
+                {
+                    if (!string.IsNullOrEmpty(content.Content))
+                    {
+                        try
+                        {
+                            followUpContent.Append(content.Content);
+                            var currentContent = followUpContent.ToString();
+
+                            if (currentContent.Contains("[FOLLOWUP START]"))
+                            {
+                                var questionsContent = currentContent
+                                    .Split(new[] { "[FOLLOWUP START]" }, StringSplitOptions.None)[1]
+                                    .Split(new[] { "[FOLLOWUP END]" }, StringSplitOptions.None)[0]
+                                    .Trim();
+
+                                var currentQuestions = questionsContent
+                                    .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(q => q.Trim())
+                                    .Where(q => !string.IsNullOrEmpty(q))
+                                    .ToList();
+
+
+                                if (!followUpQuestions.SequenceEqual(currentQuestions))
+                                {
+                                    followUpQuestions = currentQuestions;
+                                    var followUpMessage = new StreamingMessage<string[]>(
+                                        "followup",
+                                        followUpQuestions.ToArray());
+                                    await _hubContext.Clients.Client(connectionId)
+                                        .SendAsync("ReceiveMessage", JsonSerializer.Serialize(followUpMessage), cancellationToken);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new InvalidOperationException("Error processing follow-up questions streaming", ex);
+                        }
+                    }
+                }
+            }
+
+            // Send supporting content first
+            if (documentContentList.Length > 0)
+            {
+                var supportingContentArray = documentContentList.Select(x => new
+                {
+                    Title = x.Title,
+                    Description = x.Content
+                }).ToArray();
+
+                var supportingContent = new StreamingMessage<object>(
+                    "supporting",
+                    supportingContentArray);
+
+                await _hubContext.Clients.Client(connectionId)
+                    .SendAsync("ReceiveMessage", JsonSerializer.Serialize(supportingContent), cancellationToken);
+            }
+
+            // Then send supporting images if available
+            if (images?.Length > 0)
+            {
+                var supportingImagesArray = images.Select(x => new SupportingImageRecord(x.Title, x.Url)).ToArray();
+
+                var supportingImages = new StreamingMessage<object>("images", supportingImagesArray);
+
+                await _hubContext.Clients.Client(connectionId)
+                    .SendAsync("ReceiveMessage", JsonSerializer.Serialize(supportingImages), cancellationToken);
+            }
+
+            // Finally send the complete message
+            var completeMessage = new StreamingMessage<object>("complete", new
+            {
+                citationBaseUrl = _configuration.ToCitationBaseUrl()
+            });
+            await _hubContext.Clients.Client(connectionId)
+                .SendAsync("ReceiveMessage", JsonSerializer.Serialize(completeMessage), cancellationToken);
+
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Error in streaming response", ex);
+        }
     }
 }

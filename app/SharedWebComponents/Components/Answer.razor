@@ -28,11 +28,11 @@
                                 }
                             </div>
                         }
-                        @if (answer is { FollowupQuestions.Count: > 0 })
+                        @if (Retort?.Context?.FollowupQuestions is { Length: > 0 })
                         {
                             <div class="pt-4">
                                 <MudText Typo="Typo.subtitle2" Class="pb-2">Follow-up questions:</MudText>
-                                @foreach (var followup in answer.FollowupQuestions)
+                                @foreach (var followup in Retort.Context.FollowupQuestions)
                                 {
                                     <MudChip Variant="Variant.Text" Color="Color.Tertiary"
                                         OnClick="@(_ => OnAskFollowupAsync(followup))">

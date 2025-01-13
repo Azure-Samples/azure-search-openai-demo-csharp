@@ -41,6 +41,10 @@
                      Color="Color.Primary" 
                      Label="Use query-contextual summaries instead of whole documents" />
 
+        <MudCheckBox @bind-Checked="@Settings.Overrides.UseStreaming" Size="Size.Large"
+                     Color="Color.Primary" 
+                     Label="Use streaming responses" />
+
         <MudCheckBox @bind-Checked="@Settings.Overrides.SuggestFollowupQuestions" Size="Size.Large"
                      Color="Color.Primary" Label="Suggest follow-up questions"
                      aria-label="Suggest follow-up questions checkbox." />

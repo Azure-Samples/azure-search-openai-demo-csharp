@@ -104,6 +104,7 @@ public class ReadRetrieveReadChatServiceTest
             azureSearchService,
             openAIClient,
             configuration,
+            null,
             azureComputerVisionService,
             azureCredential);
 

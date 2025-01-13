@@ -7,6 +7,7 @@ languages:
 - bicep
 products:
 - ai-services
+- azure-signalr
 - azure-blob-storage
 - azure-container-apps
 - azure-cognitive-search
@@ -57,11 +58,11 @@ description: A csharp sample app that chats with your data using OpenAI and AI S
 [![Open in GitHub - Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=624102171&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&location=WestUs2)
 [![Open in Remote - Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/azure-search-openai-demo-csharp)
 
-This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data using the Retrieval Augmented Generation pattern. It uses Azure OpenAI Service to access the ChatGPT model (`gpt-4o-mini`), and Azure AI Search for data indexing and retrieval.
+This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data using the Retrieval Augmented Generation pattern. It uses Azure OpenAI Service to access the ChatGPT model (`gpt-4o-mini`), and Azure AI Search for data indexing and retrieval, and Azure SignalR Service for real-time streaming responses.
 
 The repo includes sample data so it's ready to try end-to-end. In this sample application, we use a fictitious company called Contoso Electronics, and the experience allows its employees to ask questions about the benefits, internal policies, as well as job descriptions and roles.
 
-![RAG Architecture](docs/appcomponents.png)
+![RAG Architecture](docs/appcomponents-signalr.png)
 
 For more details on how this application was built, check out:
 
@@ -75,6 +76,7 @@ We want to hear from you! Are you interested in building or currently building i
 ## Features
 
 - Voice Chat, Chat and Q&A interfaces
+- Real-time streaming responses using Azure SignalR Service
 - Explores various options to help users evaluate the trustworthiness of responses with citations, tracking of source content, etc.
 - Shows possible approaches for data preparation, prompt construction, and orchestration of interaction between model (ChatGPT) and retriever (Azure AI Search)
 - Settings directly in the UX to tweak the behavior and experiment with options
@@ -83,10 +85,11 @@ We want to hear from you! Are you interested in building or currently building i
 
 ## Application architecture
 
-- **User interface** - The application’s chat interface is a [Blazor WebAssembly](https://learn.microsoft.com/aspnet/core/blazor/) application. This interface is what accepts user queries, routes request to the application backend, and displays generated responses.
+- **User interface** - The application's chat interface is a [Blazor WebAssembly](https://learn.microsoft.com/aspnet/core/blazor/) application. This interface is what accepts user queries, routes request to the application backend, and displays generated responses.
 - **Backend** - The application backend is an [ASP.NET Core Minimal API](https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/overview). The backend hosts the Blazor static web application and what orchestrates the interactions among the different services. Services used in this application include:
    - [**Azure AI Search**](https://learn.microsoft.com/azure/search/search-what-is-azure-search) – indexes documents from the data stored in an Azure Storage Account. This makes the documents searchable using [vector search](https://learn.microsoft.com/azure/search/search-get-started-vector) capabilities. 
    - [**Azure OpenAI Service**](https://learn.microsoft.com/azure/ai-services/openai/overview) – provides the Large Language Models to generate responses. [Semantic Kernel](https://learn.microsoft.com/semantic-kernel/whatissk) is used in conjunction with the Azure OpenAI Service to orchestrate the more complex AI workflows.
+   - [**Azure SignalR Service**](https://learn.microsoft.com/azure/azure-signalr/signalr-overview) - enables real-time streaming of AI responses to the client application.
 
 ## Getting Started
 
@@ -108,8 +111,9 @@ Pricing varies per region and usage, so it isn't possible to predict exact costs
 - [**Azure OpenAI Service**](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/). Standard tier, GPT and Ada models. Pricing per 1K tokens used, and at least 1K tokens are used per question. 
 - [**Azure AI Document Intelligence**](https://azure.microsoft.com/pricing/details/ai-document-intelligence/). SO (Standard) tier using pre-built layout. Pricing per document page, sample documents have 261 pages total.
 - [**Azure AI Search**](https://azure.microsoft.com/pricing/details/search/) Basic tier, 1 replica, free level of semantic search. Pricing per hour.
-- [**Azure Blob Storage**](https://azure.microsoft.com/pricing/details/storage/blobs/). Standard tier with ZRS (Zone-redundant storage). Pricing per storage and read operations. 
+- [**Azure Blob Storage**](https://azure.microsoft.com/pricing/details/storage/blobs/). Standard tier with ZRS (Zone-redundant storage). Pricing per storage and read operations.
 - [**Azure Monitor**](https://azure.microsoft.com/pricing/details/monitor/). Pay-as-you-go tier. Costs based on data ingested.
+- [**Azure SignalR Service**](https://azure.microsoft.com/pricing/details/signalr-service/). Premium tier with 1 unit. Pricing per unit per hour.
 
 To reduce costs, you can switch to free SKUs for various services, but those SKUs have limitations. See this [guide on deploying with minimal costs](./docs/deploy_lowcost.md) for more details.
 
@@ -374,6 +378,7 @@ to production. Here are some things to consider:
 ### Resources
 
 - [Revolutionize your Enterprise Data with ChatGPT: Next-gen Apps w/ Azure OpenAI and Azure AI Search](https://aka.ms/entgptsearchblog)
+- [Azure SignalR Service](https://learn.microsoft.com/azure/azure-signalr/signalr-overview)
 - [Azure AI Search](https://learn.microsoft.com/azure/search/search-what-is-azure-search)
 - [Azure OpenAI Service](https://learn.microsoft.com/azure/cognitive-services/openai/overview)
 - [`Azure.AI.OpenAI` NuGet package](https://www.nuget.org/packages/Azure.AI.OpenAI)

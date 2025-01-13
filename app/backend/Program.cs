@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.SignalR;
+using Azure.Identity;
+using Microsoft.Azure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +19,29 @@ builder.Services.AddCrossOriginResourceSharing();
 builder.Services.AddAzureServices();
 builder.Services.AddAntiforgery(options => { options.HeaderName = "X-CSRF-TOKEN-HEADER"; options.FormFieldName = "X-CSRF-TOKEN-FORM"; });
 builder.Services.AddHttpClient();
+builder.Services.AddSignalR().AddAzureSignalR(options =>
+{
+    static string? GetEnvVar(string key) => Environment.GetEnvironmentVariable(key);
+
+    // Try to get endpoint and client ID first
+    var endpoint = GetEnvVar("AZURE_SIGNALR_ENDPOINT");
+    var clientId = GetEnvVar("AZURE_CLIENT_ID");
+
+    if (endpoint != null && clientId != null)
+    {
+        options.Endpoints = new[] 
+        { 
+            new ServiceEndpoint(new Uri(endpoint), new ManagedIdentityCredential(clientId))
+        };
+    }
+    else
+    {
+        // Fall back to connection string
+        var connectionString = GetEnvVar("AZURE_SIGNALR_CONNECTION_STRING")
+            ?? throw new InvalidOperationException("Neither managed identity credentials nor connection string are configured for Azure SignalR");
+        options.ConnectionString = connectionString;
+    }
+});
 
 if (builder.Environment.IsDevelopment())
 {

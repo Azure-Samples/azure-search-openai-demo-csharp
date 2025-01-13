@@ -46,4 +46,7 @@ public record RequestOverrides
 
     [JsonPropertyName("vector_fields")]
     public bool? VectorFields { get; set; } = false;
+
+    [JsonPropertyName("useStreaming")]
+    public bool UseStreaming { get; set; } = false;
 }
