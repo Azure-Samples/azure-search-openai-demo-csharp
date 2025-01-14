@@ -371,6 +371,8 @@ to production. Here are some things to consider:
 
 - **Loadtesting**: We recommend running a loadtest for your expected number of users.
 
+- **Stream tokens to web clients**: Consider using SignalR library which allows bi-directional communication between clients and server. You can easily reuse the single persistent connection for streaming down tokens to clients and receiving signals from them. SignalR simplifies implementing common features in AI chatbot, such as token cancellation. When leveraging [Azure SignalR service](https://learn.microsoft.com/azure/azure-signalr/signalr-overview), you can easily scale to 1M connections. Additionally, Azure SignalR fits nicely in a serverless deployment, providing a cost-efficient solution without worrying about server management. Refer to the [signalr branch](https://github.com/Azure-Samples/azure-search-openai-demo-csharp/tree/signalr) for code sample.
+
 ### Resources
 
 - [Revolutionize your Enterprise Data with ChatGPT: Next-gen Apps w/ Azure OpenAI and Azure AI Search](https://aka.ms/entgptsearchblog)
