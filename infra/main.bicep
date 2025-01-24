@@ -6,12 +6,12 @@ targetScope = 'subscription'
 param environmentName string
 
 @description('Primary location for all resources')
-@allowed([ 'centralus', 'eastus2', 'eastasia', 'westus', 'westeurope', 'westus2', 'australiaeast', 'eastus', 'francecentral', 'japaneast', 'nortcentralus', 'swedencentral', 'switzerlandnorth', 'uksouth' ])
+@allowed([ 'canadaeast', 'eastus2', 'swedencentral', 'australiaeast' ])
 param location string
 param tags string = ''
 
 @description('Location for the OpenAI resource group')
-@allowed([ 'canadaeast', 'westus', 'eastus', 'eastus2', 'francecentral', 'swedencentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus', 'australiaeast' ])
+@allowed([ 'canadaeast', 'eastus2', 'swedencentral', 'australiaeast' ])
 @metadata({
   azd: {
     type: 'location'
