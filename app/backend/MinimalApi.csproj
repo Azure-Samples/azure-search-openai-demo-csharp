@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>preview</LangVersion>
@@ -11,7 +10,6 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <PublishRelease>true</PublishRelease>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Azure.AI.FormRecognizer" />
     <PackageReference Include="Azure.AI.OpenAI" />
@@ -24,14 +22,11 @@
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <PackageReference Include="Microsoft.ML" />
     <PackageReference Include="Microsoft.SemanticKernel" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="PdfSharpCore" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\frontend\ClientApp.csproj" />
     <ProjectReference Include="..\shared\Shared\Shared.csproj" />
   </ItemGroup>
-
 </Project>

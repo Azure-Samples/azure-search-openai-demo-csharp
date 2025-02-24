@@ -1,13 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
@@ -22,16 +20,13 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="NSubstitute" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\backend\MinimalApi.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="..\..\..\data\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>data\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
   </ItemGroup>
-
 </Project>
