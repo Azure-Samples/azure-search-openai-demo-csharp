@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using OpenAI;
+
 namespace MinimalApi.Extensions;
 
 internal static class WebApplicationExtensions
@@ -43,29 +45,26 @@ internal static class WebApplicationExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var deploymentId = config["AZURE_OPENAI_CHATGPT_DEPLOYMENT"];
-        var response = await client.GetChatCompletionsStreamingAsync(
-            new ChatCompletionsOptions
-            {
-                DeploymentName = deploymentId,
-                Messages =
-                {
-                    new ChatRequestSystemMessage("""
+        var chatClient = client.GetChatClient(deploymentId);
+        var messages = new List<OpenAI.Chat.ChatMessage>
+        {
+            new OpenAI.Chat.SystemChatMessage("""
                         You're an AI assistant for developers, helping them write code more efficiently.
                         You're name is **Blazor 📎 Clippy** and you're an expert Blazor developer.
                         You're also an expert in ASP.NET Core, C#, TypeScript, and even JavaScript.
                         You will always reply with a Markdown formatted response.
                         """),
-                    new ChatRequestUserMessage("What's your name?"),
-                    new ChatRequestAssistantMessage("Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
-                    new ChatRequestUserMessage(prompt.Prompt)
-                }
-            }, cancellationToken);
+            new OpenAI.Chat.SystemChatMessage(@"What's your name?"),
+            new OpenAI.Chat.AssistantChatMessage(@"Hi, my name is **Blazor 📎 Clippy**! Nice to meet you."),
+            new OpenAI.Chat.UserChatMessage(prompt.Prompt)
+        };
+        var response = chatClient.CompleteChatStreamingAsync(messages: messages, cancellationToken: cancellationToken);
 
         await foreach (var choice in response.WithCancellation(cancellationToken))
         {
-            if (choice.ContentUpdate is { Length: > 0 })
+            if (choice.ContentUpdate is { Count: > 0 })
             {
-                yield return new ChatChunkResponse(choice.ContentUpdate.Length, choice.ContentUpdate);
+                yield return new ChatChunkResponse(choice.ContentUpdate.Count, choice.ContentUpdate.ToString()!);
             }
         }
     }
@@ -146,14 +145,21 @@ internal static class WebApplicationExtensions
         IConfiguration config,
         CancellationToken cancellationToken)
     {
-        var result = await client.GetImageGenerationsAsync(new ImageGenerationOptions
-        {
-            Prompt = prompt.Prompt,
-        },
-        cancellationToken);
+        //ToDo: update image generation model name
+        var imageGenerationModelName = config["AZURE_OPENAI_IMAGE_DEPLOYMENT"] ?? "dall-e-3";
+        Console.WriteLine(@$"===============================
+Image generation model name: {imageGenerationModelName}
+=============================================");
+        var imageClient = client.GetImageClient(imageGenerationModelName);
 
-        var imageUrls = result.Value.Data.Select(i => i.Url).ToList();
-        var response = new ImageResponse(result.Value.Created, imageUrls);
+        var result = await imageClient.GenerateImageAsync(prompt.Prompt);
+
+        var imageUrls = new List<Uri>
+        {
+            result.Value.ImageUri
+        };
+        //var response = new ImageResponse(result.Value..Created, imageUrls);
+        var response = new ImageResponse(DateTime.Now, imageUrls);
 
         return TypedResults.Ok(response);
     }

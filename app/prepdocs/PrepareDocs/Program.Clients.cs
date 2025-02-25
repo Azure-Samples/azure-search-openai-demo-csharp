@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using OpenAI;
+
 internal static partial class Program
 {
     private static BlobContainerClient? s_corpusContainerClient;
@@ -178,7 +180,7 @@ internal static partial class Program
                {
                    var endpoint = o.AzureOpenAIServiceEndpoint;
                    ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
-                   s_openAIClient = new OpenAIClient(
+                   s_openAIClient = new AzureOpenAIClient(
                        new Uri(endpoint),
                        DefaultCredential);
                }

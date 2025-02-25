@@ -4,6 +4,7 @@ using Azure.Core;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
+using OpenAI;
 
 namespace MinimalApi.Services;
 #pragma warning disable SKEXP0011 // Mark members as static
@@ -84,7 +85,7 @@ public class ReadRetrieveReadChatService
         string? query = null;
         if (overrides?.RetrievalMode != RetrievalMode.Vector)
         {
-            var getQueryChat = new ChatHistory(@"You are a helpful AI assistant, generate search query for followup question.
+            var getQueryChat = new ChatHistory(@"You are a helpful AI assistant, generate search query for follow up question.
 Make your respond simple and precise. Return the query only, do not return any other text.
 e.g.
 Northwind Health Plus AND standard plan.

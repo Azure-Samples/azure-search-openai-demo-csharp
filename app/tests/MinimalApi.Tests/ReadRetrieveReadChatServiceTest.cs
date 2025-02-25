@@ -1,19 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Azure.Search.Documents;
-using Azure.Search.Documents.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MinimalApi.Services;
 using NSubstitute;
+using OpenAI;
 using Shared.Models;
 
 namespace MinimalApi.Tests;
@@ -34,7 +28,7 @@ public class ReadRetrieveReadChatServiceTest
                 });
 
         var openAIEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new InvalidOperationException();
-        var openAIClient = new OpenAIClient(new Uri(openAIEndpoint), new DefaultAzureCredential());
+        var openAIClient = new AzureOpenAIClient(new Uri(openAIEndpoint), new DefaultAzureCredential());
         var openAiEmbeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new InvalidOperationException();
         var openAIChatGptDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_CHATGPT_DEPLOYMENT") ?? throw new InvalidOperationException();
 
