@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 
 using System.Net;
 using System.Text;
@@ -451,7 +451,7 @@ public sealed partial class AzureSearchEmbedService(
         {
             var embeddingsClient = openAIClient.GetEmbeddingClient(embeddingModelName);
             var embeddings = await embeddingsClient.GenerateEmbeddingAsync(input: section.Content.Replace('\r', ' '));
-            var embedding = embeddings.Value.ToFloats(); // .Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
+            var embedding = embeddings.Value.ToFloats(); 
             batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
                 IndexActionType.MergeOrUpload,
                 new SearchDocument
