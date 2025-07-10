@@ -13,11 +13,11 @@ resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = [for se
   tags: tags
   properties: {
     attributes: {
-      enabled: contains(secret, 'enabled') ? secret.enabled : true
-      exp: contains(secret, 'exp') ? secret.exp : 0
-      nbf: contains(secret, 'nbf') ? secret.nbf : 0
+      enabled: secret.?enabled ?? true
+      exp: secret.?exp ?? 0
+      nbf: secret.?nbf ?? 0
     }
-    contentType: contains(secret, 'contentType') ? secret.contentType : 'string'
+    contentType: secret.?contentType ?? 'string'
     value: secret.value
   }
 }]
