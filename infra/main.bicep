@@ -511,6 +511,9 @@ module storage 'core/storage/storage-account.bicep' = {
     location: storageResourceGroupLocation
     tags: updatedTags
     publicNetworkAccess: 'Enabled'
+    allowBlobPublicAccess: false
+    allowSharedKeyAccess: false
+    defaultToOAuthAuthentication: true
     sku: {
       name: 'Standard_LRS'
     }
@@ -521,7 +524,7 @@ module storage 'core/storage/storage-account.bicep' = {
     containers: [
       {
         name: storageContainerName
-        publicAccess: 'Blob'
+        publicAccess: 'None'
       }
     ]
   }
