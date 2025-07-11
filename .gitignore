@@ -483,3 +483,8 @@ env/
 venv/
 myvenv/
 ENV/
+
+# Bicep compiled outputs
+infra/**/*.json
+!infra/main.parameters.json
+!infra/abbreviations.json
