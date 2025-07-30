@@ -3,8 +3,8 @@ function getCookie(cname) {
     var ca = decodedCookie.split(';');
     for (var i = 0; i < ca.length; i++) {
         var arr = ca[i].split('=');
-        if (arr[0] == cname)
-            return arr[1]
+        if (arr[0].trim() == cname)
+            return arr[1].trim();
     }
     return "";
 }
