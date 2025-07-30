@@ -167,11 +167,11 @@ Then, run the following commands to get the project on your local environment:
 Execute the following command, if you don't have any pre-existing Azure services and want to start from a fresh deployment.
 
 1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
-   - For the target location, the regions that currently support the model used in this sample are **East US**. For an up-to-date list of regions and models, check [here](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models)
+   - For the target location, the regions that currently support the model used in this sample are **East US 2**. For an up-to-date list of regions and models, check [here](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models)
    - If you have access to multiple Azure subscriptions, you will be prompted to select the subscription you want to use. If you only have access to one subscription, it will be selected automatically.
 
    > **Note**:
-   > This application uses the `gpt-4o-mini` model. When choosing which region to deploy to, make sure they're available in that region (i.e. EastUS). For more information, see the [Azure OpenAI Service documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models#standard-deployment-model-availability).
+   > This application uses the `gpt-4o-mini` model. When choosing which region to deploy to, make sure they're available in that region (i.e. EastUS2). For more information, see the [Azure OpenAI Service documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models#standard-deployment-model-availability).
 
 1. After the application has been successfully deployed you will see a URL printed to the console. Click that URL to interact with the application in your browser.
 
@@ -327,7 +327,7 @@ To enable GPT-4V support with Azure OpenAI Service, run the following commands:
 azd env set USE_VISION true
 azd env set USE_AOAI true
 azd env set AZURE_OPENAI_CHATGPT_MODEL_NAME gpt-4o-mini
-azd env set AZURE_OPENAI_RESOURCE_LOCATION eastus # Please check the gpt model availability for more details.
+azd env set AZURE_OPENAI_RESOURCE_LOCATION eastus2 # Please check the gpt model availability for more details.
 azd up
 ```
 
