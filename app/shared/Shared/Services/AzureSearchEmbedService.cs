@@ -1,11 +1,10 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using Azure;
 using Azure.AI.FormRecognizer.DocumentAnalysis;
-using Azure.AI.OpenAI;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
@@ -13,6 +12,7 @@ using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
+using OpenAI;
 using Shared.Models;
 
 public sealed partial class AzureSearchEmbedService(
@@ -449,8 +449,9 @@ public sealed partial class AzureSearchEmbedService(
         var batch = new IndexDocumentsBatch<SearchDocument>();
         foreach (var section in sections)
         {
-            var embeddings = await openAIClient.GetEmbeddingsAsync(new Azure.AI.OpenAI.EmbeddingsOptions(embeddingModelName, [section.Content.Replace('\r', ' ')]));
-            var embedding = embeddings.Value.Data.FirstOrDefault()?.Embedding.ToArray() ?? [];
+            var embeddingsClient = openAIClient.GetEmbeddingClient(embeddingModelName);
+            var embeddings = await embeddingsClient.GenerateEmbeddingAsync(input: section.Content.Replace('\r', ' '));
+            var embedding = embeddings.Value.ToFloats(); 
             batch.Actions.Add(new IndexDocumentsAction<SearchDocument>(
                 IndexActionType.MergeOrUpload,
                 new SearchDocument
@@ -494,5 +495,4 @@ public sealed partial class AzureSearchEmbedService(
             }
         }
     }
-
 }

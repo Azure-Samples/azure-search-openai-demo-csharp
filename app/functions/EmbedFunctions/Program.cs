@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using Azure.AI.OpenAI;
+using OpenAI;
 
 var host = new HostBuilder()
     .ConfigureServices(services =>
@@ -70,7 +71,7 @@ var host = new HostBuilder()
             {
                 var openaiEndPoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? throw new ArgumentNullException("AZURE_OPENAI_ENDPOINT is null");
                 embeddingModelName = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? throw new ArgumentNullException("AZURE_OPENAI_EMBEDDING_DEPLOYMENT is null");
-                openAIClient = new OpenAIClient(new Uri(openaiEndPoint), new DefaultAzureCredential());
+                openAIClient = new AzureOpenAIClient(new Uri(openaiEndPoint), new DefaultAzureCredential());
             }
             else
             {
