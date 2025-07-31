@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 namespace SharedWebComponents.Pages;
+using System.Text;
 
 public sealed partial class Chat
 {
@@ -42,17 +43,39 @@ public sealed partial class Chat
         try
         {
             var history = _questionAndAnswerMap
-                .Where(x => x.Value?.Choices is { Length: > 0})
-                .SelectMany(x => new ChatMessage[] { new ChatMessage("user", x.Key.Question), new ChatMessage("assistant", x.Value!.Choices[0].Message.Content) })
+                .Where(x => x.Value?.Choices is { Length: > 0 })
+                .SelectMany(x => new ChatMessage[] { 
+                    new ChatMessage("user", x.Key.Question), 
+                    new ChatMessage("assistant", x.Value!.Choices[0].Message.Content) 
+                })
                 .ToList();
 
             history.Add(new ChatMessage("user", _userQuestion));
 
             var request = new ChatRequest([.. history], Settings.Overrides);
-            var result = await ApiClient.ChatConversationAsync(request);
 
-            _questionAndAnswerMap[_currentQuestion] = result.Response;
-            if (result.IsSuccessful)
+            try
+            {
+                var responseStream = await ApiClient.PostStreamingRequestAsync(request, "api/chat/stream");
+                
+                await foreach (var response in responseStream)
+                {
+                    _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(
+                        response.Choices,
+                        null);
+
+                    StateHasChanged();
+                    await Task.Delay(1);
+                }
+            }
+            catch (Exception ex)
+            {
+                _questionAndAnswerMap[_currentQuestion] = new ChatAppResponseOrError(
+                    Array.Empty<ResponseChoice>(),
+                    ex.Message);
+            }
+
+            if (_questionAndAnswerMap[_currentQuestion]?.Error is null)
             {
                 _userQuestion = "";
                 _currentQuestion = default;
