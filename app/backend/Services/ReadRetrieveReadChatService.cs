@@ -191,7 +191,17 @@ You answer needs to be a json object with the following format.
                        promptExecutingSetting,
                        cancellationToken: cancellationToken);
         var answerJson = answer.Content ?? throw new InvalidOperationException("Failed to get search query");
-        var answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
+
+        JsonElement answerObject;
+        try
+        {
+            answerObject = JsonSerializer.Deserialize<JsonElement>(answerJson);
+        }
+        catch (JsonException)
+        {
+            throw new InvalidOperationException($"Unable to cast '{answerJson}' as JsonElement.");
+        }
+        
         var ans = answerObject.GetProperty("answer").GetString() ?? throw new InvalidOperationException("Failed to get answer");
         var thoughts = answerObject.GetProperty("thoughts").GetString() ?? throw new InvalidOperationException("Failed to get thoughts");
 
