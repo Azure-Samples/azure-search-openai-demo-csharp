@@ -22,6 +22,9 @@ description: A csharp sample app that chats with your data using OpenAI and AI S
 ---
 <!-- YAML front-matter schema: https://review.learn.microsoft.com/en-us/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
 
+This solution's frontend and backend are both written in C#. There are also [**JavaScript**](https://aka.ms/azai/js/code), [**Java**](https://aka.ms/azai/java/code) and [**Python**](https://aka.ms/ragchat) samples based on this one. Learn more about [developing AI apps using Azure AI Services](https://aka.ms/azai).
+
+
 ## Table of Contents
 
 - [Features](#features)
