@@ -33,19 +33,27 @@ public class ReadRetrieveReadChatService
             kernelBuilder = kernelBuilder.AddOpenAIChatCompletion(deployment, client);
 
             var embeddingModelName = configuration["OpenAiEmbeddingDeployment"];
+            int embeddingModelDimensions;
+            if (!int.TryParse(configuration["AzureOpenAiEmbeddingModelDimensions"], out embeddingModelDimensions)) {
+                embeddingModelDimensions = 1536;
+            }
             ArgumentNullException.ThrowIfNullOrWhiteSpace(embeddingModelName);
-            kernelBuilder = kernelBuilder.AddOpenAITextEmbeddingGeneration(embeddingModelName, client);
+            kernelBuilder = kernelBuilder.AddOpenAITextEmbeddingGeneration(embeddingModelName, client, dimensions: embeddingModelDimensions);
         }
         else
         {
             var deployedModelName = configuration["AzureOpenAiChatGptDeployment"];
             ArgumentNullException.ThrowIfNullOrWhiteSpace(deployedModelName);
             var embeddingModelName = configuration["AzureOpenAiEmbeddingDeployment"];
+            int embeddingModelDimensions;
+            if (!int.TryParse(configuration["AzureOpenAiEmbeddingModelDimensions"], out embeddingModelDimensions)) {
+                embeddingModelDimensions = 1536;
+            }
             if (!string.IsNullOrEmpty(embeddingModelName))
             {
                 var endpoint = configuration["AzureOpenAiServiceEndpoint"];
                 ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint);
-                kernelBuilder = kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(embeddingModelName, endpoint, tokenCredential ?? new DefaultAzureCredential());
+                kernelBuilder = kernelBuilder.AddAzureOpenAITextEmbeddingGeneration(embeddingModelName, endpoint, tokenCredential ?? new DefaultAzureCredential(), dimensions: embeddingModelDimensions);
                 kernelBuilder = kernelBuilder.AddAzureOpenAIChatCompletion(deployedModelName, endpoint, tokenCredential ?? new DefaultAzureCredential());
             }
         }
