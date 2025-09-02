@@ -50,7 +50,7 @@ public sealed class ApiClient(HttpClient httpClient)
             content.Headers.Add("X-CSRF-TOKEN-FORM", cookie);
             content.Headers.Add("X-CSRF-TOKEN-HEADER", cookie);
 
-            var response = await httpClient.PostAsync("api/upload-and-queue", content);
+            var response = await httpClient.PostAsync("api/documents/upload-and-queue", content);
 
             response.EnsureSuccessStatusCode();
 
