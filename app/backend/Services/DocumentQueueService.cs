@@ -94,7 +94,7 @@ public sealed class DocumentQueueService : IDocumentQueueService, IDisposable
             {
                 existing.StartedAt = DateTime.UtcNow;
             }
-            else if (status == "Processing")
+            else if (status == "Completed")
             {
                 existing.CompletedAt = DateTime.UtcNow;
             }

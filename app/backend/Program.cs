@@ -1,10 +1,25 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Messaging.ServiceBus;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.Extensions.Options;
+using MinimalApi.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.ConfigureAzureKeyVault();
+
+builder.Services.AddSingleton(sp =>
+{
+    var opts = sp.GetRequiredService<IOptions<ServiceBusWorkerOptions>>().Value;
+    if (string.IsNullOrWhiteSpace(opts.Namespace))
+    {
+        throw new InvalidOperationException("ServiceBus:Namespace is not configured.");
+    }
+
+    var fqdn = $"{opts.Namespace}.servicebus.windows.net";
+    return new ServiceBusClient(fqdn, new DefaultAzureCredential());
+});
 
 // See: https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -16,6 +31,10 @@ builder.Services.AddCrossOriginResourceSharing();
 builder.Services.AddAzureServices();
 builder.Services.AddAntiforgery(options => { options.HeaderName = "X-CSRF-TOKEN-HEADER"; options.FormFieldName = "X-CSRF-TOKEN-FORM"; });
 builder.Services.AddHttpClient();
+
+builder.Services.AddHostedService<DocumentProcessor>();
+builder.Services.AddSingleton<IDocumentQueueService, DocumentQueueService>();
+builder.Services.AddSingleton<IAzureBlobStorageService, AzureBlobStorageService>();
 
 if (builder.Environment.IsDevelopment())
 {
@@ -98,5 +117,6 @@ app.Use(next => context =>
 app.MapFallbackToFile("index.html");
 
 app.MapApi();
+app.MapQueueEndPoints();
 
 app.Run();

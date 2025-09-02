@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Messaging.ServiceBus;
+using Azure.Search.Documents.Indexes;
+
 namespace MinimalApi.Extensions;
 
 internal static class ServiceCollectionExtensions
@@ -76,6 +79,42 @@ internal static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<AzureBlobStorageService>();
+        services.AddSingleton<IAzureBlobStorageService>(sp => sp.GetRequiredService<AzureBlobStorageService>());
+
+        services.AddSingleton<IDocumentQueueService, DocumentQueueService>();
+
+        services.AddSingleton<ServiceBusClient>(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var serviceBusNamespace = config["AZURE_SERVICE_BUS_NAMESPACE"];
+            ArgumentNullException.ThrowIfNullOrEmpty(serviceBusNamespace);
+            return new ServiceBusClient($"{serviceBusNamespace}.servicebus.windows.net", s_azureCredential);
+        });
+
+        services.AddSingleton<IEmbedService>(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var openAIClient = sp.GetRequiredService<OpenAIClient>();
+            var searchServiceEndpoint = config["AzureSearchServiceEndpoint"] ?? throw new ArgumentNullException("AzureSearchServiceEndpoint");
+            var searchIndexName = config["AzureSearchIndex"] ?? throw new ArgumentNullException("AzureSearchIndex");
+            var embeddingModelName = config["AzureOpenAiEmbeddingDeployment"] ?? config["OpenAiEmbeddingDeployment"] ?? throw new ArgumentNullException("AzureOpenAiEmbeddingDeployment");
+            var searchClient = new SearchClient(new Uri(searchServiceEndpoint), searchIndexName, s_azureCredential);
+            var searchIndexClient = new SearchIndexClient(new Uri(searchServiceEndpoint), s_azureCredential);
+            var documentClient = sp.GetRequiredService<DocumentAnalysisClient>();
+            var corpusContainer = sp.GetRequiredService<BlobContainerClient>();
+            var useVision = config["UseVision"] == "true";
+            ILogger<AzureSearchEmbedService> logger = sp.GetRequiredService<ILogger<AzureSearchEmbedService>>();
+            if (useVision)
+            {
+                var visionEndpoint = config["AzureComputerVisionServiceEndpoint"] ?? throw new ArgumentNullException("AzureComputerVisionServiceEndpoint");
+                var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+                var visionService = new AzureComputerVisionService(httpClient, visionEndpoint, s_azureCredential);
+                return new AzureSearchEmbedService(openAIClient, embeddingModelName, searchClient, searchIndexName, searchIndexClient, documentClient, corpusContainer, visionService, true, logger);
+            }
+            return new AzureSearchEmbedService(openAIClient, embeddingModelName, searchClient, searchIndexName, searchIndexClient, documentClient, corpusContainer, null, false, logger);
+        });
+
+        services.AddHostedService<DocumentProcessor>();
         services.AddSingleton<ReadRetrieveReadChatService>(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
