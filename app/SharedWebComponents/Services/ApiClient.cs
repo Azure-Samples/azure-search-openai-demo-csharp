@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Net.Http.Headers;
+using System.Linq;
 
 namespace SharedWebComponents.Services;
 
@@ -49,15 +50,15 @@ public sealed class ApiClient(HttpClient httpClient)
             content.Headers.Add("X-CSRF-TOKEN-FORM", cookie);
             content.Headers.Add("X-CSRF-TOKEN-HEADER", cookie);
 
-            var response = await httpClient.PostAsync("api/documents", content);
+            var response = await httpClient.PostAsync("api/upload-and-queue", content);
 
             response.EnsureSuccessStatusCode();
 
-            var result =
-                await response.Content.ReadFromJsonAsync<UploadDocumentsResponse>();
+            var queued = await response.Content.ReadFromJsonAsync<QueuedDocumentResult[]>();
 
-            return result
-                ?? UploadDocumentsResponse.FromError(
+            return queued is not null
+                ? new UploadDocumentsResponse(queued.Select(q => q.DocumentId).ToArray())
+                : UploadDocumentsResponse.FromError(
                     "Unable to upload files, unknown error.");
         }
         catch (Exception ex)

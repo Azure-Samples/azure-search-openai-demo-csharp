@@ -15,6 +15,11 @@ public interface IAzureBlobStorageService
     /// If the target name exists, a short suffix is added to avoid overwriting.
     /// </summary>
     Task<Uri> UploadFileAsync(IFormFile file, string? prefix = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Opens a read stream for the specified blob URI.
+    /// </summary>
+    Task<Stream> OpenReadAsync(Uri blobUri, CancellationToken cancellationToken = default);
 }
 
 internal sealed class AzureBlobStorageService(BlobContainerClient container) : IAzureBlobStorageService
@@ -144,6 +149,12 @@ internal sealed class AzureBlobStorageService(BlobContainerClient container) : I
             cancellationToken);
 
         return blobClient.Uri;
+    }
+
+    public Task<Stream> OpenReadAsync(Uri blobUri, CancellationToken cancellationToken = default)
+    {
+        var client = new BlobClient(blobUri, DefaultCredential);
+        return client.OpenReadAsync(cancellationToken: cancellationToken);
     }
 
     private static string GuessContentType(string ext) => ext switch

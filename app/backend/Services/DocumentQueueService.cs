@@ -15,22 +15,15 @@ public interface IDocumentQueueService
 
 public sealed class DocumentQueueService : IDocumentQueueService, IDisposable
 {
-    private readonly ServiceBusClient _client;
-    private readonly ServiceBusSender _sender;
+    private readonly IServiceBusSender _sender;
     private readonly ILogger<DocumentQueueService> _logger;
-    private readonly string _queueName = "document-processing";
 
     private static readonly ConcurrentDictionary<string, ProcessingStatus> s_statuses = new();
 
-    public DocumentQueueService(IConfiguration configuration, ILogger<DocumentQueueService> logger)
+    public DocumentQueueService(IServiceBusSender sender, ILogger<DocumentQueueService> logger)
     {
+        _sender = sender ?? throw new ArgumentNullException(nameof(sender));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-        var serviceBusNamespace = configuration["AZURE_SERVICE_BUS_NAMESPACE"]
-            ?? throw new ConfigurationErrorsException("AZURE_SERVICE_BUS_NAMESPACE");
-
-        _client = new ServiceBusClient($"{serviceBusNamespace}.servicebus.windows.net", new DefaultAzureCredential());
-        _sender = _client.CreateSender(_queueName);
     }
 
     public async Task<bool> QueueDocumentAsync(DocumentQueueMessage message)
@@ -56,7 +49,7 @@ public sealed class DocumentQueueService : IDocumentQueueService, IDisposable
             _logger.LogInformation("Queued document {documentID} for processing", message.DocumentId);
             return true;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to queue document {documentId}", message.DocumentId);
 
@@ -69,9 +62,8 @@ public sealed class DocumentQueueService : IDocumentQueueService, IDisposable
 
             return false;
         }
-
-
     }
+
     public Task<ProcessingStatus?> GetStatusAsync(string documentId)
     {
         s_statuses.TryGetValue(documentId, out var status);
@@ -103,7 +95,6 @@ public sealed class DocumentQueueService : IDocumentQueueService, IDisposable
     }
     public void Dispose()
     {
-        _sender?.DisposeAsync().AsTask().Wait();
-        _client?.DisposeAsync().AsTask().Wait();
+        _sender.DisposeAsync().AsTask().Wait();
     }
 }

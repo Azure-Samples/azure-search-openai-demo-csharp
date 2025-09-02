@@ -67,7 +67,8 @@ public sealed class DocumentProcessor : BackgroundService, IAsyncDisposable
             DocumentQueueService.UpdateStatus(queueMessage.DocumentId, "Processing");
 
             using var scope = _scopeFactory.CreateScope();
-            var success = await ProcessDocumentAsync(queueMessage, scope.ServiceProvider);
+            var processingService = scope.ServiceProvider.GetRequiredService<IDocumentProcessingService>();
+            var success = await processingService.ProcessDocumentAsync(queueMessage);
 
             if (success)
             {
@@ -104,22 +105,6 @@ public sealed class DocumentProcessor : BackgroundService, IAsyncDisposable
             {
                 await args.DeadLetterMessageAsync(args.Message, "Processing error", ex.Message);
             }
-        }
-    }
-
-    private async Task<bool> ProcessDocumentAsync(DocumentQueueMessage message, IServiceProvider serviceProvider)
-    {
-        try
-        {
-            var embedService = serviceProvider.GetRequiredService<IEmbedService>();
-            await using var stream = await new BlobClient(new Uri(message.BlobUri), new DefaultAzureCredential()).OpenReadAsync();
-            var result = await embedService.EmbedPDFBlobAsync(stream, message.FileName);
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing document {DocumentId}", message.DocumentId);
-            return false;
         }
     }
 
