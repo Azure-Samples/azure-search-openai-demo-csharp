@@ -1,12 +1,27 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Azure;
+
 namespace MinimalApi.Services;
 
-internal sealed class AzureBlobStorageService(BlobContainerClient container)
+public interface IAzureBlobStorageService
+{
+    Task<UploadDocumentsResponse> UploadFilesAsync(
+        IEnumerable<IFormFile> files,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Uploads a single file to {container}/{prefix}/{originalFileName or uniqueName} and returns the blob URI.
+    /// If the target name exists, a short suffix is added to avoid overwriting.
+    /// </summary>
+    Task<Uri> UploadFileAsync(IFormFile file, string? prefix = null, CancellationToken cancellationToken = default);
+}
+
+internal sealed class AzureBlobStorageService(BlobContainerClient container) : IAzureBlobStorageService
 {
     internal static DefaultAzureCredential DefaultCredential { get; } = new();
 
-    internal async Task<UploadDocumentsResponse> UploadFilesAsync(IEnumerable<IFormFile> files, CancellationToken cancellationToken)
+    public async Task<UploadDocumentsResponse> UploadFilesAsync(IEnumerable<IFormFile> files, CancellationToken cancellationToken)
     {
         try
         {
@@ -92,4 +107,51 @@ internal sealed class AzureBlobStorageService(BlobContainerClient container)
         Path.GetExtension(filename).ToLower() is ".pdf"
             ? $"{Path.GetFileNameWithoutExtension(filename)}-{page}.pdf"
             : Path.GetFileName(filename);
+
+    /// <summary>
+    /// Uploads a single file. For PDFs, uploads the file as-is (no page-splitting).
+    /// </summary>
+    public async Task<Uri> UploadFileAsync(IFormFile file, string? prefix = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+
+        var originalName = Path.GetFileName(file.FileName);
+        var ext = Path.GetExtension(originalName).ToLowerInvariant();
+        var basePath = string.IsNullOrWhiteSpace(prefix) ? "" : prefix!.Trim().TrimEnd('/') + "/";
+        var blobName = basePath + originalName;
+
+        var contentType = !string.IsNullOrWhiteSpace(file.ContentType)
+            ? file.ContentType
+            : GuessContentType(ext);
+
+        var blobClient = container.GetBlobClient(blobName);
+        if (await blobClient.ExistsAsync(cancellationToken))
+        {
+            var shortId = Guid.NewGuid().ToString("N")[..8];
+            var nameNoExt = Path.GetFileNameWithoutExtension(originalName);
+            blobName = $"{basePath}{nameNoExt}-{shortId}{ext}";
+            blobClient = container.GetBlobClient(blobName);
+        }
+
+        await using var stream = file.OpenReadStream();
+        await blobClient.UploadAsync(
+            stream,
+            new BlobUploadOptions
+            {
+                HttpHeaders = new BlobHttpHeaders { ContentType = contentType },
+                Conditions = new BlobRequestConditions { IfNoneMatch = new ETag("*") }
+            },
+            cancellationToken);
+
+        return blobClient.Uri;
+    }
+
+    private static string GuessContentType(string ext) => ext switch
+    {
+        ".png" => "image/png",
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif" => "image/gif",
+        ".pdf" => "application/pdf",
+        _ => "application/octet-stream"
+    };
 }
