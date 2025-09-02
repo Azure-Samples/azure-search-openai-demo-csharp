@@ -65,6 +65,9 @@ param openAiApiKey string
 @description('An array of service binds')
 param serviceBinds array
 
+@description('Service Bus namespace name')
+param serviceBusNamespaceName string = ''
+
 resource webIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
   location: location
@@ -149,7 +152,17 @@ module app '../core/host/container-app-upsert.bicep' = {
         name: 'OPENAI_API_KEY'
         value: openAiApiKey
       }
-    ]
+    ],
+    !empty(serviceBusNamespaceName) ? [
+      {
+        name: 'AZURE_SERVICE_BUS_NAMESPACE'
+        value: serviceBusNamespaceName
+      }
+      {
+        name: 'AZURE_SERVICE_BUS_QUEUE_NAME'
+        value: 'document-processing'
+      }
+    ] : [])
     targetPort: 8080
   }
 }
