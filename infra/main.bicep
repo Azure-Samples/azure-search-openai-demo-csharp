@@ -187,6 +187,9 @@ param enableQueueProcessing bool = true
 @allowed(['Basic', 'Standard', 'Premium'])
 param serviceBusSkuName string = 'Standard'
 
+@description('Name of the Service Bus queue')
+param documentProcessingQueueName string = 'document-processing'
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
@@ -347,6 +350,7 @@ module web './app/web.bicep' = {
     openAiEmbeddingDeployment: useAOAI ? azureEmbeddingDeploymentName : ''
     serviceBinds: []
     serviceBusNamespaceName: enableQueueProcessing ? '${abbrs.serviceBusNamespaces}${resourceToken}' : ''
+    serviceBusQueueName: enableQueueProcessing ? documentProcessingQueueName : ''
   }
 }
 
@@ -760,6 +764,7 @@ module serviceBus 'core/messaging/servicebus.bicep' = if (enableQueueProcessing)
     tags: updatedTags
     skuName: serviceBusSkuName
     principalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    queueName: documentProcessingQueueName
   }
 }
 
@@ -807,3 +812,4 @@ output AZURE_OPENAI_CHATGPT_MODEL_VERSION string = azureOpenAIChatGptModelVersio
 output AZURE_OPENAI_CHATGPT_MODEL_NAME string = azureOpenAIChatGptModelName
 output AZURE_SERVICE_BUS_NAMESPACE string = enableQueueProcessing ? serviceBus.outputs.serviceBusNamespaceName : ''
 output AZURE_SERVICE_BUS_ENDPOINT string = enableQueueProcessing ? serviceBus.outputs.serviceBusEndpoint : ''
+output AZURE_SERVICE_BUS_QUEUE_NAME string = enableQueueProcessing ? serviceBus.outputs.documentProcessingQueueName : ''

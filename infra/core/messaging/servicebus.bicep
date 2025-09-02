@@ -14,6 +14,9 @@ param skuName string = 'Standard'
 @description('Principal ID for MI access')
 param principalId string
 
+@description('The queue name')
+param queueName string = 'document-processing'
+
 resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2025-05-01-preview' = {
 	name: name
 	location: location
@@ -32,7 +35,7 @@ resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2025-05-01-preview
 
 resource documentProcessingQueue 'Microsoft.ServiceBus/namespaces/queues@2024-01-01' = {
   parent: serviceBusNamespace
-  name: 'document-processing'
+  name: queueName
   properties: {
     maxSizeInMegabytes: 1024
     maxDeliveryCount: 3
