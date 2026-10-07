@@ -47,10 +47,10 @@ jobs:
       - name: Checkout
         
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3.7.0
 
       - name: Install azd
-        uses: Azure/setup-azd@v2
+        uses: Azure/setup-azd@0b7e3a35ab00f2eee7080c845eb39c3f0ebfa553 # v2.4.0
         
       - name: 'Print manual run reason'
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -58,7 +58,7 @@ jobs:
           echo 'Reason: ${{ github.event.inputs.reason }}'
         
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@55ec9447dda3d1cf6bd587150f3262f30ee10815 # v3.4.2
         with:
           dotnet-version: 8.0.x
 
